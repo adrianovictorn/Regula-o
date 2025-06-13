@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Regulação</title>
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/cards.css">
+  <script src="js/dashboard.js" defer></script>
+</head>
+<body>
+  <!-- MENU LATERAL -->
+  <div class="menu">
+    <div class="profile">
+      <!-- Ícone/Avatar -->
+      <img src="images/person-circle.svg" alt="Avatar do usuário" />
+      <p>nome user</p>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="dashboard">Dashboard</a></li>
+            <li><a href="cadastrarsolicitacao">Adicionar Solicitações</a></li>
+            <li><a href="#">Solicitações</a></li>
+            <li><a href="logout">Sair</a></li>
+          </ul>
+    </nav>
+  </div>
+
+  <!-- CONTAINER PARA HEADER, MAIN, FOOTER -->
+  <div class="container">
+    <header>
+      <h2>Sistema de Regulação</h2>
+    </header>
+
+    <main>
+        <div class="cards-container">
+            <div class="card" onclick="window.location.href='pendentes.html'">
+              <h3>Solicitações Pendentes</h3>
+              <p id="pendentes">0</p>
+            </div>
+          
+            <div class="card" onclick="window.location.href='agendadas.html'">
+              <h3>Agendadas Este Mês</h3>
+              <p id="agendadas">0</p>
+            </div>
+          
+            <div class="card" onclick="window.location.href='maior-especialidade.html'">
+              <h3>Especialidade Mais Solicitada</h3>
+              <p id="maisSolicitada">-</p>
+            </div>
+          
+            <div class="card" onclick="window.location.href='urgentes.html'">
+              <h3>Solicitações Urgentes</h3>
+              <p id="urgentes">0</p>
+            </div>
+          
+            <div class="card" onclick="window.location.href='emergencias.html'">
+              <h3>Solicitações de Emergência</h3>
+              <p id="emergencias">0</p>
+            </div>
+          </div>
+          
+    </main>
+
+    <footer>
+      <p>&copy; 2025 - Sistema de Regulação</p>
+    </footer>
+  </div>
+</body>
+</html>

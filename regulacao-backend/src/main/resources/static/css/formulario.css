@@ -1,0 +1,122 @@
+
+h1{
+    margin-left: 30px;
+}
+
+h2{
+    margin-left: 30px;
+}
+/* Container para centralizar o formulário */
+.form-container {
+    width: 100%;
+    max-width: 400px; /* Largura máxima definida */
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    margin-left: 20px;
+
+  }
+  
+  /* =========================
+     ESTILIZAÇÃO BÁSICA DO FORMULÁRIO
+     ========================= */
+  .form-group {
+    margin-left: 30px;
+
+    margin-bottom: 15px;
+    text-align: left; /* Alinha os labels à esquerda */
+  }
+  
+  .form-group label {
+    display: inline-block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  
+  /* Inputs, selects e textareas aprimorados */
+  .form-group input[type="text"],
+  .form-group input[type="date"],
+  .form-group select,
+  .form-group textarea {
+    width: 97%; /* Ocupa 100% do container */
+    padding: 10px 8px;  /* Reduzido para inputs menores */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    font-size: 0.9rem;
+  }
+  
+  .form-group input[type="text"]:focus,
+  .form-group input[type="date"]:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #007b82;
+    box-shadow: 0 0 5px rgba(0, 123, 130, 0.3);
+  }
+  
+  /* =========================
+     BOTÕES DO FORMULÁRIO
+     ========================= */
+
+/* Ajuste para o container dos botões */
+/* Ajuste para o container dos botões */
+.button-group {
+    display: flex;
+    justify-content: center; 
+    gap: 15px; /* Espaço entre os botões */
+    margin-left: 30px;
+    margin-top: 15px;
+}
+
+/* Estilo para os fieldsets das especialidades */
+fieldset {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+/* Melhorando a seção de especialidades */
+.specialty-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-left: 30px;
+}
+
+/* Ajuste no tamanho dos selects e inputs */
+.specialty-group select {
+    min-width: 150px;
+    padding: 8px;
+}
+
+/* Ajuste nos botões */
+button {
+    padding: 10px 18px;
+    font-size: 1rem;
+    background-color: #055053;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: 30px;
+    padding: 15px;
+}
+
+button:hover {
+    background-color: #2db2b9;
+}
+
+button.remove-btn {
+    background-color: #d9534f;
+}
+
+button.remove-btn:hover {
+    background-color: #c9302c;
+}
+
+  

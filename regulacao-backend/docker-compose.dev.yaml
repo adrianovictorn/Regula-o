@@ -1,0 +1,60 @@
+version: "3.8"
+
+networks:
+  recepciona: # Rede para comunicação entre os containers
+    driver: bridge
+
+services:
+  postgres_container:
+    image: postgres:17.2
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: dev_marcacao_database
+    ports:
+      - "5432:5432"
+    networks:
+      - recepciona
+    volumes:
+      - marcacao_dev_postgres_data:/var/lib/postgresql/data
+
+  pgadmin_container:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@dev.com  
+      PGADMIN_DEFAULT_PASSWORD: dev_password
+    ports:
+      - "15432:80"
+    networks:
+      - recepciona
+    depends_on:
+      - postgres_container
+
+    configs:
+      - source: pg_admin_servers
+        target: /pgadmin4/servers.json
+      - source: pg_admin_pass
+        target: /pgpass
+
+configs:
+  pg_admin_pass:
+    content: postgres_container:5432:*:dev_user:dev_password
+  pg_admin_servers:
+    content: |
+      {"Servers": {"1": {
+        "Group": "Servers",
+        "Name": "Banco de Desenvolvimento",
+        "Host": "postgres_container",
+        "Port": 5432,
+        "MaintenanceDB": "postgres",
+        "Username": "dev_user",
+        "PassFile": "/pgpass",
+        "SSLMode": "prefer"
+      }}}
+
+volumes:
+  marcacao_dev_postgres_data:
