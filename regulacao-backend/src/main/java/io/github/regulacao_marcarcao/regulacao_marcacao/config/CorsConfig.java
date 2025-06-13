@@ -1,3 +1,4 @@
+// Arquivo: regulacao-backend/src/main/java/io/github/regulacao_marcarcao/regulacao_marcacao/config/CorsConfig.java
 package io.github.regulacao_marcarcao.regulacao_marcacao.config;
 
 import org.springframework.context.annotation.Bean;
@@ -13,12 +14,15 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+
         config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("https://sirg.ddns.net"); // Para produção
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // <-- Use /** para abranger tudo
+        source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
     }
