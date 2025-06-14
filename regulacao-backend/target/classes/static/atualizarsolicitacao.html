@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Atualização do Paciente</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" 
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" 
+        crossorigin="anonymous">
+  <script src="./js/lista-solicitacoes.js"></script>
+</head>
+<body>
+  <!-- MENU LATERAL -->
+  <div class="menu">
+    <div class="profile">
+      <img src="images/person-circle.svg" alt="Avatar do usuário" />
+      <p>nome user</p>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="dashboard">Dashboard</a></li>
+        <li><a href="cadastrarsolicitacao">Adicionar Solicitações</a></li>
+        <li><a href="#">Solicitações</a></li>
+        <li><a href="logout">Sair</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <header>
+    <h2>Sistema de Regulação</h2>
+  </header>
+
+  <!-- CONTAINER PARA HEADER, MAIN, FOOTER -->
+  <div class="container">
+    <main>
+      <h3>Atualização dos Dados do Paciente</h3>
+      <!-- Formulário preparado para receber dados do backend -->
+      <form id="form-update" method="POST" action="/atualizar">
+        <!-- Pode ser necessário incluir um campo hidden com o ID do paciente -->
+        <input type="hidden" name="id" value="${solicitacao.id}" />
+
+        <div class="form-group">
+          <label for="usfOrigem">Unidade de Origem:</label>
+          <select name="usfOrigem" id="usfOrigem" class="form-control">
+            <option value="USF01" ${solicitacao.usfOrigem == 'USF01' ? 'selected' : ''}>USF 01</option>
+            <option value="USF02" ${solicitacao.usfOrigem == 'USF02' ? 'selected' : ''}>USF 02</option>
+            <option value="USF03" ${solicitacao.usfOrigem == 'USF03' ? 'selected' : ''}>USF 03</option>
+            <option value="USF04" ${solicitacao.usfOrigem == 'USF04' ? 'selected' : ''}>USF 04</option>
+            <option value="USF05" ${solicitacao.usfOrigem == 'USF05' ? 'selected' : ''}>USF 05</option>
+            <option value="USF06" ${solicitacao.usfOrigem == 'USF06' ? 'selected' : ''}>USF 06</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="nomePaciente">Nome do Paciente:</label>
+          <input type="text" name="nomePaciente" id="nomePaciente" class="form-control" 
+                 value="${solicitacao.nomePaciente}" placeholder="Digite o nome do paciente">
+        </div>
+
+        <div class="form-group">
+          <label for="dataMalote">Data do Malote:</label>
+          <input type="date" name="dataMalote" id="dataMalote" class="form-control" 
+                 value="${solicitacao.dataMalote}">
+        </div>
+
+        <div class="form-group">
+          <label for="observacoes">Observações:</label>
+          <textarea name="observacoes" id="observacoes" class="form-control" rows="4" 
+                    placeholder="Digite as observações">${solicitacao.observacoes}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Atualizar Dados</button>
+      </form>
+    </main>
+  
+    <footer>
+      <p>&copy; 2025 - Sistema de Regulação</p>
+    </footer>
+  </div>
+
+  <!-- Scripts do Bootstrap -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" 
+          integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" 
+          crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" 
+          integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLa0r2Q0CvWfqgk3R5x6hqKrk9j4tJRf6P0H" 
+          crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" 
+          integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" 
+          crossorigin="anonymous"></script>
+</body>
+</html>
