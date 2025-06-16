@@ -12,6 +12,7 @@ public record SolicitacaoUpdateDTO(
     String nomePaciente,
     String observacoes,
     String cns,
+    String telefone,
     LocalDate datanascimento,
     LocalDate dataMalote,
     List<AgendamentoSolicitacao> agendamentoSolicitacaos,

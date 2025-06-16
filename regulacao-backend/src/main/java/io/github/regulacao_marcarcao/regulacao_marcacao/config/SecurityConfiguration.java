@@ -2,50 +2,72 @@ package io.github.regulacao_marcarcao.regulacao_marcacao.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import io.github.regulacao_marcarcao.regulacao_marcacao.config.JwtAuthenticationFilter; // Certifique-se que o import está correto
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfiguration {
-    
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http, 
+            AuthenticationProvider authenticationProvider,
+            JwtAuthenticationFilter jwtAuthFilter // Recebe o filtro como parâmetro
+    ) throws Exception {
         return http
-        
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> {
+            .csrf(AbstractHttpConfigurer::disable)
+            // 1. Define a política de sessão como STATELESS (correto para JWT)
+            .cors(Customizer.withDefaults())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> {
+                // 2. Define as rotas públicas: login e actuator.
+                auth.requestMatchers("/api/auth/**").permitAll();
                 auth.requestMatchers("/actuator/**").permitAll();
-                auth.requestMatchers("/login.html", "/js/**","/css/**","/images/**,/api/**" ).permitAll();
-                auth.requestMatchers("/api/**").permitAll();
+                
+                // 3. Todas as outras requisições exigem autenticação
                 auth.anyRequest().authenticated();
             })
-            .formLogin(login -> login
-            .loginPage("/login").permitAll()
-            .defaultSuccessUrl("/index", true)
-            )
+            .authenticationProvider(authenticationProvider)
+            // 4. Adiciona nosso filtro JWT para ser executado
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            // 5. REMOVIDO: .formLogin(...) não é usado com JWT
             .build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder(10);
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationProvider authenticationProvider(
+            UserDetailsService userDetailsService, // O Spring injeta seu AuthenticationService
+            PasswordEncoder passwordEncoder        // O Spring injeta o PasswordEncoder
+    ) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
+    }
 
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder){
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-        .builder()
-        .username("isabela")
-        .password(passwordEncoder.encode("isabela123"))
-        .roles("ADMIN")
-        .build();
-        return new InMemoryUserDetailsManager(userDetails);
-    } 
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 }

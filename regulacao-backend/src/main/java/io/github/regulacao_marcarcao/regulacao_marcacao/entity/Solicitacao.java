@@ -44,6 +44,10 @@ public class Solicitacao {
     @Column(name = "cns", nullable = false, length = 15)
     private String cns;
 
+    @Column(name = "telefone", nullable = true, length = 15)
+    private String telefone;
+
+
     @Column(name = "datanascimento")
     private LocalDate dataNascimento;
 

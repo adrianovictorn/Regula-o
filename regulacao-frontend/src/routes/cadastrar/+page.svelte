@@ -1,60 +1,31 @@
-
 <script lang="ts">
-  import { goto, invalidateAll } from '$app/navigation';
+  import { goto } from '$app/navigation';
+  // Importa a nossa função postApi que já envia o token JWT
+  import { postApi } from '$lib/api.js'; 
+  import { opcoesEspecialidades } from '$lib/Especialidades.js'; // Usando o objeto centralizado
 
-  export let data;
-  // pega direto do `data`
-  const { solicitacoes } = data;
-
-  let errors: { [key: string]: string } = {}
-  // campos do formulário
+  // --- ESTADO DO FORMULÁRIO ---
+  let errors: { [key: string]: string } = {};
+  let isLoading = false;
+  
+  // Campos do formulário
   let nomePaciente = '';
   let cpfPaciente = '';
   let cns = '';
+  let telefone ='';
   let datanascimento = '';
   let usfOrigem = '';
   let dataMalote = '';
   let observacoes = '';
 
-  
-
-  // lista de todas as especialidades possíveis
-const todasEspecialidades = [
-  { value: 'ANGIOLOGISTA', label: 'Angiologista' },
-  { value: 'CARDIOLOGISTA', label: 'Cardiologista' },
-  { value: 'DOPPLER', label: 'Doppler' },
-  { value: 'ENDOCRINOLOGISTA', label: 'Endocrinologista' },
-  { value: 'GASTROENTEROLOGISTA', label: 'Gastroenterologista' },
-  { value: 'MASTOLOGISTA', label: 'Mastologista' },
-  { value: 'MAMOGRAFIA', label: 'Mamografia' },
-  { value: 'DERMATOLOGISTA', label: 'Dermatologista' },
-  { value: 'NEFROLOGISTA', label: 'Nefrologista' },
-  { value: 'HOLTER', label: 'Holter' },
-  { value: 'ORTOPEDISTA', label: 'Ortopedista' },
-  { value: 'OFTALMOLOGISTA', label: 'Oftalmologista' },
-  { value: 'NEUROLOGISTA', label: 'Neurologista' },
-  { value: 'NEUROPEDIATRIA', label: 'Neuropediatria' },
-  { value: 'OTORRINOLARINGOLOGISTA', label: 'Otorrinolaringologista' },
-  { value: 'UROLOGISTA', label: 'Urologista' },
-  { value: 'REUMATOLOGISTA', label: 'Reumatologista' },
-  { value: 'PNEUMOLOGISTA', label: 'Pneumologista' },
-  { value: 'TESTE_ERGOMETRICO', label: 'Teste Ergométrico' },
-  { value: 'MAPA', label: 'Mapa' },
-  { value: 'HEMATOLOGISTA', label: 'Hematologista' },
-  { value: 'TOMOGRAFIA', label: 'Tomografia' },
-  { value: 'RESSONANCIA', label: 'Ressonância' },
-  { value: 'CINTILOGRAFIA', label: 'Cintilografia' },
-  { value: 'ELETRONEUROMIOGRAFIA', label: 'Eletroneuromiografia' },
-  { value: 'CATETERISMO', label: 'Cateterismo' }
-];
-
-
-  // inicializa uma especialidade em branco com status/prioridade padrão
+  // Inicializa uma especialidade em branco com status/prioridade padrão
   let especialidades = [
     { especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }
   ];
 
-  // adiciona mais um bloco de especialidade
+  // --- FUNÇÕES DO FORMULÁRIO ---
+
+  // Adiciona mais um bloco de especialidade
   function addEspecialidade() {
     especialidades = [
       ...especialidades,
@@ -62,20 +33,21 @@ const todasEspecialidades = [
     ];
   }
 
-  // remove a especialidade de índice i
-  function removerEspecialidade(i) {
+  // Remove a especialidade de índice i
+  function removerEspecialidade(i: number) {
     especialidades = especialidades.filter((_, idx) => idx !== i);
   }
 
-  // submete o formulário ao backend
-   async function submeterForm() {
-    // 1. Limpa os erros da tentativa anterior
-    errors = {};
+  // Submete o formulário ao backend usando o helper de API
+  async function submeterForm() {
+    isLoading = true;
+    errors = {}; // Limpa os erros da tentativa anterior
 
     const payload = {
       nomePaciente,
       cpfPaciente: cpfPaciente.replace(/\D/g, ''), // Envia somente os números
       cns,
+      telefone,
       datanascimento,
       usfOrigem,
       dataMalote,
@@ -84,49 +56,52 @@ const todasEspecialidades = [
     };
 
     try {
-      const res = await fetch(`/api/solicitacoes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      // ** AQUI ESTÁ A MUDANÇA PRINCIPAL **
+      // Usando 'postApi' em vez de 'fetch' para enviar o token automaticamente.
+      const res = await postApi('solicitacoes', payload);
 
       if (res.ok) {
-        // 2. Sucesso!
         alert('Solicitação cadastrada com sucesso!');
         limparCampos();
-        await invalidateAll(); // Atualiza os dados em outras partes do app
-        goto('/home'); // Redireciona para o dashboard
-
+        goto('/cadastrar'); // Redireciona para o dashboard
       } else if (res.status === 400) {
-        // 3. Erro de Validação!
+        // Erro de Validação do backend
         const errorData = await res.json();
-        // Mapeia os erros recebidos para o nosso objeto 'errors'
-        for (const error of errorData.errors) {
-            errors[error.field] = error.defaultMessage;
+        if (errorData.errors) {
+            for (const error of errorData.errors) {
+                errors[error.field] = error.defaultMessage;
+            }
+        } else {
+            errors.geral = errorData.message || 'Ocorreu um erro de validação.';
         }
       } else {
-        // 4. Outros erros do servidor
-        alert(`Erro no servidor: ${res.status}. Tente novamente.`);
+        // Outros erros do servidor
+        const errorText = await res.text();
+        alert(`Erro no servidor: ${res.status} - ${errorText}. Tente novamente.`);
       }
     } catch (err) {
       console.error("Erro de conexão:", err);
       alert("Não foi possível conectar ao servidor. Verifique sua conexão.");
+    } finally {
+        isLoading = false;
     }
   }
 
-  function limparCampos(){
-  nomePaciente = '';
-  cpfPaciente = '';
-  cns = '';
-  datanascimento = '';
-  usfOrigem = '';
-  dataMalote = '';
-  observacoes = '';
-  especialidades = [{ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }];
-}
+  function limparCampos() {
+    nomePaciente = '';
+    cpfPaciente = '';
+    cns = '';
+    telefone ='';
+    datanascimento = '';
+    usfOrigem = '';
+    dataMalote = '';
+    observacoes = '';
+    especialidades = [{ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }];
+  }
 
- function formatarCPF(e) {
-    let d = e.target.value.replace(/\D/g, '').slice(0,11);
+  function formatarCPF(e: Event) {
+    const target = e.target as HTMLInputElement;
+    let d = target.value.replace(/\D/g, '').slice(0, 11);
     d = d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3}\.\d{3})(\d)/, '$1.$2').replace(/(\d{3}\.\d{3}\.\d{3})(\d)/, '$1-$2');
     cpfPaciente = d;
   }
@@ -135,7 +110,7 @@ const todasEspecialidades = [
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
   <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">Regula System</h2>
+    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
     <nav class="flex-1 flex flex-col space-y-2 px-6">
       <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
       <a href="/cadastrar" class="py-2 px-4 rounded bg-emerald-700 transition">Nova Solicitação</a>
@@ -180,7 +155,7 @@ const todasEspecialidades = [
           </div>
 
           <!-- Dados Paciente -->
-          <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div class="flex flex-col">
               <label class="text-sm font-medium text-gray-700 mb-1">Nome do Paciente</label>
               <input type="text" bind:value={nomePaciente} class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required />
@@ -192,6 +167,10 @@ const todasEspecialidades = [
              <div class="flex flex-col">
               <label class="text-sm font-medium text-gray-700 mb-1">CNS</label>
               <input type="text" bind:value={cns} placeholder="Digite o cartão do SUS" maxlength="15" class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required />
+            </div>
+            <div class="flex flex-col">
+              <label class="text-sm font-medium text-gray-700 mb-1">Telefone</label>
+              <input type="text" bind:value={telefone} placeholder="(00)0 0000-0000" maxlength="15" class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500">
             </div>
             <div class="flex flex-col">
               <label class="text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
@@ -214,7 +193,7 @@ const todasEspecialidades = [
                   <!-- Procedimento -->
                   <select bind:value={esp.especialidadeSolicitada} class="border-gray-300 rounded-lg p-2" required>
                     <option value="" disabled>Procedimento</option>
-                    {#each todasEspecialidades as e}
+                    {#each opcoesEspecialidades.especialidadesMedicas as e}
                       <option value={e.value}>{e.label}</option>
                     {/each}
                   </select>

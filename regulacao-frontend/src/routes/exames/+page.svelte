@@ -1,23 +1,9 @@
-<script>
+<script lang='ts'>
   import { goto } from '$app/navigation';
+  import { getApi, postApi } from '$lib/api';
   import { onMount } from 'svelte';
 
-  export let data; // Dados da função load (listaDeSolicitacoes, error)
-  
-  // Variáveis do formulário e estado
-  let idSolicitacao = null; // ID da solicitação carregada
-  let nomePaciente = '';
-  let cpfPaciente = '';
-  let cns = '';
-  let datanascimento = '';
-  let usfOrigem = '';
-  let dataMalote = '';
-  let observacoes = '';
-  
-  let inputsReadonly = false;
 
-  // Lista de EXAMES derivada do enum EspecialidadesEnum (ItemCategoria.EXAME_OU_PROCEDIMENTO)
-  // Esta lista será usada para os checkboxes e também para o dropdown de adição manual, se mantido.
 const todosOsExamesDoEnum = [
     { value: 'DOPPLER', label: 'Doppler' },
     { value: 'MAMOGRAFIA', label: 'Mamografia' },
@@ -122,80 +108,130 @@ const todosOsExamesDoEnum = [
     { value: 'CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO', label: 'Cateterismo Cardíaco Diagnóstico' },
     { value: 'AVALIACAO_URODINAMICA_COMPLETA', label: 'Avaliação Urodinâmica Completa' },
     { value: 'EXERESE_PEQUENAS_LESOES_PELE_ANATOMOPATOLOGICO', label: 'Exerese Pequenas Lesões de Pele + AP' }
-].map(ex => ({ ...ex, selecionado: false })); // Adiciona a propriedade 'selecionado' para os checkboxes
+].map(ex => ({ ...ex, selecionado: false }));
 
-  // Se você ainda quiser distinguir "laboratoriais" dos demais para a lista de checkboxes,
-  // você precisará de uma lógica de filtro aqui. Por enquanto, 'examesDisponiveisParaCheckbox' usará todos os exames.
-  let examesDisponiveisParaCheckbox = [...todosOsExamesDoEnum];
+  let examesDisponiveisParaCheckbox = $state(todosOsExamesDoEnum);
+  let listaDeSolicitacoesParaDropdown = $state<any[]>([]);
+  let erroAoCarregar = $state<string | null>(null);
 
-  // Guarda os exames que o usuário adiciona manualmente (se a seção for mantida)
-  // ou os exames carregados de uma solicitação existente.
-  let examesDaSolicitacaoAtual = []; 
-  
-  let listaDeSolicitacoesParaDropdown = [];
-  let erroAoCarregarSolicitacoes = null;
+  // Estado do formulário
+  let idSolicitacao = $state<number | null>(null);
+  let nomePaciente = $state('');
+  let cpfPaciente = $state('');
+  let cns = $state('');
+  let datanascimento = $state('');
+  let usfOrigem = $state('');
+  let dataMalote = $state('');
+  let observacoes = $state('');
+  let inputsReadonly = $state(false);
+  let examesDaSolicitacaoAtual = $state<any[]>([]);
 
-  onMount(() => {
-    if (data.listaDeSolicitacoes) {
-      listaDeSolicitacoesParaDropdown = data.listaDeSolicitacoes;
+  // --- Lógica de Carregamento e Envio ---
+
+  async function carregarListaSolicitacoes() {
+    try {
+      const response = await getApi('solicitacoes'); // Usa a função de API autenticada
+      if (!response.ok) {
+        throw new Error('Falha ao buscar a lista de solicitações.');
+      }
+      listaDeSolicitacoesParaDropdown = await response.json();
+    } catch (e: any) {
+      erroAoCarregar = e.message;
     }
-    if (data.error) {
-      erroAoCarregarSolicitacoes = data.error;
-      alert(data.error); // Considerar uma notificação menos intrusiva
-    }
-  });
-  
-  async function carregarDadosSolicitacao(solicitacaoIdParam) {
+  }
+
+  onMount(carregarListaSolicitacoes);
+
+  async function carregarDadosSolicitacao(solicitacaoIdParam: string | null) {
     if (!solicitacaoIdParam) {
       limparFormularioCompleto();
       return;
     }
-    
-    const res = await fetch(`/api/solicitacoes/${solicitacaoIdParam}`); //
-    if (res.ok) {
-      const s = await res.json(); // Este é o SolicitacaoViewDTO
+    try {
+      // CORREÇÃO 1: Requisição GET não tem 'body'.
+      const res = await getApi(`solicitacoes/${solicitacaoIdParam}`);
+      if (!res.ok) throw new Error('Solicitação não encontrada.');
+      
+      const s = await res.json();
       idSolicitacao = s.id;
       nomePaciente = s.nomePaciente || '';
       cpfPaciente = s.cpfPaciente || '';
-      cns = s.cns || ''; 
+      cns = s.cns || '';
       datanascimento = s.datanascimento ? s.datanascimento.split('T')[0] : '';
       usfOrigem = s.usfOrigem || '';
       dataMalote = s.dataMalote ? s.dataMalote.split('T')[0] : '';
-      observacoes = s.observacoes || '';
       inputsReadonly = true;
-
-      // Limpa seleções anteriores de checkboxes
       examesDisponiveisParaCheckbox.forEach(ex => ex.selecionado = false);
+
+      examesDaSolicitacaoAtual = s.especialidades?.map((esp: any) => ({
+        ...esp,
+        label: todosOsExamesDoEnum.find(o => o.value === esp.especialidadeSolicitada)?.label || esp.especialidadeSolicitada
+      })) || [];
+
+    } catch (e: any) {
+      alert(`Erro ao carregar detalhes: ${e.message}`);
+      limparFormularioCompleto();
+    }
+  }
+
+  async function submeterForm() {
+    const examesSelecionados = examesDisponiveisParaCheckbox.filter(ex => ex.selecionado);
+
+    // MODO UPDATE
+    if (idSolicitacao) {
+      const paraAdicionar = examesSelecionados
+        .filter(sel => !examesDaSolicitacaoAtual.some(ex => ex.especialidadeSolicitada === sel.value))
+        .map(sel => ({
+            especialidadeSolicitada: sel.value,
+            status: 'AGUARDANDO',
+            prioridade: 'NORMAL'
+        }));
+
+      if (paraAdicionar.length === 0) {
+        alert("Nenhum novo exame selecionado para adicionar.");
+        return;
+      }
       
-      // Mapeia as especialidades (exames) da solicitação carregada
-      // para a lista 'examesDaSolicitacaoAtual'
-      examesDaSolicitacaoAtual = s.especialidades ? 
-        s.especialidades.map(esp => ({ // esp é SolicitacaoEspecialidadeViewDTO
-            // O campo 'especialidadeSolicitada' no DTO é uma String.
-            // Precisamos garantir que o value corresponde ao identificador do enum.
-            especialidadeSolicitada: esp.especialidadeSolicitada, 
-            status: esp.status,
-            prioridade: esp.prioridade,
-            // Se precisar do label para exibição, pode buscar em 'todosOsExamesDoEnum'
-            label: todosOsExamesDoEnum.find(e => e.value === esp.especialidadeSolicitada)?.label || esp.especialidadeSolicitada
-        })) : 
-        [];
+      for (const itemPayload of paraAdicionar) {
+        // CORREÇÃO 2: A variável do corpo (body) da requisição deve ser 'itemPayload'.
+        const res = await postApi(`solicitacoes/${idSolicitacao}/especialidades`, itemPayload);
+        if (!res.ok) {
+          alert(`Erro ao adicionar ${itemPayload.especialidadeSolicitada}.`);
+          return;
+        }
+      }
+      alert('Exames adicionados com sucesso!');
+      await carregarDadosSolicitacao(String(idSolicitacao));
 
+    // MODO CREATE
     } else {
-      alert("Erro ao carregar detalhes da solicitação selecionada.");
-      limparFormularioCompleto();
+      if (examesSelecionados.length === 0) {
+        alert("Selecione ao menos um exame para criar a solicitação.");
+        return;
+      }
+      const payloadNovaSolicitacao = {
+        nomePaciente, cpfPaciente, cns, datanascimento, usfOrigem, dataMalote, observacoes,
+        especialidades: examesSelecionados.map(sel => ({
+            especialidadeSolicitada: sel.value,
+            status: 'AGUARDANDO',
+            prioridade: 'NORMAL'
+        }))
+      };
+      
+      // CORREÇÃO 3: A variável do corpo (body) da requisição deve ser 'payloadNovaSolicitacao'.
+      const res = await postApi('solicitacoes', payloadNovaSolicitacao);
+      if (res.ok) {
+        alert('Nova solicitação criada com sucesso!');
+        limparFormularioCompleto();
+        await carregarListaSolicitacoes(); // Recarrega a lista do dropdown
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Erro ao criar solicitação: ${errorData.message || 'Verifique os dados.'}`);
+      }
     }
   }
 
-  function handleSelecaoSolicitacao(event) {
-    const selectedId = event.target.value;
-    if (selectedId) {
-      carregarDadosSolicitacao(selectedId);
-    } else {
-      limparFormularioCompleto();
-    }
-  }
-  
+  // Funções auxiliares (limpar formulário, formatar CPF, etc.)
   function limparFormularioCompleto() {
     idSolicitacao = null;
     nomePaciente = '';
@@ -207,126 +243,28 @@ const todosOsExamesDoEnum = [
     observacoes = '';
     inputsReadonly = false;
     examesDisponiveisParaCheckbox.forEach(ex => ex.selecionado = false);
-    examesDaSolicitacaoAtual = []; // Limpa os exames da solicitação anterior
-    const selectElement = document.getElementById('selectSolicitacao');
-    if (selectElement) selectElement.value = "";
+    examesDaSolicitacaoAtual = [];
+    const select = document.querySelector<HTMLSelectElement>('#selectSolicitacao');
+    if (select) select.value = "";
   }
-
-  // Seção para adicionar outros tipos de exames (que não são checkboxes)
-  // Esta seção é relevante principalmente para NOVAS solicitações.
-  function addOutroExame() {
-    // Só permite adicionar se for uma nova solicitação ou se a lógica de edição permitir
-     if (!idSolicitacao) {
-        examesDaSolicitacaoAtual = [
-        ...examesDaSolicitacaoAtual,
-        { especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }
-        ];
-     } else {
-         // Poderia ter uma lógica para adicionar a uma solicitação existente aqui,
-         // mas o fluxo principal de adição para existentes é via checkboxes por enquanto.
-         alert("Para adicionar outros exames a uma solicitação existente, use o fluxo de edição da solicitação ou contate o suporte.");
-     }
+  
+  function handleSelecaoSolicitacao(event: Event) {
+    const selectedId = (event.target as HTMLSelectElement).value;
+    carregarDadosSolicitacao(selectedId);
   }
-  function removerOutroExame(index) {
-    examesDaSolicitacaoAtual = examesDaSolicitacaoAtual.filter((_, i) => i !== index);
+  
+  function formatarCPF(e: Event) {
+    const target = e.target as HTMLInputElement;
+    let value = target.value.replace(/\D/g, '').slice(0, 11);
+    value = value.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3}\.\d{3})(\d)/, '$1.$2').replace(/(\d{3}\.\d{3}\.\d{3})(\d)/, '$1-$2');
+    cpfPaciente = value;
   }
-
-
-  async function submeterForm() {
-    if (idSolicitacao) { // Adicionar exames (dos checkboxes) a uma solicitação existente
-      const examesCheckboxParaAdicionar = examesDisponiveisParaCheckbox
-        .filter(ex => ex.selecionado)
-        // Opcional: filtrar para não adicionar exames que já existem na solicitação
-        .filter(exChk => !examesDaSolicitacaoAtual.some(exSol => exSol.especialidadeSolicitada === exChk.value))
-        .map(ex => ({
-          especialidadeSolicitada: ex.value,
-          status: 'AGUARDANDO', // Valor padrão
-          prioridade: 'NORMAL'  // Valor padrão
-        }));
-
-      if (examesCheckboxParaAdicionar.length === 0) {
-        alert("Nenhum novo exame selecionado nos checkboxes para adicionar.");
-        return;
-      }
-
-      let todosAdicionadosComSucesso = true;
-      for (const exame of examesCheckboxParaAdicionar) {
-        const payload = { // Conforme EspecialidadeAdicionarDTO
-            especialidadeSolicitada: exame.especialidadeSolicitada, // Este deve ser o NOME DA CONSTANTE DO ENUM
-            status: exame.status, // Enum StatusDaMarcacao
-            prioridade: exame.prioridade // Enum PrioridadeDaMarcacaoEnum
-        };
-        const res = await fetch(`/api/solicitacoes/${idSolicitacao}/especialidades`, { //
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) {
-          todosAdicionadosComSucesso = false;
-          const errorData = await res.json().catch(() => ({}));
-          alert(`Erro ao adicionar o exame ${exame.especialidadeSolicitada}: ${errorData.message || res.statusText}`);
-          break; 
-        }
-      }
-
-      if (todosAdicionadosComSucesso) {
-        alert('Novos exames selecionados foram adicionados à solicitação!');
-        // Recarregar os dados da solicitação para ver os exames atualizados
-        await carregarDadosSolicitacao(idSolicitacao); 
-      }
-
-    } else { // Criar uma nova solicitação
-      const examesLabDosCheckboxes = examesDisponiveisParaCheckbox
-        .filter(ex => ex.selecionado)
-        .map(ex => ({
-          especialidadeSolicitada: ex.value, // NOME DA CONSTANTE DO ENUM
-          status: 'AGUARDANDO',
-          prioridade: 'NORMAL'
-        }));
-      
-      // Combina exames dos checkboxes com os da seção "outros exames" (se houver)
-      const outrosExamesValidos = examesDaSolicitacaoAtual.filter(e => e.especialidadeSolicitada);
-      const todosOsExamesParaNova = [...examesLabDosCheckboxes, ...outrosExamesValidos];
-
-      if (todosOsExamesParaNova.length === 0) {
-          alert("Nenhum exame selecionado para a nova solicitação.");
-          return;
-      }
-
-      const payloadNovaSolicitacao = { // Conforme SolicitacaoCreateDTO
-        nomePaciente, cpfPaciente, cns, datanascimento,
-        usfOrigem, dataMalote, observacoes,
-        especialidades: todosOsExamesParaNova // Lista de SolicitacaoEspecialidadeCreateDTO
-      };
-
-      const res = await fetch(`/api/solicitacoes`, { //
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloadNovaSolicitacao)
-      });
-
-      if (res.ok) {
-        alert('Nova solicitação com exames cadastrada com sucesso!');
-        limparFormularioCompleto();
-        // goto('/exames'); // Opcional: redirecionar ou apenas limpar
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        alert(`Erro ao cadastrar nova solicitação: ${errorData.message || res.statusText}`);
-      }
-    }
-  }
-
-  function formatarCPF(e) {
-    let d = e.target.value.replace(/\D/g, '').slice(0,11);
-    d = d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3}\.\d{3})(\d)/, '$1.$2').replace(/(\d{3}\.\d{3}\.\d{3})(\d)/, '$1-$2');
-    cpfPaciente = d;
-  }
-
 </script>
+
 
 <div class="flex h-screen bg-gray-100">
   <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">Regula System</h2>
+    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
     <nav class="flex-1 flex flex-col space-y-2 px-6">
       <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
       <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
@@ -355,12 +293,12 @@ const todosOsExamesDoEnum = [
               {#each listaDeSolicitacoesParaDropdown as sol (sol.id)}
                 <option value={sol.id}>{sol.nomePaciente} (CPF: {sol.cpfPaciente || 'N/A'})</option>
               {/each}
-            {:else if !erroAoCarregarSolicitacoes}
+            {:else if !erroAoCarregar}
               <option disabled>Carregando solicitações...</option>
             {/if}
           </select>
-          {#if erroAoCarregarSolicitacoes}
-            <p class="text-red-500 text-sm mt-1">{erroAoCarregarSolicitacoes}</p>
+          {#if erroAoCarregar}
+            <p class="text-red-500 text-sm mt-1">{erroAoCarregar}</p>
           {/if}
         </div>
 

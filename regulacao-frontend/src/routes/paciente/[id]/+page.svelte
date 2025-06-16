@@ -1,223 +1,286 @@
-<script>
-  import { goto } from '$app/navigation';
-  export let data;
-  // Remova 'todasEspecialidades' daqui
-  const { solicitacao, historico, agendamentos } = data;
+<script lang="ts">
+    import { onMount } from "svelte";
+    import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
+    import { getApi, postApi, putApi } from '$lib/api'; // Importando todas as funções necessárias
+    import { opcoesEspecialidades } from '$lib/Especialidades.js';
 
-  // --- Campos editáveis do paciente (Solicitação) ---
-  let nomePaciente = solicitacao.nomePaciente;
-  let cpfPaciente = solicitacao.cpfPaciente;
-  let cns = solicitacao.cns;
-  let datanascimento = solicitacao.datanascimento;
-  let usfOrigem = solicitacao.usfOrigem;
-  let dataMalote = solicitacao.dataMalote;
-  let observacoes = solicitacao.observacoes;
+    // --- Estado do Componente com Svelte 5 Runes ---
+    let solicitacao = $state<any>(null);
+    let agendamentos = $state<any[]>([]);
+    let isLoading = $state(true);
+    let error = $state<string | null>(null);
 
-  // --- Lista hardcoded de todas as especialidades possíveis ---
-  const todasEspecialidades = [
-  { value: 'ANGIOLOGISTA', label: 'Angiologista' },
-  { value: 'CARDIOLOGISTA', label: 'Cardiologista' },
-  { value: 'DOPPLER', label: 'Doppler' },
-  { value: 'ENDOCRINOLOGISTA', label: 'Endocrinologista' },
-  { value: 'GASTROENTEROLOGISTA', label: 'Gastroenterologista' },
-  { value: 'MASTOLOGISTA', label: 'Mastologista' },
-  { value: 'MAMOGRAFIA', label: 'Mamografia' },
-  { value: 'DERMATOLOGISTA', label: 'Dermatologista' },
-  { value: 'NEFROLOGISTA', label: 'Nefrologista' },
-  { value: 'HOLTER', label: 'Holter' },
-  { value: 'ORTOPEDISTA', label: 'Ortopedista' },
-  { value: 'OFTALMOLOGISTA', label: 'Oftalmologista' },
-  { value: 'NEUROLOGISTA', label: 'Neurologista' },
-  { value: 'NEUROPEDIATRIA', label: 'Neuropediatria' },
-  { value: 'OTORRINOLARINGOLOGISTA', label: 'Otorrinolaringologista' },
-  { value: 'UROLOGISTA', label: 'Urologista' },
-  { value: 'REUMATOLOGISTA', label: 'Reumatologista' },
-  { value: 'PNEUMOLOGISTA', label: 'Pneumologista' },
-  { value: 'TESTE_ERGOMETRICO', label: 'Teste Ergométrico' },
-  { value: 'MAPA', label: 'Mapa' },
-  { value: 'HEMATOLOGISTA', label: 'Hematologista' },
-  { value: 'TOMOGRAFIA', label: 'Tomografia' },
-  { value: 'RESSONANCIA', label: 'Ressonância' },
-  { value: 'CINTILOGRAFIA', label: 'Cintilografia' },
-  { value: 'ELETRONEUROMIOGRAFIA', label: 'Eletroneuromiografia' },
-  { value: 'CATETERISMO', label: 'Cateterismo' }
-];
+    // Variáveis para o formulário de edição
+    let nomePaciente = $state('');
+    let cpfPaciente = $state('');
+    let cns = $state('');
+    let datanascimento = $state('');
+    let usfOrigem = $state('');
+    let dataMalote = $state('');
+    let observacoes = $state('');
+    let telefone = $state('');
 
-  // Objeto reativo para a nova especialidade a ser adicionada
-  let novaEspecialidadeObj = { especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' };
+    // Objeto reativo para a nova especialidade a ser adicionada
+    let novaEspecialidadeObj = $state({ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' });
+    
+    // --- Lógica de Carregamento de Dados ---
+    onMount(async () => {
+        const id = $page.params.id; // Pega o ID da URL
+        try {
+            // Busca dados da solicitação e agendamentos em paralelo
+            const [resSolicitacao, resAgendamentos] = await Promise.all([
+                getApi(`solicitacoes/${id}`),
+                getApi(`agendamentos/solicitacao/${id}`)
+            ]);
 
-  // --- Especialidades pendentes (se ainda usar esta variável) ---
-  let especPendentes = solicitacao.especialidades.filter(e => e.status === 'AGUARDANDO');
-  // 'novaEspec' não será mais usada para adicionar especialidades, apenas para o agendamento
-  let novaEspec = ''; // Mantido para o Agendamento, se aplicável
+            if (!resSolicitacao.ok) {
+                throw new Error('Falha ao buscar os dados do paciente.');
+            }
+            
+            // Popula o estado com os dados recebidos
+            solicitacao = await resSolicitacao.json();
+            if (resAgendamentos.ok) {
+                agendamentos = await resAgendamentos.json();
+            } else {
+                console.warn("Não foi possível carregar os agendamentos.");
+            }
 
+            // Preenche os campos do formulário para edição
+            nomePaciente = solicitacao.nomePaciente;
+            cpfPaciente = solicitacao.cpfPaciente;
+            cns = solicitacao.cns;
+            datanascimento = solicitacao.datanascimento;
+            usfOrigem = solicitacao.usfOrigem;
+            dataMalote = solicitacao.dataMalote;
+            observacoes = solicitacao.observacoes;
+            telefone = solicitacao.telefone || ''; // Usa um valor padrão caso não exista
 
-
-  // Atualiza dados do paciente (solicitação)
-  async function salvarPaciente() {
-    const res = await fetch(`http://localhost:8080/api/solicitacoes/${solicitacao.id}`, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        nomePaciente,
-        cpfPaciente,
-        cns,
-        datanascimento,
-        usfOrigem,
-        dataMalote,
-        observacoes
-      })
+        } catch (e: any) {
+            error = e.message;
+        } finally {
+            isLoading = false;
+        }
     });
-    if (res.ok) {
-      alert('Paciente atualizado com sucesso');
-      goto(`/paciente/${solicitacao.id}`);
-    } else {
-      alert('Erro ao atualizar paciente');
-    }
-  }
 
-  // Adiciona nova especialidade à solicitação
-  async function adicionarEspecialidade() {
-    if (!novaEspecialidadeObj.especialidadeSolicitada) {
-      alert('Selecione uma especialidade para adicionar.');
-      return;
-    }
-    const res = await fetch(`http://localhost:8080/api/solicitacoes/${solicitacao.id}/especialidades`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(novaEspecialidadeObj) // Enviando o objeto completo com status e prioridade
-    });
-    if (res.ok) {
-      alert('Especialidade adicionada');
-      location.reload(); // Recarrega a página para mostrar a nova especialidade
-    } else {
-      alert('Erro ao adicionar especialidade');
-    }
-  }
+    // --- Funções de Ação (com API autenticada) ---
 
- 
+    // Atualiza dados do paciente (solicitação)
+    async function salvarPaciente() {
+        if (!solicitacao) return;
+
+        const payload = {
+            nomePaciente, cpfPaciente, cns, telefone,
+            datanascimento, usfOrigem, dataMalote, observacoes
+        };
+        
+        // CORREÇÃO: Usando putApi para a requisição PUT
+        const res = await putApi(`solicitacoes/${solicitacao.id}`, payload);
+        
+        if (res.ok) {
+            alert('Paciente atualizado com sucesso');
+        } else {
+            alert('Erro ao atualizar paciente');
+        }
+    }
+
+    // Adiciona nova especialidade à solicitação
+    async function adicionarEspecialidade() {
+        if (!novaEspecialidadeObj.especialidadeSolicitada) {
+            alert('Selecione uma especialidade para adicionar.');
+            return;
+        }
+        if (!solicitacao) return;
+
+        // CORREÇÃO: Usando postApi para a requisição POST
+        const res = await postApi(`solicitacoes/${solicitacao.id}/especialidades`, novaEspecialidadeObj);
+        
+        if (res.ok) {
+            alert('Especialidade adicionada com sucesso!');
+            location.reload(); // Recarrega a página para refletir as mudanças
+        } else {
+            alert('Erro ao adicionar especialidade');
+        }
+    }
+
+    // Valores derivados para exibir na tela de forma reativa
+    let historico = $derived(solicitacao?.especialidades || []);
+    let especPendentes = $derived(historico.filter((e: any) => e.status === 'AGUARDANDO'));
+
 </script>
 
+<!-- O seu HTML e a estrutura do componente permanecem aqui, sem alterações. -->
+<!-- Vou omitir o HTML aqui porque você pediu para não mexer nele, mas ele deve vir abaixo deste script. -->
+
 <div class="flex h-screen bg-gray-100">
-  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">Regula System</h2>
+ <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
+    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
     <nav class="flex-1 flex flex-col space-y-2 px-6">
       <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
       <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800  ">Agendamento</a>
+      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
+      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
       <a href="/paciente" class="py-2 px-4 rounded bg-emerald-700">Paciente</a>
       <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
     </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • Adriano Victor, Filipe Ribeiro © 2025</div>
-  </aside>
+    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • © 2025</div>
+ </aside>
 
-  <div class="flex-1 flex flex-col">
+ <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white p-4 flex justify-between items-center">
-      <h1 class="text-xl font-semibold">Dados do Paciente</h1>
-      <div><span class="font-bold">CPF:</span> {cpfPaciente}</div>
+        {#if isLoading}
+            <h1 class="text-xl font-semibold">Carregando Dados do Paciente...</h1>
+        {:else if solicitacao}
+            <h1 class="text-xl font-semibold">Dados do Paciente</h1>
+            <div><span class="font-bold">CPF:</span> {solicitacao.cpfPaciente}</div>
+        {/if}
     </header>
 
     <main class="p-6 overflow-auto space-y-6">
-      <section class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-bold text-emerald-800 mb-4">Editar Paciente</h2>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-            <input type="text" bind:value={nomePaciente} class="w-full border border-gray-300 rounded p-2" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Cartão do SUS</label>
-            <input type="text" bind:value={cns} class="w-full border border-gray-300 rounded p-2" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">USF Origem</label>
-            <input type="text" bind:value={usfOrigem} class="w-full border border-gray-300 rounded p-2" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-            <input type="date" bind:value={datanascimento} class="w-full border border-gray-300 rounded p-2" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Data Recebimento</label>
-            <input type="date" bind:value={dataMalote} class="w-full border border-gray-300 rounded p-2" />
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-            <textarea bind:value={observacoes} rows="3" class="w-full border border-gray-300 rounded p-2"></textarea>
-          </div>
-        </div>
-        <button on:click={salvarPaciente} class="mt-4 bg-emerald-800 text-white px-6 py-2 rounded hover:bg-emerald-900">Salvar Alterações</button>
-      </section>
-
-      <section class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-bold text-emerald-800 mb-4">Histórico de Agendamentos</h2>
-        {#if agendamentos.length === 0}
-          <p class="text-gray-500">Nenhum agendamento encontrado.</p>
-        {:else}
-          <ul class="space-y-2">
-            {#each agendamentos as ag}
-              {#each historico as h }
-                <li class="flex justify-between p-2 border-b">
-                <span>Local: {ag.localAgendado.replace(/_/g,' ')}</span>
-                <span>Data do Agendamento: {ag.dataAgendada}</span>
-                <span>Observação: {ag.observacoes}</span>
-                <span>Especialidade: {h.especialidadeSolicitada}</span>
-                <span>Status: {h.status}</span>
-              </li>
-              {/each}
-            
-            {/each}
-          </ul>
-        {/if}
-      </section>
-
-      <section class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-bold text-emerald-800 mb-4">Especialidades</h2>
-        <ul class="space-y-2 mb-4">
-          {#each solicitacao.especialidades as e}
-            <li class="flex justify-between p-2 border-b">
-              <span>{e.especialidadeSolicitada}</span>
-              <span class="text-sm font-semibold">{e.status}</span>
-            </li>
-          {/each}
-        </ul>
-        <div class="space-y-4 p-4 border border-gray-200 rounded-lg">
-            <h3 class="text-md font-semibold text-gray-800 mb-2">Adicionar Nova Especialidade</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
-                    <select bind:value={novaEspecialidadeObj.especialidadeSolicitada} class="w-full border border-gray-300 rounded p-2" required>
-                        <option value="" disabled selected>Selecione a Especialidade</option>
-                        {#each todasEspecialidades as se}
-                            <option value={se.value}>{se.label}</option>
-                        {/each}
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select bind:value={novaEspecialidadeObj.status} class="w-full border border-gray-300 rounded p-2">
-                        <option value="AGUARDANDO">Aguardando</option>
-                        <option value="AGENDADO">Agendado</option>
-                        <option value="REALIZADO">Realizado</option>
-                        <option value="CANCELADO">Cancelado</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
-                    <select bind:value={novaEspecialidadeObj.prioridade} class="w-full border border-gray-300 rounded p-2">
-                        <option value="NORMAL">Normal</option>
-                        <option value="URGENTE">Urgente</option>
-                        <option value="EMERGENCIA">Emergência</option>
-                    </select>
-                </div>
+        {#if isLoading}
+            <div class="text-center p-10">Carregando...</div>
+        {:else if error}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+                <p class="font-bold">Erro ao carregar</p>
+                <p>{error}</p>
             </div>
-            <button on:click={adicionarEspecialidade} class="mt-4 bg-emerald-800 text-white px-6 py-2 rounded hover:bg-emerald-900">Adicionar Especialidade</button>
-        </div>
-      </section>
+        {:else if solicitacao}
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-bold text-emerald-800 mb-4">Editar Paciente</h2>
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <input type="text" bind:value={nomePaciente} class="w-full border border-gray-300 rounded p-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cartão do SUS</label>
+                        <input type="text" bind:value={cns} class="w-full border border-gray-300 rounded p-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">USF Origem</label>
+                        <input type="text" bind:value={usfOrigem} class="w-full border border-gray-300 rounded p-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+                        <input type="date" bind:value={datanascimento} class="w-full border border-gray-300 rounded p-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Data Recebimento</label>
+                        <input type="date" bind:value={dataMalote} class="w-full border border-gray-300 rounded p-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                        <input type="text" bind:value={telefone} class="w-full border border-gray-300 rounded p-2" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+                        <textarea bind:value={observacoes} rows="3" class="w-full border border-gray-300 rounded p-2"></textarea>
+                    </div>
+                </div>
+                <button on:click={salvarPaciente} class="mt-4 bg-emerald-800 text-white px-6 py-2 rounded hover:bg-emerald-900">Salvar Alterações</button>
+            </section>
+            
+            <section class="bg-gray-50 p-4 sm:p-6 rounded-lg">
+                <h2 class="text-xl font-bold text-emerald-800 mb-4">Histórico de Agendamentos</h2>
+                {#if agendamentos.length === 0}
+                    <div class="text-center py-8 bg-white rounded-md shadow-sm">
+                        <p class="text-gray-500">Nenhum agendamento encontrado.</p>
+                    </div>
+                {:else}
+                    <div class="space-y-4">
+                        {#each agendamentos as ag}
+                            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                                <div class="p-4 bg-gray-50 border-b">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                                        <div>
+                                            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Local</p>
+                                            <p class="text-base font-medium text-gray-900">{ag.localAgendado.replace(/_/g, ' ')}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Data</p>
+                                            <p class="text-base font-medium text-gray-900">{ag.dataAgendada}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Itens Agendados:</h4>
+                                    <ul class="space-y-2">
+                                        {#each historico.filter(h => h.agendamentoId === ag.id) as h}
+                                            <li class="flex justify-between items-center text-sm">
+                                                <span class="text-gray-800">{h.especialidadeSolicitada.replace(/_/g, ' ')}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{h.status}</span>
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </section>
 
-      
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-bold text-emerald-800 mb-4">Especialidades Pendentes</h2>
+                 {#if especPendentes.length > 0}
+                    <div class="border border-gray-200 rounded-md">
+                        <ul class="divide-y divide-gray-200">
+                            {#each especPendentes as e (e.id)}
+                                <li class="p-3 flex justify-between items-center hover:bg-gray-50 transition-colors">
+                                    <span class="text-gray-800 font-medium">{e.especialidadeSolicitada.replace(/_/g, ' ')}</span>
+                                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">{e.status}</span>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                 {:else}
+                    <div class="text-center py-6 px-4 bg-gray-50 rounded-md border border-dashed">
+                        <p class="text-gray-500">Nenhuma especialidade pendente.</p>
+                    </div>
+                 {/if}
+            </section>
+
+            <section class="bg-white rounded-lg shadow p-6">
+                <div class="space-y-4 p-4 border border-gray-200 rounded-lg">
+                    <h3 class="text-md font-semibold text-gray-800 mb-2">Adicionar Nova Especialidade</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
+                            <select bind:value={novaEspecialidadeObj.especialidadeSolicitada} class="w-full border border-gray-300 rounded p-2" required>
+                                <option value="" disabled>Selecione...</option>
+                                <optgroup label="Consultas">
+                                    {#each opcoesEspecialidades.especialidadesMedicas as opcoes}
+                                        <option value={opcoes.value}>{opcoes.label}</option>
+                                    {/each}
+                                </optgroup>
+                                <optgroup label="Exames e Procedimentos">
+                                    {#each opcoesEspecialidades.examesEProcedimentos as opcoes}
+                                        <option value={opcoes.value}>{opcoes.label}</option>
+                                    {/each}
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select bind:value={novaEspecialidadeObj.status} class="w-full border border-gray-300 rounded p-2">
+                                <option value="AGUARDANDO">Aguardando</option>
+                                <option value="AGENDADO">Agendado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
+                            <select bind:value={novaEspecialidadeObj.prioridade} class="w-full border border-gray-300 rounded p-2">
+                                <option value="NORMAL">Normal</option>
+                                <option value="URGENTE">Urgente</option>
+                                <option value="EMERGENCIA">Emergência</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button on:click={adicionarEspecialidade} class="mt-4 bg-emerald-800 text-white px-6 py-2 rounded hover:bg-emerald-900">Adicionar</button>
+                </div>
+            </section>
+        {/if}
     </main>
-  </div>
+ </div>
 </div>

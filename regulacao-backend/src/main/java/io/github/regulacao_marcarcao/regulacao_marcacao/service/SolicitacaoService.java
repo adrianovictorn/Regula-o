@@ -45,6 +45,7 @@ public class SolicitacaoService {
         solicitacao.setNomePaciente(dto.nomePaciente());
         solicitacao.setCpfPaciente(dto.cpfPaciente());
         solicitacao.setCns(dto.cns());
+        solicitacao.setTelefone(dto.telefone());
         solicitacao.setDataNascimento(dto.datanascimento());
         solicitacao.setObservacoes(dto.observacoes());
         solicitacao.setDataMalote(dto.dataMalote());
@@ -72,6 +73,7 @@ public class SolicitacaoService {
 
         solicitacao.setNomePaciente(dto.nomePaciente());
         solicitacao.setCns(dto.cns());
+        solicitacao.setTelefone(dto.telefone());
         solicitacao.setDataNascimento(dto.datanascimento());
         solicitacao.setObservacoes(dto.observacoes());
         solicitacao.setDataMalote(dto.dataMalote());

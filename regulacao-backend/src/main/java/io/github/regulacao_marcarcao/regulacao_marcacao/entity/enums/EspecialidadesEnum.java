@@ -13,18 +13,19 @@ public enum EspecialidadesEnum {
     ENDOCRINOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Endocrinologista"),
     GASTROENTEROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Gastroenterologista"),
     MASTOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Mastologista"),
-    DERTAMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Dermatologista"), // Mantido conforme DB, descrição corrigida
+    DERMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Dermatologista"), // Mantido conforme DB, descrição corrigida
     NEFROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Nefrologista"),
     ORTOPEDISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Ortopedista"),
     OFTALMOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Oftalmologista"),
     NEUROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Neurologista"),
     NEUROPEDIATRIA(ItemCategoria.ESPECIALIDADE_MEDICA, "Neuropediatria"),
-    PEDIATRA(ItemCategoria.ESPECIALIDADE_MEDICA, "Pediatria"),
+    PEDIATRA(ItemCategoria.ESPECIALIDADE_MEDICA, "PEDIATRA"),
+    PEDIATRIA(ItemCategoria.ESPECIALIDADE_MEDICA, "PEDIATRIA"),
     OTORRINOLARINGOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Otorrinolaringologista"),
     UROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Urologista"),
     REUMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Reumatologista"),
     PNEUMOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Pneumologista"),
-    HERMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Hematologista"), // Mantido conforme DB, descrição corrigida
+    HEMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Hematologista"), // Mantido conforme DB, descrição corrigida
     CONSULTA_OFTALMOLOGICA_REFRACAO(ItemCategoria.ESPECIALIDADE_MEDICA, "Consulta Oftalmológica (Refração)"),
 
     // --- EXAMES OU PROCEDIMENTOS (Exemplos) ---

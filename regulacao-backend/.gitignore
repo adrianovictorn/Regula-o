@@ -1,0 +1,24 @@
+# Arquivos de Log e Temporários
+*.log
+tmp/
+
+# Dependências do Java (Maven/Gradle)
+/target/
+.mvn/
+*.class
+*.jar
+*.war
+
+# Dependências do Node.js
+/node_modules/
+
+# Arquivos de Build e Cache do SvelteKit
+/.svelte-kit/
+/build/
+
+# Arquivos do Editor/SO
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.user

@@ -17,6 +17,7 @@ public record SolicitacaoCreateDTO(
     @UniqueCPF 
     String cpfPaciente,
     String cns,
+    String telefone,
     LocalDate datanascimento,
     String observacoes,
     LocalDate dataMalote,
