@@ -2,8 +2,7 @@ import { token } from '$lib/stores/auth.js';
 import { get } from 'svelte/store';
 
 // Define a URL base para todas as chamadas à sua API backend.
-const BASE_URL = 'http://localhost:8080/api';
-
+const BASE_URL = '/api';
 /**
  * Uma função central para enviar todas as requisições para a API.
  * @param {object} param0 - Objeto com método, caminho e dados.
