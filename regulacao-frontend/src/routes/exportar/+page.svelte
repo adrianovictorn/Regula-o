@@ -1,18 +1,88 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { getApi } from '$lib/api'; // Importa a API segura
+  import { getApi } from '$lib/api';
   import jsPDF from 'jspdf';
   import autoTable from 'jspdf-autotable';
+  import { opcoesEspecialidades } from '$lib/Especialidades.js';
 
-  // --- Estado do Componente (Svelte 5 Runes) ---
+  // --- Estado do Componente ---
   let dataSelecionada = $state(new Date().toISOString().split('T')[0]);
   let loadingType = $state<string | null>(null);
-  let allSolicitacoes = $state<any[]>([]); // Armazena todas as solicitações para o PDF geral
-  let isLoadingData = $state(true); // Controla o carregamento inicial dos dados
+  let allSolicitacoes = $state<any[]>([]);
+  let isLoadingData = $state(true);
+
+  // --- ESTRUTURA DE RELATÓRIOS ---
+  const tiposDeRelatorio = [
+    {
+      label: 'Laboratório',
+      color: 'bg-emerald-600',
+      hover: 'hover:bg-emerald-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />`,
+      especialidades: [
+        'HEMOGRAMA_COMPLETO', 'GLICEMIA_JEJUM', 'HEMOGLOBINA_GLICADA_HBA1C', 
+        'COLESTEROL_TOTAL', 'HDL_COLESTEROL', 'LDL_COLESTEROL', 'VLDL_COLESTEROL', 
+        'TRIGLICERIDEOS', 'UREIA', 'CREATININA', 'SODIO', 'POTASSIO', 'ACIDO_URICO', 
+        'SUMARIO_DE_URINA_EAS', 'UROCULTURA_COM_ANTIBIOGRAMA', 'PARASITOLOGICO_DE_FEZES', 
+        'PESQUISA_SANGUE_OCULTO_FEZES', 'TESTE_RAPIDO_GRAVIDEZ_TIG', 'TESTE_RAPIDO_HIV', 
+        'SOROLOGIA_HIV', 'TESTE_RAPIDO_SIFILIS', 'VDRL', 'TESTE_RAPIDO_HEPATITE_B', 
+        'HBSAG', 'ANTI_HBS', 'TESTE_RAPIDO_HEPATITE_C', 'ANTI_HCV', 
+        'TSH_HORMONIO_TIREOESTIMULANTE', 'T4_LIVRE', 'PSA_TOTAL', 'PSA_LIVRE', 
+        'BACILOSCOPIA_DE_ESCARRO_BAAR', 'CULTURA_DE_ESCARRO'
+      ]
+    },
+    {
+      label: 'Raio X',
+      color: 'bg-sky-600',
+      hover: 'hover:bg-sky-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+      especialidades: [
+        'RAIO_X_TORAX_PA', 'RAIO_X_TORAX_PA_PERFIL', 'RAIO_X_SEIOS_DA_FACE', 
+        'RAIO_X_COLUNA_CERVICAL', 'RAIO_X_COLUNA_DORSAL', 'RAIO_X_COLUNA_LOMBO_SACRA', 
+        'RAIO_X_ABDOMEN_SIMPLES', 'RAIO_X_ABDOMEN_AGUDO', 'RAIO_X_ARTICULACAO_COXO_FEMURAL_BACIA', 
+        'RAIO_X_JOELHO', 'RAIO_X_MAO_OU_QUIRODACTILOS', 'RAIO_X_PE_OU_PODODACTILOS'
+      ]
+    },
+    {
+      label: 'Ultrassonografia',
+      color: 'bg-indigo-600',
+      hover: 'hover:bg-indigo-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />`,
+      especialidades: [
+        'ULTRASSONOGRAFIA_PARTES_MOLES', 'ULTRASSONOGRAFIA_ABDOMINAL_TOTAL', 
+        'ULTRASSONOGRAFIA_ABDOMEN_SUPERIOR', 'ULTRASSONOGRAFIA_PELVICA_VIA_ABDOMINAL', 
+        'ULTRASSONOGRAFIA_PELVICA_TRANSVAGINAL', 'ULTRASSONOGRAFIA_OBSTETRICA', 
+        'ULTRASSONOGRAFIA_VIAS_URINARIAS', 'ULTRASSONOGRAFIA_PROSTATA_VIA_ABDOMINAL', 
+        'ULTRASSONOGRAFIA_TIREOIDE', 'ULTRASSONOGRAFIA_ARTICULAR'
+      ]
+    },
+    {
+      label: 'Cardiologia',
+      color: 'bg-rose-600',
+      hover: 'hover:bg-rose-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />`,
+      especialidades: [
+        'CARDIOLOGISTA', 'TESTE_ERGOMETRICO', 'HOLTER', 'MAPA', 
+        'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER', 'CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO'
+      ]
+    },
+     {
+      label: 'Doppler',
+      color: 'bg-teal-600',
+      hover: 'hover:bg-teal-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />`,
+      especialidades: [
+        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_UNILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_BILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS'
+      ]
+    },
+  ];
+
 
   onMount(async () => {
     try {
-      // Busca todos os dados uma única vez quando o componente é montado
       const res = await getApi('solicitacoes');
       if (!res.ok) throw new Error('Falha ao carregar dados do servidor.');
       allSolicitacoes = await res.json();
@@ -24,60 +94,49 @@
     }
   });
 
-  const relatoriosDiarios = [
-    { value: 'LABORATORIO', label: 'Laboratório', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />` },
-    { value: 'RAIO X', label: 'Raio X', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />` },
-    { value: 'ELETROCARDIOGRAMA', label: 'Eletrocardiograma', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048l-4.252 4.252a.75.75 0 01-1.06-1.06l4.252-4.252a.75.75 0 011.06 0l4.252 4.252a.75.75 0 01-1.06 1.06l-4.252-4.252" />` },
-    { value: 'USG', label: 'Ultrassonografia', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />` },
-  ];
-  const relatoriosAgendados = [
-    { value: 'DOPPLER', label: 'Doppler', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />` },
-    { value: 'CARDIOLOGIA', label: 'Cardiologia', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />` },
-    { value: 'ECOCARDIOGRAMA', label: 'Ecocardiograma', icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.357-.466.557-.327l5.603 3.112z" />` },
-    { value: 'PEDIATRIA', label: 'Pediatria', icon: `<path d="M12.75 3.09v2.64M15.34 4.14l-2.03 2.03M12.75 8.3v2.64M10.16 7.14l2.03-2.03M4.75 4.14l2.03 2.03M7.25 8.3v2.64M4.75 12.86l2.03-2.03M7.25 17.01v-2.64M12.75 12.86l-2.03 2.03M10.16 17.01v-2.64" />` },
-    { value: 'ORTOPEDIA', label: 'Ortopedia', icon: `<path d="M12.75 3.09v2.64M15.34 4.14l-2.03 2.03M12.75 8.3v2.64M10.16 7.14l2.03-2.03M4.75 4.14l2.03 2.03M7.25 8.3v2.64M4.75 12.86l2.03-2.03M7.25 17.01v-2.64M12.75 12.86l-2.03 2.03M10.16 17.01v-2.64" />` },
-  ];
-
-  async function gerarPlanilha(tipoPlanilha: string) {
+  async function gerarPlanilha(especialidades: string[], label: string) {
     if (!dataSelecionada) {
       alert('Por favor, selecione uma data.');
       return;
     }
-    loadingType = tipoPlanilha;
+    loadingType = label;
 
     try {
-        const checkUrl = `/exportar/verificar-dados?tipo=${encodeURIComponent(tipoPlanilha)}&data=${dataSelecionada}`;
-        const response = await getApi(checkUrl); // CORREÇÃO: Usa getApi autenticado
-        
-        if (!response.ok) throw new Error('Falha ao verificar dados com o servidor.');
-        
-        const result = await response.json();
-        if (result.dadosDisponiveis) {
-            // CORREÇÃO: Para baixar arquivos com autenticação, fazemos o fetch do blob
-            const downloadUrl = `/exportar/planilha?tipo=${encodeURIComponent(tipoPlanilha)}&data=${dataSelecionada}`;
-            const fileResponse = await getApi(downloadUrl);
-            const blob = await fileResponse.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `relatorio_${tipoPlanilha}_${dataSelecionada}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } else {
-            alert(`Nenhum dado encontrado para o relatório de ${tipoPlanilha} na data ${new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR')}.`);
-        }
+      const tiposQueryParam = especialidades.join(',');
+      
+      // CORREÇÃO: Removido o '/api' do início da URL
+      const checkUrl = `exportar/verificar-dados?tipos=${encodeURIComponent(tiposQueryParam)}&data=${dataSelecionada}&label=${encodeURIComponent(label)}`;
+      const response = await getApi(checkUrl);
+      
+      if (!response.ok) throw new Error('Falha ao verificar dados com o servidor.');
+      
+      const result = await response.json();
+      if (result.dadosDisponiveis) {
+        // CORREÇÃO: Removido o '/api' do início da URL
+        const downloadUrl = `exportar/planilha?tipos=${encodeURIComponent(tiposQueryParam)}&data=${dataSelecionada}&label=${encodeURIComponent(label)}`;
+        const fileResponse = await getApi(downloadUrl);
+        const blob = await fileResponse.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio_${label.replace(/\s+/g, '_').toLowerCase()}_${dataSelecionada}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert(`Nenhum dado encontrado para o relatório de ${label} na data ${new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR')}.`);
+      }
     } catch (error) {
-        console.error("Erro ao gerar planilha:", error);
-        alert("Ocorreu um erro de comunicação com o servidor. Tente novamente.");
+      console.error(`Erro ao gerar planilha de ${label}:`, error);
+      alert("Ocorreu um erro de comunicação com o servidor. Tente novamente.");
     } finally {
-        setTimeout(() => { loadingType = null; }, 1000);
+      setTimeout(() => { loadingType = null; }, 1000);
     }
   }
 
-  // --- NOVA FUNÇÃO: Gerar PDF com todos os dados ---
   function gerarPDFGeral() {
+      // ... (nenhuma alteração nesta função)
       if (isLoadingData || allSolicitacoes.length === 0) {
           alert('Não há dados carregados para gerar o PDF.');
           return;
@@ -94,7 +153,6 @@
               .map((e: any) => e.especialidadeSolicitada)
               .join(', ');
 
-          // Adiciona a linha apenas se houver especialidades pendentes
           if (pendentes) {
               const solicitacaoData = [
                   sol.id,
@@ -165,32 +223,26 @@
         </div>
         
         <section>
-          <h2 class="text-xl font-bold text-gray-700 mb-3">Relatórios Diários</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            {#each relatoriosDiarios as tipo}
-              <button onclick={() => gerarPlanilha(tipo.value)} disabled={loadingType === tipo.value} class="p-4 bg-emerald-600 text-white rounded-lg shadow-lg hover:bg-emerald-700 hover:scale-105 transform transition-all duration-200 flex flex-col items-center justify-center h-32 disabled:bg-gray-400 disabled:cursor-wait disabled:scale-100">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">{@html tipo.icon}</svg>
-                <span class="text-lg font-bold text-center">{tipo.label}</span>
-                {#if loadingType === tipo.value}<span class="text-xs mt-1 animate-pulse">Gerando...</span>{/if}
+          <h2 class="text-xl font-bold text-gray-700 mb-3">Relatórios por Tipo de Procedimento</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-5">
+            {#each tiposDeRelatorio as relatorio}
+              <button 
+                onclick={() => gerarPlanilha(relatorio.especialidades, relatorio.label)} 
+                disabled={loadingType === relatorio.label} 
+                class="p-4 {relatorio.color} text-white rounded-lg shadow-lg {relatorio.hover} hover:scale-105 transform transition-all duration-200 flex flex-col items-center justify-center h-32 disabled:bg-gray-400 disabled:cursor-wait disabled:scale-100"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  {@html relatorio.icon}
+                </svg>
+                <span class="text-lg font-bold text-center">{relatorio.label}</span>
+                {#if loadingType === relatorio.label}
+                  <span class="text-xs mt-1 animate-pulse">Gerando...</span>
+                {/if}
               </button>
             {/each}
           </div>
         </section>
-
-        <section>
-          <h2 class="text-xl font-bold text-gray-700 mb-3">Relatórios por Agendamento</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-5">
-            {#each relatoriosAgendados as tipo}
-                <button onclick={() => gerarPlanilha(tipo.value)} disabled={loadingType === tipo.value} class="p-4 bg-teal-600 text-white rounded-lg shadow-lg hover:bg-teal-700 hover:scale-105 transform transition-all duration-200 flex flex-col items-center justify-center h-32 disabled:bg-gray-400 disabled:cursor-wait disabled:scale-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">{@html tipo.icon}</svg>
-                    <span class="text-lg font-bold text-center">{tipo.label}</span>
-                    {#if loadingType === tipo.value}<span class="text-xs mt-1 animate-pulse">Gerando...</span>{/if}
-                </button>
-            {/each}
-          </div>
-        </section>
         
-        <!-- NOVA SEÇÃO PARA PDF GERAL -->
         <section>
             <h2 class="text-xl font-bold text-gray-700 mb-3">Relatórios Gerais</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
@@ -203,8 +255,7 @@
               </button>
             </div>
         </section>
-
       </div>
     </main>
-  </div>
+    </div>
 </div>

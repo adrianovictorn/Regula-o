@@ -1,5 +1,6 @@
 package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao; // Importar Solicitacao
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
@@ -13,8 +14,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map; // Importar Map
 import java.util.stream.Collectors;
 
 @Service
@@ -23,19 +24,28 @@ public class ExcelService {
 
     private final SolicitacaoEspecialidadeRepository especialidadeRepository;
 
-    public ByteArrayInputStream gerarPlanilhaAgendamentos(String tipo, LocalDate data) throws IOException {
-        List<EspecialidadesEnum> enumsCorrespondentes = Arrays.stream(EspecialidadesEnum.values())
-                .filter(e -> e.getDescricao().toUpperCase().contains(tipo.toUpperCase()))
-                .collect(Collectors.toList());
-
-        if (enumsCorrespondentes.isEmpty()) {
+    /**
+     * MÉTODO ATUALIZADO PARA AGRUPAR EXAMES POR PACIENTE
+     */
+    public ByteArrayInputStream gerarPlanilhaAgendamentos(List<EspecialidadesEnum> tipos, LocalDate data) throws IOException {
+        
+        if (tipos == null || tipos.isEmpty()) {
             return new ByteArrayInputStream(new ByteArrayOutputStream().toByteArray());
         }
 
-        List<SolicitacaoEspecialidade> especialidadesFiltradas = especialidadeRepository.findAgendadasPorDataEEnums(data, enumsCorrespondentes);
+        List<SolicitacaoEspecialidade> especialidadesFiltradas = especialidadeRepository.findAgendadasPorDataEEnums(data, tipos);
+
+        // --- INÍCIO DA NOVA LÓGICA DE AGRUPAMENTO ---
+        // 1. Agrupamos a lista de especialidades pelo objeto 'Solicitacao' pai.
+        // O resultado é um Mapa onde a chave é a Solicitação (paciente) e o valor é a lista de seus exames.
+        Map<Solicitacao, List<SolicitacaoEspecialidade>> agrupadoPorPaciente = especialidadesFiltradas.stream()
+                .collect(Collectors.groupingBy(SolicitacaoEspecialidade::getSolicitacao));
+        // --- FIM DA NOVA LÓGICA DE AGRUPAMENTO ---
+
 
         XSSFWorkbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet(tipo + " - " + data.toString());
+        String sheetName = tipos.get(0).getDescricao();
+        Sheet sheet = workbook.createSheet(sheetName);
 
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
@@ -54,14 +64,27 @@ public class ExcelService {
         }
 
         int rowNum = 1;
-        for (SolicitacaoEspecialidade esp : especialidadesFiltradas) {
+        // 2. Iteramos sobre o Mapa agrupado, não mais sobre a lista original.
+        for (Map.Entry<Solicitacao, List<SolicitacaoEspecialidade>> entry : agrupadoPorPaciente.entrySet()) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(esp.getSolicitacao().getNomePaciente());
-            LocalDate dataNasc = esp.getSolicitacao().getDataNascimento();
+            
+            Solicitacao paciente = entry.getKey();
+            List<SolicitacaoEspecialidade> examesDoPaciente = entry.getValue();
+
+            // 3. Pegamos os dados do paciente (que agora são únicos por linha)
+            row.createCell(0).setCellValue(paciente.getNomePaciente());
+            LocalDate dataNasc = paciente.getDataNascimento();
             row.createCell(1).setCellValue(dataNasc != null ? dataNasc.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-            row.createCell(2).setCellValue(esp.getSolicitacao().getUsfOrigem().name());
-            row.createCell(3).setCellValue(esp.getEspecialidadeSolicitada().getDescricao());
+            row.createCell(2).setCellValue(paciente.getUsfOrigem().name());
+
+            // 4. Mapeamos a lista de exames para seus nomes e juntamos com ", "
+            String examesAgrupados = examesDoPaciente.stream()
+                    .map(exame -> exame.getEspecialidadeSolicitada().getDescricao())
+                    .collect(Collectors.joining(", "));
+
+            row.createCell(3).setCellValue(examesAgrupados);
         }
+
 
         for (int i = 0; i < columns.length; i++) {
             sheet.autoSizeColumn(i);
@@ -72,18 +95,13 @@ public class ExcelService {
         workbook.close();
         return new ByteArrayInputStream(out.toByteArray());
     }
-
-    // --- NOVO MÉTODO PARA VERIFICAÇÃO ---
-    public boolean haDadosParaRelatorio(String tipo, LocalDate data) {
-        List<EspecialidadesEnum> enumsCorrespondentes = Arrays.stream(EspecialidadesEnum.values())
-                .filter(e -> e.getDescricao().toUpperCase().contains(tipo.toUpperCase()))
-                .collect(Collectors.toList());
-
-        if (enumsCorrespondentes.isEmpty()) {
+    
+    // O método de verificação não precisa ser alterado.
+    public boolean haDadosParaRelatorio(List<EspecialidadesEnum> tipos, LocalDate data) {
+        if (tipos == null || tipos.isEmpty()) {
             return false;
         }
-        
-        long count = especialidadeRepository.countAgendadasPorDataEEnums(data, enumsCorrespondentes);
+        long count = especialidadeRepository.countAgendadasPorDataEEnums(data, tipos);
         return count > 0;
     }
 }

@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { jsPDF } from 'jspdf';
+  import autoTable from 'jspdf-autotable';
   import { getApi, postApi } from '$lib/api';
+  import { opcoesEspecialidades } from '$lib/Especialidades.js';
 
   // --- Estado do Componente ---
   let solicitacoes = $state<any[]>([]);
@@ -16,8 +18,22 @@
   let localAgendado = $state('');
   let observacoes = $state('');
 
-  // --- Carregamento de Dados ---
-  // Função para buscar os dados, para que possamos reutilizá-la.
+  // <<< NOVO: Dicionário e função para traduzir nomes de exames >>>
+  // 1. Criamos um mapa para busca rápida dos nomes amigáveis.
+  const especialidadeLabelMap = new Map(
+    [
+      ...opcoesEspecialidades.especialidadesMedicas,
+      ...opcoesEspecialidades.examesEProcedimentos
+    ].map(opt => [opt.value, opt.label])
+  );
+
+  // 2. Função auxiliar para obter o nome amigável.
+  function getEspecialidadeLabel(valor: string): string {
+    return especialidadeLabelMap.get(valor) || valor.replace(/_/g, ' ');
+  }
+  // <<< FIM DA SEÇÃO NOVA >>>
+
+
   async function carregarSolicitacoesPendentes() {
     isLoading = true;
     error = '';
@@ -35,16 +51,12 @@
     }
   }
 
-  // Executa a função de carregamento quando o componente é montado no navegador.
   onMount(carregarSolicitacoesPendentes);
 
-  // --- Estado Derivado ---
-  // Recalcula o paciente selecionado sempre que o `solicitacaoId` ou a lista de `solicitacoes` mudar.
   let solicitacaoSelecionada = $derived(
     solicitacoes.find((s) => String(s.solicitacaoId) === String(solicitacaoId)) || null
   );
 
-  // --- Constantes e Funções Auxiliares (PDF) ---
   const locais = [
     { value: 'POLICLINICA_RECONVALE', label: 'Policlínica Reconvale' },
     { value: 'POLICLINICA_MUNICIPAL_DE_SANTO_ANTONIO_DE_JESUS', label: 'Policlínica Municipal de Santo Antônio de Jesus' },
@@ -106,13 +118,11 @@
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     let currentY = margin.top;
+    
+    const corDestaque = '#0D7244';
+    const corPadrao = '#1f2937';
+    const corLabel = '#374151';
 
-    // --- Definindo as cores ---
-    const corDestaque = '#0D7244';  // Um tom de vinho para destaques
-    const corPadrao = '#1f2937';     // Cinza escuro para textos normais
-    const corLabel = '#374151';      // Cinza um pouco mais claro para labels
-
-    // --- Cabeçalho e Título (sem alterações) ---
     const imgWidth = 60;
     const imgHeight = 60;
     const imgX = pageWidth / 2 - imgWidth / 2;
@@ -142,22 +152,23 @@
     doc.text('Comprovante de Agendamento', pageWidth / 2, currentY, { align: 'center' });
     currentY += 35;
 
-    // --- Array de Informações com Estilos Definidos ---
-    // Agora todos os itens têm cor e, opcionalmente, estilo.
+    // <<< ALTERADO: Traduz os nomes dos exames antes de criar a lista de infos >>>
+    const nomesAmigaveis = dadosPDF.examesSelecionados.map(exame => getEspecialidadeLabel(exame));
+
     const allInfo = [
         { label: 'ID Solicitação', value: String(dadosPDF.solicitacaoId), color: corDestaque, style: 'bold' },
         { label: 'Paciente',       value: dadosPDF.nomePaciente, color: corPadrao, style: 'bold' },
         { label: 'CPF',            value: dadosPDF.cpfPaciente, color: corPadrao },
         { label: 'USF Origem',     value: dadosPDF.usfOrigem, color: corPadrao },
         ...(dadosPDF.cns ? [{ label: 'CNS', value: dadosPDF.cns, color: corPadrao }] : []),
-        { label: 'Exames Agendados', value: dadosPDF.examesSelecionados.join(', '), color: corDestaque, style: 'bold' },
+        // Usa a lista de nomes traduzidos
+        { label: 'Exames Agendados', value: nomesAmigaveis.join(', '), color: corDestaque, style: 'bold' },
         { label: 'Data Agendada',  value: new Date(dadosPDF.dataAgendada + 'T00:00:00').toLocaleDateString('pt-BR'), color: corDestaque, style: 'bold' },
         { label: 'Turno',          value: dadosPDF.turno === 'MANHA' ? 'Manhã' : 'Tarde', color: corPadrao },
         { label: 'Local',          value: getLocalLabel(dadosPDF.localAgendado), color: corDestaque, style: 'bold' },
         { label: 'Observações',    value: dadosPDF.observacoes || 'Nenhuma', color: corPadrao }
     ];
 
-    // --- Loop de Renderização Corrigido ---
     allInfo.forEach((info, index) => {
         const bgColor = index % 2 === 0 ? '#f3f4f6' : '#ffffff';
         const lines = doc.splitTextToSize(String(info.value), pageWidth - margin.left - margin.right - 130);
@@ -166,22 +177,17 @@
         doc.setFillColor(bgColor);
         doc.rect(margin.left, currentY - 14, pageWidth - margin.left - margin.right, rowHeight, 'F');
         
-        // Renderiza o Label (lado esquerdo)
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(corLabel); // Cor fixa para o label
+        doc.setTextColor(corLabel);
         doc.text(info.label, margin.left + 10, currentY);
 
-        // >>> INÍCIO DA CORREÇÃO <<<
-        // Lê as propriedades de estilo e cor do objeto 'info'
         const style = info.style || 'normal';
         const color = info.color || corPadrao;
-
-        // Aplica o estilo e a cor ANTES de desenhar o texto do valor
+        
         doc.setFont('helvetica', style as any);
         doc.setTextColor(color);
         doc.text(lines, margin.left + 130, currentY);
-        // >>> FIM DA CORREÇÃO <<<
         
         currentY += rowHeight;
     });
@@ -209,7 +215,7 @@
 
     doc.save(`comprovante_${dadosPDF.nomePaciente.replace(/\s+/g, '_')}_${dadosPDF.solicitacaoId}.pdf`);
   }
-  // --- Ação de Envio do Formulário ---
+
   async function enviarAgendamento() {
     if (!solicitacaoId || !solicitacaoSelecionada) {
       alert('Por favor, selecione uma solicitação válida.');
@@ -241,7 +247,6 @@
           examesSelecionados, dataAgendada, turno, localAgendado, observacoes
         });
 
-        // Limpa o formulário
         solicitacaoId = '';
         examesSelecionados = [];
         dataAgendada = '';
@@ -249,7 +254,6 @@
         observacoes = '';
         turno = 'MANHA';
 
-        // Recarrega a lista de solicitações pendentes
         await carregarSolicitacoesPendentes();
       } else {
         const erroData = await resposta.json();
@@ -349,7 +353,7 @@
                             bind:group={examesSelecionados}
                             class="form-checkbox h-4 w-4 text-emerald-600 rounded focus:ring-emerald-500"
                           />
-                          <span class="text-gray-700">{especialidadeNome}</span>
+                          <span class="text-gray-700">{getEspecialidadeLabel(especialidadeNome)}</span>
                         </label>
                       {/each}
                     </div>
