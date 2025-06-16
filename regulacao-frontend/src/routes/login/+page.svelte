@@ -1,6 +1,7 @@
 <script lang="ts">
   // --- IMPORTS ---
   import { goto } from '$app/navigation';
+  import { postApi } from '$lib/api.js';
   import { token } from '$lib/stores/auth.js'; // Importa nossa store de autenticação
 
   // --- ESTADO DO COMPONENTE ---
@@ -11,27 +12,29 @@
   let showPassword = false;
 
   // --- FUNÇÃO DE LOGIN ---
- async function handleLogin() {
+async function handleLogin() {
   loading = true;
   error = '';
 
   try {
-    const response = await fetch('http://localhost:8080/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cpf, password })
+    // CORREÇÃO: Usar as variáveis 'cpf' e 'password' diretamente.
+    const response = await postApi('auth/login', {
+      cpf: cpf,
+      password: password
     });
 
     if (!response.ok) {
-      throw new Error('CPF ou senha inválidos.');
+      // O próprio api.js já trata o erro 403, mas podemos manter
+      // uma mensagem genérica para outros erros (ex: 400, 401).
+      const errorData = await response.json().catch(() => ({ message: 'CPF ou senha inválidos.' }));
+      throw new Error(errorData.message || 'CPF ou senha inválidos.');
     }
 
     const data = await response.json();
     
-    // CORREÇÃO AQUI: Use o método .set() da store importada
     token.set(data.token); 
 
-    goto('/home');
+    goto('/home'); // O SvelteKit 2 recomenda /dashboard, mas use o seu
   } catch (e: any) {
     error = e.message;
   } finally {
