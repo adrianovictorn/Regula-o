@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
-    import { getApi, postApi, putApi } from '$lib/api'; // Importando todas as funções necessárias
+    import { getApi, postApi, putApi, deleteApi } from '$lib/api'; // Importando deleteApi
     import { opcoesEspecialidades } from '$lib/Especialidades.js';
 
     // --- Estado do Componente com Svelte 5 Runes ---
@@ -74,7 +74,6 @@
             datanascimento, usfOrigem, dataMalote, observacoes
         };
         
-        // CORREÇÃO: Usando putApi para a requisição PUT
         const res = await putApi(`solicitacoes/${solicitacao.id}`, payload);
         
         if (res.ok) {
@@ -92,7 +91,6 @@
         }
         if (!solicitacao) return;
 
-        // CORREÇÃO: Usando postApi para a requisição POST
         const res = await postApi(`solicitacoes/${solicitacao.id}/especialidades`, novaEspecialidadeObj);
         
         if (res.ok) {
@@ -103,14 +101,34 @@
         }
     }
 
+    // NOVA FUNÇÃO: Remover especialidade
+    async function removerEspecialidade(especialidadeId: number) {
+        if (!confirm('Tem certeza que deseja remover esta especialidade?')) {
+            return;
+        }
+        try {
+            const res = await deleteApi(`solicitacoes/especialidades/${especialidadeId}`); // Chame o endpoint DELETE
+            if (res.ok) {
+                alert('Especialidade removida com sucesso!');
+                // Atualiza a lista de especialidades localmente para refletir a mudança sem recarregar a página.
+                // Isso é importante para Svelte 5 com `$state` para manter a reatividade.
+                solicitacao.especialidades = solicitacao.especialidades.filter((e: any) => e.id !== especialidadeId);
+            } else if (res.status === 404) {
+                 alert('Especialidade não encontrada.');
+            }
+            else {
+                alert('Erro ao remover especialidade.');
+            }
+        } catch (e: any) {
+            alert(`Erro na requisição: ${e.message}`);
+        }
+    }
+
     // Valores derivados para exibir na tela de forma reativa
     let historico = $derived(solicitacao?.especialidades || []);
     let especPendentes = $derived(historico.filter((e: any) => e.status === 'AGUARDANDO'));
 
 </script>
-
-<!-- O seu HTML e a estrutura do componente permanecem aqui, sem alterações. -->
-<!-- Vou omitir o HTML aqui porque você pediu para não mexer nele, mas ele deve vir abaixo deste script. -->
 
 <div class="flex h-screen bg-gray-100">
  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
@@ -229,7 +247,18 @@
                             {#each especPendentes as e (e.id)}
                                 <li class="p-3 flex justify-between items-center hover:bg-gray-50 transition-colors">
                                     <span class="text-gray-800 font-medium">{e.especialidadeSolicitada.replace(/_/g, ' ')}</span>
-                                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">{e.status}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">{e.status}</span>
+                                        <button 
+                                            on:click={() => removerEspecialidade(e.id)} 
+                                            class="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                            title="Remover Especialidade"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </li>
                             {/each}
                         </ul>

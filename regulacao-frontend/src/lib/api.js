@@ -53,3 +53,7 @@ export function putApi(path, data) {
   return send({ method: 'PUT', path, data });
 }
 
+export function deleteApi(path, data) {
+  return send({ method: 'DELETE', path, data });
+}
+

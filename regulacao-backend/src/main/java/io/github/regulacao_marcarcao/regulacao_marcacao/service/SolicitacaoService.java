@@ -24,6 +24,7 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspeci
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoSpecification;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoListFiltersDTO;
@@ -36,6 +37,8 @@ public class SolicitacaoService {
 
     private final SolicitacaoRepository solicitacaoRepository;
     private final AgendamentoSolicitacaoRepository agendamentoRepository;
+    private final SolicitacaoEspecialidadeRepository especialidadeRepository;
+
 
     @Transactional
     public SolicitacaoViewDTO createSolicitacao(SolicitacaoCreateDTO dto) {
@@ -177,5 +180,14 @@ public class SolicitacaoService {
                     return detalhes;
                 })
                 .collect(Collectors.toList());
+    }
+
+     @Transactional
+    public void removerEspecialidade(Long id) {
+        // Verifica se a especialidade existe antes de tentar deletar
+        if (!especialidadeRepository.existsById(id)) {
+            throw new EntityNotFoundException("Especialidade de solicitação com ID " + id + " não encontrada.");
+        }
+        especialidadeRepository.deleteById(id);
     }
 }

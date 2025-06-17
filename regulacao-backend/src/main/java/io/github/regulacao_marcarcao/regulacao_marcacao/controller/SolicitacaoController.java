@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,5 +63,12 @@ public class SolicitacaoController {
             @RequestBody EspecialidadeAdicionarDTO dto) {
         SolicitacaoViewDTO updatedSolicitacao = service.adicionarEspecialidadeASolicitacao(solicitacaoId, dto);
         return ResponseEntity.ok(updatedSolicitacao);
+    }
+
+   @DeleteMapping("especialidades/{id}") // Corrigido: adicionado o PathVariable
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deletarEspecialidade(@PathVariable Long id){
+        service.removerEspecialidade(id); // Chamando o serviço correto
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content
     }
 }
