@@ -41,8 +41,7 @@
   // Submete o formulário ao backend usando o helper de API
   async function submeterForm() {
     isLoading = true;
-    errors = {}; // Limpa os erros da tentativa anterior
-
+    
     const payload = {
       nomePaciente,
       cpfPaciente: cpfPaciente.replace(/\D/g, ''), // Envia somente os números
@@ -52,38 +51,29 @@
       usfOrigem,
       dataMalote,
       observacoes,
-      especialidades: especialidades.filter(e => e.especialidadeSolicitada) // Envia apenas as que foram preenchidas
+      especialidades: especialidades.filter(e => e.especialidadeSolicitada)
     };
 
     try {
-      // ** AQUI ESTÁ A MUDANÇA PRINCIPAL **
-      // Usando 'postApi' em vez de 'fetch' para enviar o token automaticamente.
       const res = await postApi('solicitacoes', payload);
 
-      if (res.ok) {
+      if (res.ok) { // Status 2xx (Sucesso)
         alert('Solicitação cadastrada com sucesso!');
         limparCampos();
-        goto('/cadastrar'); // Redireciona para o dashboard
-      } else if (res.status === 400) {
-        // Erro de Validação do backend
-        const errorData = await res.json();
-        if (errorData.errors) {
-            for (const error of errorData.errors) {
-                errors[error.field] = error.defaultMessage;
-            }
-        } else {
-            errors.geral = errorData.message || 'Ocorreu um erro de validação.';
-        }
-      } else {
-        // Outros erros do servidor
-        const errorText = await res.text();
-        alert(`Erro no servidor: ${res.status} - ${errorText}. Tente novamente.`);
+        goto('/cadastrar');
+      
+      } else if (res.status === 409) { // 409 Conflict: Nosso sinal de CPF DUPLICADO!
+        alert("CPF já cadastrado, consulte o módulo Paciente");
+      
+      } else { // Qualquer outro erro (400, 500, etc.)
+        alert(`Ocorreu um erro (${res.status}). Verifique os dados e tente novamente.`);
       }
+
     } catch (err) {
       console.error("Erro de conexão:", err);
       alert("Não foi possível conectar ao servidor. Verifique sua conexão.");
     } finally {
-        isLoading = false;
+      isLoading = false;
     }
   }
 
