@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEs
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoSpecification;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoListFiltersDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoPublicViewDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -189,5 +191,10 @@ public class SolicitacaoService {
             throw new EntityNotFoundException("Especialidade de solicitação com ID " + id + " não encontrada.");
         }
         especialidadeRepository.deleteById(id);
+    }
+
+    @Transactional
+    public List<SolicitacaoPublicViewDTO> buscarPacientePorCpf(String cpf){
+        return solicitacaoRepository.findByCpfPaciente(cpf).stream().map(SolicitacaoPublicViewDTO::fromSolicitacao).collect(Collectors.toList());
     }
 }
