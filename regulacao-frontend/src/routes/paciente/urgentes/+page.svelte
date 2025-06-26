@@ -134,7 +134,14 @@
                         <div><span class="font-semibold">USF:</span> {s.usfOrigem}</div>
                         <div><span class="font-semibold">Data:</span> {s.dataMalote}</div>
                       
-                        <div class="col-span-full"><span class="font-semibold">Especialidade:</span> {s.especialidades.map(e => e.especialidadeSolicitada).join(', ')}</div>
+                        <div class="col-span-full">
+                          <span class="font-semibold">Especialidades:</span>
+                          <ul class="list-disc list-inside">
+                            {#each s.especialidades.filter(e => e.prioridade === 'URGENTE' || e.prioridade === 'EMERGENCIA') as e}
+                              <li>{e.especialidadeSolicitada} ({e.prioridade})</li>
+                            {/each}
+                          </ul>
+                        </div>
                         <div class="col-span-full"><span class="font-semibold">Observações:</span> {s.observacoes}</div>
                       </div>
                     </div>

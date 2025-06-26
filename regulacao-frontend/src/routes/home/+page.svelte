@@ -46,7 +46,7 @@
   $: concluida = solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === "CONCLUIDO")).length;
   $: totalDeSolicitacoes = solicitacoes.length;
   $: emergencia = solicitacoes.filter(s => s.especialidades.some(esp => esp.prioridade === 'EMERGENCIA')).length;
-  $: urgencia = solicitacoes.filter(s => s.especialidades.some(esp => esp.prioridade === 'URGENTE' && esp.status === 'AGUARDANDO')).length;
+  $: urgencia = solicitacoes.filter(s => s.especialidades.some(esp => esp.prioridade === 'URGENTE' || esp.prioridade === 'EMERGENCIA '&& esp.status === 'AGUARDANDO')).length;
   const filtarPendentesPorUnidade = (unidade) => {
     if (!solicitacoes || solicitacoes.length === 0) return 0;
     return solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === 'AGUARDANDO') && solicitacao.usfOrigem === unidade).length;
