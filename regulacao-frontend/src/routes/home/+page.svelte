@@ -5,6 +5,8 @@
   import Card from '$lib/Card.svelte';
   import Card2 from '$lib/Card2.svelte';
   import { getApi } from '$lib/api.js'; // Importa nosso helper que já envia o token!
+    import Card3 from '$lib/Card3.svelte';
+    import Card4 from '$lib/Card4.svelte';
 
   // Variáveis de estado para controlar a UI
   let solicitacoes = [];
@@ -38,11 +40,13 @@
     }
   });
 
-  // Cálculos reativos: estas variáveis serão recalculadas automaticamente
-  // sempre que a variável 'solicitacoes' for atualizada.
+
   $: pendentes = solicitacoes.filter(s => s.especialidades.some(esp => esp.status === 'AGUARDANDO')).length;
-  $: concluida = solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === "REALIZADO")).length;
+  $: agendado = solicitacoes.filter(s => s.especialidades.some(esp => esp.status === 'AGENDADO')).length;
+  $: concluida = solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === "CONCLUIDO")).length;
   $: totalDeSolicitacoes = solicitacoes.length;
+  $: emergencia = solicitacoes.filter(s => s.especialidades.some(esp => esp.prioridade === 'EMERGENCIA')).length;
+  $: urgencia = solicitacoes.filter (s => s.especialidades.some(esp => esp.prioridade === 'URGENTE')).length;
 
   const filtarPendentesPorUnidade = (unidade) => {
     if (!solicitacoes || solicitacoes.length === 0) return 0;
@@ -67,8 +71,8 @@
       <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
       <nav class="flex-1 flex flex-col space-y-2 px-6">
         <a href="/home" class="py-2 px-4 rounded bg-emerald-700 transition">Dashboard</a>
-        <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-        <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
+        <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Cadastro de Consulta</a>
+        <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exame/Procedimento</a>
         <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
         <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800">Paciente</a>
         <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
@@ -104,7 +108,7 @@
       <main class="flex-1 p-6 overflow-auto">
         <div class="space-y-6">
           <!-- Sede Section -->
-          <section class="bg-emerald-100 rounded-lg shadow p-6">
+          <section class="bg-emerald-300 rounded-lg shadow p-6">
             <h2 class="text-lg font-bold text-emerald-800 mb-4">📍 Sede</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <Card2 header="USF 01" title="Pendentes" value={filtarPendentesPorUnidade('USF01')} href="/usf/usf1" color="emerald"/>
@@ -113,7 +117,7 @@
           </section>
 
           <!-- Zona Rural Section -->
-          <section class="bg-emerald-50 rounded-lg shadow p-6">
+          <section class="bg-emerald-200 rounded-lg shadow p-6">
             <h2 class="text-lg font-bold text-emerald-600 mb-4">🌳 Zona Rural</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card2 header="USF 03" title="Pendentes" value={filtarPendentesPorUnidade('USF03')} href="/usf/usf3" color="emerald"/>
@@ -123,15 +127,28 @@
             </div>
           </section>
 
+         
+
           <!-- Totals Section -->
-          <section class="bg-emerald-200 rounded-lg shadow p-6">
+          <section class="bg-emerald-300 rounded-lg shadow p-6">
             <h2 class="text-lg font-bold text-emerald-900 mb-4">📊 Totais</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <Card2 title="Pendentes" value={pendentes} href="/usf" color="emerald-dark"/>
+              <Card title="Agendados" value={agendado} href="/usf" color="emerald-dark"/>
               <Card title="Concluídas" value={concluida} color="emerald-dark"/>
               <Card title="Total" value={totalDeSolicitacoes} color="emerald-dark"/>
             </div>
           </section>
+
+           <section class="bg-emerald-200 rounded-lg shadow p-6">
+            <h2 class="text-lg font-bold text-red-900 mb-4">📊 Alertas</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-1 gap-6">
+              <Card3 title="Urgência" value={urgencia} href="/paciente/urgentes" color="emerald-dark"/>
+
+            </div>
+          </section>
+
+          
         </div>
       </main>
     </div>

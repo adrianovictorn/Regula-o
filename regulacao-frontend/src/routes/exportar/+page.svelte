@@ -77,7 +77,11 @@
         'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL',
         'ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS'
       ]
-    },
+    },{
+      label: 'Pediatria',
+      color: 'bg-blue-300',
+      hover: 'hover:bg-blue-400'
+    }
   ];
 
 
