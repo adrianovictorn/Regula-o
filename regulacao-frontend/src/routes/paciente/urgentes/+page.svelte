@@ -23,7 +23,7 @@
 
       // 2. Filtra apenas as solicitações que têm itens pendentes
       solicitacoesPendentes = todasSolicitacoes.filter((s: any) => 
-        s.especialidades.some((e: any) => e.prioridade === 'URGENTE')
+        s.especialidades.some((e: any) => e.prioridade === 'URGENTE' && e.status === 'AGUARDANDO')
       );
 
     } catch (e: any) {
