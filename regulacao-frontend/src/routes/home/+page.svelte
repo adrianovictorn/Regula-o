@@ -5,8 +5,8 @@
   import Card from '$lib/Card.svelte';
   import Card2 from '$lib/Card2.svelte';
   import { getApi } from '$lib/api.js'; // Importa nosso helper que já envia o token!
-    import Card3 from '$lib/Card3.svelte';
-    import Card4 from '$lib/Card4.svelte';
+  import Card3 from '$lib/Card3.svelte';
+  import Card4 from '$lib/Card4.svelte';
 
   // Variáveis de estado para controlar a UI
   let solicitacoes = [];
@@ -46,8 +46,7 @@
   $: concluida = solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === "CONCLUIDO")).length;
   $: totalDeSolicitacoes = solicitacoes.length;
   $: emergencia = solicitacoes.filter(s => s.especialidades.some(esp => esp.prioridade === 'EMERGENCIA')).length;
-  $: urgencia = solicitacoes.filter (s => s.especialidades.some(esp => esp.prioridade === 'URGENTE')).length;
-
+  $: urgencia = solicitacoes.filter(s => s.especialidades.some(esp => esp.prioridade === 'URGENTE' && esp.status === 'AGUARDANDO')).length;
   const filtarPendentesPorUnidade = (unidade) => {
     if (!solicitacoes || solicitacoes.length === 0) return 0;
     return solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === 'AGUARDANDO') && solicitacao.usfOrigem === unidade).length;
