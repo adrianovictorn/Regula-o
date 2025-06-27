@@ -1,10 +1,9 @@
 <script lang='ts'>
-  import { goto } from '$app/navigation';
   import { getApi, postApi } from '$lib/api';
+    import { Label } from 'bits-ui';
   import { onMount } from 'svelte';
 
-
-const todosOsExamesDoEnum = [
+  const todosOsExamesDoEnum = [
     { value: 'DOPPLER', label: 'Doppler' },
     { value: 'MAMOGRAFIA', label: 'Mamografia' },
     { value: 'HOLTER', label: 'Holter' },
@@ -107,12 +106,46 @@ const todosOsExamesDoEnum = [
     { value: 'ELETRONEUROMIOGRAFIA_MEMBROS_INFERIORES', label: 'Eletroneuromiografia MMII' },
     { value: 'CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO', label: 'Cateterismo Cardíaco Diagnóstico' },
     { value: 'AVALIACAO_URODINAMICA_COMPLETA', label: 'Avaliação Urodinâmica Completa' },
-    { value: 'EXERESE_PEQUENAS_LESOES_PELE_ANATOMOPATOLOGICO', label: 'Exerese Pequenas Lesões de Pele + AP' }
+    { value: 'EXERESE_PEQUENAS_LESOES_PELE_ANATOMOPATOLOGICO', label: 'Exerese Pequenas Lesões de Pele + AP' },
+    { value: 'ASLO', label: 'ASLO'},
+    { value: 'TGO', label: 'TGO'},
+    { value: 'TGP', label: 'TGP'},
+    { value: 'CALCIO', label: 'Cálcio'},
+    { value: 'FATOR_REUMATOIDE', label: 'Fator Reumatoide'}, // CORRIGIDO
+    { value: 'COAGULOGRAMA', label: 'Coagulograma'},
+    { value: 'GAMA_GT', label:'Gama GT'},
+    { value: 'PESQUISA_OVOS_CISTOS_PARASITAS', label: 'Pesquisa de Ovos, Cistos e Parasitas'},
+    { value: 'FOSFATASE_ALCALINA', label: 'Fosfatase Alcalina'}, // FALTANDO
+    { value: 'BILIRRUBINA_TOTAL_FRACOES', label: 'Bilirrubina total e frações'}, // FALTANDO
+    { value: 'TIPO_SANGUINEO', label: 'Tipo Sanguíneo'}, // FALTANDO
+    { value: 'TP', label: 'TP'}, // FALTANDO
+    { value: 'TTPA', label: 'TTPA'} // FALTANDO
+
 ].map(ex => ({ ...ex, selecionado: false }));
 
   let examesDisponiveisParaCheckbox = $state(todosOsExamesDoEnum);
   let listaDeSolicitacoesParaDropdown = $state<any[]>([]);
   let erroAoCarregar = $state<string | null>(null);
+  let isUrgente = $state(false);
+
+  // Lógica do Combobox
+  let valorBusca = $state('');
+  let comboboxAberto = $state(false);
+
+  const solicitacoesFiltradas = $derived(() => {
+    if (!valorBusca) {
+      return listaDeSolicitacoesParaDropdown;
+    }
+    return listaDeSolicitacoesParaDropdown.filter(sol =>
+      sol.label.toLowerCase().includes(valorBusca.toLowerCase())
+    );
+  });
+
+  function selecionarSolicitacao(solicitacao) {
+    valorBusca = solicitacao.label;
+    carregarDadosSolicitacao(solicitacao.value);
+    comboboxAberto = false;
+  }
 
   // Estado do formulário
   let idSolicitacao = $state<number | null>(null);
@@ -130,11 +163,15 @@ const todosOsExamesDoEnum = [
 
   async function carregarListaSolicitacoes() {
     try {
-      const response = await getApi('solicitacoes'); // Usa a função de API autenticada
+      const response = await getApi('solicitacoes');
       if (!response.ok) {
         throw new Error('Falha ao buscar a lista de solicitações.');
       }
-      listaDeSolicitacoesParaDropdown = await response.json();
+      const data = await response.json();
+      listaDeSolicitacoesParaDropdown = data.map(sol => ({
+        value: sol.id,
+        label: `${sol.nomePaciente} (CPF: ${sol.cpfPaciente || 'N/A'})`
+      }));
     } catch (e: any) {
       erroAoCarregar = e.message;
     }
@@ -148,7 +185,6 @@ const todosOsExamesDoEnum = [
       return;
     }
     try {
-      // CORREÇÃO 1: Requisição GET não tem 'body'.
       const res = await getApi(`solicitacoes/${solicitacaoIdParam}`);
       if (!res.ok) throw new Error('Solicitação não encontrada.');
       
@@ -174,8 +210,12 @@ const todosOsExamesDoEnum = [
     }
   }
 
-  async function submeterForm() {
+  function submeterForm(event: SubmitEvent) {
+    event.preventDefault(); // Previne o comportamento padrão do formulário
+
     const examesSelecionados = examesDisponiveisParaCheckbox.filter(ex => ex.selecionado);
+    const prioridadeDaSolicitacao = isUrgente ? 'URGENTE' : 'NORMAL';
+
 
     // MODO UPDATE
     if (idSolicitacao) {
@@ -184,7 +224,7 @@ const todosOsExamesDoEnum = [
         .map(sel => ({
             especialidadeSolicitada: sel.value,
             status: 'AGUARDANDO',
-            prioridade: 'NORMAL'
+            prioridade: prioridadeDaSolicitacao
         }));
 
       if (paraAdicionar.length === 0) {
@@ -192,16 +232,19 @@ const todosOsExamesDoEnum = [
         return;
       }
       
-      for (const itemPayload of paraAdicionar) {
-        // CORREÇÃO 2: A variável do corpo (body) da requisição deve ser 'itemPayload'.
-        const res = await postApi(`solicitacoes/${idSolicitacao}/especialidades`, itemPayload);
-        if (!res.ok) {
-          alert(`Erro ao adicionar ${itemPayload.especialidadeSolicitada}.`);
-          return;
+      const promises = paraAdicionar.map(itemPayload => 
+        postApi(`solicitacoes/${idSolicitacao}/especialidades`, itemPayload)
+      );
+
+      Promise.all(promises).then(async responses => {
+        const algumaFalhou = responses.some(res => !res.ok);
+        if (algumaFalhou) {
+            alert(`Erro ao adicionar um ou mais exames.`);
+        } else {
+            alert('Exames adicionados com sucesso!');
+            await carregarDadosSolicitacao(String(idSolicitacao));
         }
-      }
-      alert('Exames adicionados com sucesso!');
-      await carregarDadosSolicitacao(String(idSolicitacao));
+      });
 
     // MODO CREATE
     } else {
@@ -209,29 +252,31 @@ const todosOsExamesDoEnum = [
         alert("Selecione ao menos um exame para criar a solicitação.");
         return;
       }
+
+      const prioridadeDaSolicitacao = isUrgente ? 'URGENTE' : 'NORMAL';
       const payloadNovaSolicitacao = {
         nomePaciente, cpfPaciente, cns, datanascimento, usfOrigem, dataMalote, observacoes,
         especialidades: examesSelecionados.map(sel => ({
             especialidadeSolicitada: sel.value,
             status: 'AGUARDANDO',
-            prioridade: 'NORMAL'
+            prioridade: prioridadeDaSolicitacao
         }))
       };
       
-      // CORREÇÃO 3: A variável do corpo (body) da requisição deve ser 'payloadNovaSolicitacao'.
-      const res = await postApi('solicitacoes', payloadNovaSolicitacao);
-      if (res.ok) {
-        alert('Nova solicitação criada com sucesso!');
-        limparFormularioCompleto();
-        await carregarListaSolicitacoes(); // Recarrega a lista do dropdown
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        alert(`Erro ao criar solicitação: ${errorData.message || 'Verifique os dados.'}`);
-      }
+      postApi('solicitacoes', payloadNovaSolicitacao).then(async res => {
+        if (res.ok) {
+            alert('Nova solicitação criada com sucesso!');
+            limparFormularioCompleto();
+            await carregarListaSolicitacoes();
+        } else {
+            const errorData = await res.json().catch(() => ({}));
+            alert(`Erro ao criar solicitação: ${errorData.message || 'Verifique os dados.'}`);
+        }
+      });
     }
   }
 
-  // Funções auxiliares (limpar formulário, formatar CPF, etc.)
+  // Funções auxiliares
   function limparFormularioCompleto() {
     idSolicitacao = null;
     nomePaciente = '';
@@ -244,13 +289,7 @@ const todosOsExamesDoEnum = [
     inputsReadonly = false;
     examesDisponiveisParaCheckbox.forEach(ex => ex.selecionado = false);
     examesDaSolicitacaoAtual = [];
-    const select = document.querySelector<HTMLSelectElement>('#selectSolicitacao');
-    if (select) select.value = "";
-  }
-  
-  function handleSelecaoSolicitacao(event: Event) {
-    const selectedId = (event.target as HTMLSelectElement).value;
-    carregarDadosSolicitacao(selectedId);
+    valorBusca = '';
   }
   
   function formatarCPF(e: Event) {
@@ -260,7 +299,6 @@ const todosOsExamesDoEnum = [
     cpfPaciente = value;
   }
 </script>
-
 
 <div class="flex h-screen bg-gray-100">
   <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
@@ -287,16 +325,30 @@ const todosOsExamesDoEnum = [
         
         <div class="mb-6">
           <label for="selectSolicitacao" class="block text-lg font-medium text-gray-700 mb-2">Carregar Solicitação Existente:</label>
-          <select id="selectSolicitacao" on:change={handleSelecaoSolicitacao} class="border border-gray-300 rounded-lg p-3 w-full focus:ring-emerald-500 focus:border-emerald-500 text-base">
-            <option value="">Selecione uma solicitação</option>
-            {#if listaDeSolicitacoesParaDropdown && listaDeSolicitacoesParaDropdown.length > 0}
-              {#each listaDeSolicitacoesParaDropdown as sol (sol.id)}
-                <option value={sol.id}>{sol.nomePaciente} (CPF: {sol.cpfPaciente || 'N/A'})</option>
-              {/each}
-            {:else if !erroAoCarregar}
-              <option disabled>Carregando solicitações...</option>
+          <div class="relative">
+            <input 
+              id="combobox"
+              type="text" 
+              bind:value={valorBusca}
+              onfocus={() => comboboxAberto = true}
+              onblur={() => setTimeout(() => { comboboxAberto = false }, 150)}
+              placeholder="Digite para buscar ou selecione uma solicitação"
+              class="border border-gray-300 rounded-lg p-3 w-full focus:ring-emerald-500 focus:border-emerald-500 text-base"
+            />
+            
+           {#if comboboxAberto && solicitacoesFiltradas().length > 0}
+              <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto">
+                {#each solicitacoesFiltradas() as sol (sol.value)}
+                  <li 
+                    onmousedown={() => selecionarSolicitacao(sol)}
+                    class="p-3 hover:bg-emerald-100 cursor-pointer"
+                  >
+                    {sol.label}
+                  </li>
+                {/each}
+              </ul>
             {/if}
-          </select>
+          </div>
           {#if erroAoCarregar}
             <p class="text-red-500 text-sm mt-1">{erroAoCarregar}</p>
           {/if}
@@ -306,7 +358,7 @@ const todosOsExamesDoEnum = [
           {#if idSolicitacao}Adicionar Exames à Solicitação ID: {idSolicitacao}{:else}Nova Solicitação com Exames{/if}
         </h2>
 
-        <form on:submit|preventDefault={submeterForm} class="space-y-8">
+        <form onsubmit={submeterForm} class="space-y-8">
           
           <fieldset class="border border-gray-300 p-4 rounded-lg">
             <legend class="text-xl font-semibold text-gray-700 px-2">Dados do Paciente</legend>
@@ -317,7 +369,7 @@ const todosOsExamesDoEnum = [
               </div>
               <div class="flex flex-col">
                 <label for="cpfPaciente" class="text-sm font-medium text-gray-700 mb-1">CPF</label>
-                <input id="cpfPaciente" type="text" bind:value={cpfPaciente} on:input={formatarCPF} readonly={inputsReadonly} class:bg-gray-100={inputsReadonly} placeholder="000.000.000-00" class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required />
+                <input id="cpfPaciente" type="text" bind:value={cpfPaciente} oninput={formatarCPF} readonly={inputsReadonly} class:bg-gray-100={inputsReadonly} placeholder="000.000.000-00" class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required />
               </div>
               <div class="flex flex-col">
                 <label for="cns" class="text-sm font-medium text-gray-700 mb-1">CNS</label>
@@ -377,6 +429,22 @@ const todosOsExamesDoEnum = [
                 </label>
               {/each}
             </div>
+          </fieldset>
+
+
+         
+          <fieldset>
+            <div class="flex items-center justify-center my-6">
+            <label for="urgency-checkbox" class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 transition cursor-pointer">
+              <input 
+                type="checkbox" 
+                id="urgency-checkbox" 
+                bind:checked={isUrgente}
+                class="form-checkbox h-5 w-5 text-emerald-600 rounded focus:ring-emerald-500"
+              />
+              <span class="text-base font-medium text-gray-700 select-none">Marcar como Urgente</span>
+            </label>
+          </div>
           </fieldset>
         
 

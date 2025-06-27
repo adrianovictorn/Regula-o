@@ -26,6 +26,7 @@ public enum EspecialidadesEnum {
     PNEUMOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Pneumologista"),
     HEMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Hematologista"), // Mantido conforme DB, descrição corrigida
     CONSULTA_OFTALMOLOGICA_REFRACAO(ItemCategoria.ESPECIALIDADE_MEDICA, "Consulta Oftalmológica (Refração)"),
+    CIRURGIAO_GERAL(ItemCategoria.ESPECIALIDADE_MEDICA, "Cirurgião Geral"),
 
     // --- EXAMES OU PROCEDIMENTOS (Exemplos) ---
     DOPPLER(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Doppler"),
@@ -131,6 +132,19 @@ public enum EspecialidadesEnum {
     ELETRONEUROMIOGRAFIA_MEMBROS_INFERIORES(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Eletroneuromiografia MMII"),
     CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Cateterismo Cardíaco Diagnóstico"),
     AVALIACAO_URODINAMICA_COMPLETA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Avaliação Urodinâmica Completa"),
+    TGO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "TGO"),
+    TGP(ItemCategoria.EXAME_OU_PROCEDIMENTO, "TGP"),
+    FATOR_REUMATOIDE(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Fator Reumatoide"),
+    PESQUISA_OVOS_CISTOS_PARASITAS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Pesquisa de Ovos, Cistos e Parasitas"),
+    GAMA_GT(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Gama GT"),
+    COAGULOGRAMA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Coagulograma"),
+    ASLO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "ASLO"),
+    CALCIO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Cálcio"),
+    FOSFATASE_ALCALINA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Fosfatase Alcalina"),
+    BILIRRUBINA_TOTAL_FRACOES(ItemCategoria.EXAME_OU_PROCEDIMENTO,"Bilirrubina total e frações"),
+    TIPO_SANGUINEO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tipo Sanguíneo"),
+    TP(ItemCategoria.EXAME_OU_PROCEDIMENTO, "TP"),
+    TTPA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "TTPA"),
     EXERESE_PEQUENAS_LESOES_PELE_ANATOMOPATOLOGICO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Exerese Pequenas Lesões de Pele + AP");
 
     private final ItemCategoria categoria;

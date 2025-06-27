@@ -21,6 +21,7 @@ export const opcoesEspecialidades = {
     { label: 'Pneumologista', value: 'PNEUMOLOGISTA' },
     { label: 'Hematologista', value: 'HEMATOLOGISTA' },
     { label: 'Consulta Oftalmológica (Refração)', value: 'CONSULTA_OFTALMOLOGICA_REFRACAO' },
+    { label: 'Cirurgião Geral', value: 'CIRURGIAO_GERAL'},
   ],
 
   /**
