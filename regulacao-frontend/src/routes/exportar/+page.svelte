@@ -4,6 +4,7 @@
   import jsPDF from 'jspdf';
   import autoTable from 'jspdf-autotable';
   import { opcoesEspecialidades } from '$lib/Especialidades.js';
+    import { Label } from "bits-ui";
 
   // --- Estado do Componente ---
   let dataSelecionada = $state(new Date().toISOString().split('T')[0]);
@@ -80,7 +81,20 @@
     },{
       label: 'Pediatria',
       color: 'bg-blue-300',
-      hover: 'hover:bg-blue-400'
+      hover: 'hover:bg-blue-400',
+      icon: ``,
+      especialidades: [
+        'PEDIATRIA'
+      ]
+    },
+    {
+      Label: 'Ortopedista',
+      color: '',
+      hover: '',
+      icon: '',
+      especialidades: [
+        'ORTOPEDISTA'
+      ]
     }
   ];
 
