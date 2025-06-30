@@ -17,6 +17,8 @@
   let turno = $state<'MANHA' | 'TARDE'>('MANHA');
   let localAgendado = $state('');
   let observacoes = $state('');
+  let valorBusca = $state('');
+  let comboboxAberto = $state(false);
 
   // <<< NOVO: Dicionário e função para traduzir nomes de exames >>>
   // 1. Criamos um mapa para busca rápida dos nomes amigáveis.
@@ -100,6 +102,27 @@
       img.src = url;
     });
   }
+
+  const solicitacoesFiltradas = $derived(()=> {
+    if(!valorBusca){
+      return solicitacoes;
+    }
+    return solicitacoes.filter(s => s.nomePaciente.toLowerCase().includes(valorBusca.toLowerCase() || s.cpfPaciente.includes(valorBusca))); 
+
+  })
+
+  // Adicione esta função
+function selecionarSolicitacao(solicitacao) {
+  // Preenche o campo de busca com o nome do paciente para feedback visual
+  valorBusca = `${solicitacao.nomePaciente} — ${solicitacao.cpfPaciente}`; 
+
+  // Define o ID da solicitação na sua variável de estado principal
+  solicitacaoId = solicitacao.solicitacaoId; 
+
+  // Fecha a lista de opções
+    comboboxAberto = false;
+  }
+
 
   async function gerarComprovantePDF(dadosPDF: {
     solicitacaoId: number;
@@ -216,8 +239,10 @@
     doc.save(`comprovante_${dadosPDF.nomePaciente.replace(/\s+/g, '_')}_${dadosPDF.solicitacaoId}.pdf`);
   }
 
-  async function enviarAgendamento() {
-    if (!solicitacaoId || !solicitacaoSelecionada) {
+  function enviarAgendamento(event: SubmitEvent) {
+    event.preventDefault(); // Prevenção do comportamento padrão
+
+    if (!solicitacaoSelecionada) { // Simplificado para checar apenas a solicitação selecionada
       alert('Por favor, selecione uma solicitação válida.');
       return;
     }
@@ -233,32 +258,34 @@
     const body = { examesSelecionados, dataAgendada, localAgendado, observacoes };
 
     try {
-      const resposta = await postApi(`agendamentos/${solicitacaoId}`, body);
+      postApi(`agendamentos/${solicitacaoId}`, body).then(async (resposta) => {
+        if (resposta.ok) {
+          alert('Agendamento realizado com sucesso!');
 
-      if (resposta.ok) {
-        alert('Agendamento realizado com sucesso!');
+          await gerarComprovantePDF({
+            solicitacaoId: solicitacaoSelecionada.solicitacaoId,
+            nomePaciente: solicitacaoSelecionada.nomePaciente,
+            cpfPaciente: solicitacaoSelecionada.cpfPaciente,
+            usfOrigem: solicitacaoSelecionada.usfOrigem,
+            cns: solicitacaoSelecionada.cns,
+            examesSelecionados, dataAgendada, turno, localAgendado, observacoes
+          });
 
-        await gerarComprovantePDF({
-          solicitacaoId: solicitacaoSelecionada.solicitacaoId,
-          nomePaciente: solicitacaoSelecionada.nomePaciente,
-          cpfPaciente: solicitacaoSelecionada.cpfPaciente,
-          usfOrigem: solicitacaoSelecionada.usfOrigem,
-          cns: solicitacaoSelecionada.cns,
-          examesSelecionados, dataAgendada, turno, localAgendado, observacoes
-        });
+          // Resetar formulário
+          solicitacaoId = '';
+          examesSelecionados = [];
+          dataAgendada = '';
+          localAgendado = '';
+          observacoes = '';
+          turno = 'MANHA';
+          valorBusca = '';
 
-        solicitacaoId = '';
-        examesSelecionados = [];
-        dataAgendada = '';
-        localAgendado = '';
-        observacoes = '';
-        turno = 'MANHA';
-
-        await carregarSolicitacoesPendentes();
-      } else {
-        const erroData = await resposta.json();
-        alert(`Erro ao agendar: ${erroData.message || 'Verifique os dados e tente novamente.'}`);
-      }
+          await carregarSolicitacoesPendentes();
+        } else {
+          const erroData = await resposta.json();
+          alert(`Erro ao agendar: ${erroData.message || 'Verifique os dados e tente novamente.'}`);
+        }
+      });
     } catch (err) {
       console.error('Erro na submissão do formulário:', err);
       alert('Erro de conexão. Verifique sua rede e tente novamente.');
@@ -300,24 +327,36 @@
         <div class="bg-white rounded-lg shadow-lg p-6">
           <h2 class="text-2xl font-bold text-emerald-800 mb-6">Novo Agendamento</h2>
 
-          <form class="space-y-6" on:submit|preventDefault={enviarAgendamento}>
+          <form class="space-y-6" onsubmit={enviarAgendamento}>
             <div class="flex flex-col">
               <label for="selectSolicitacao" class="text-sm font-medium text-gray-700 mb-1">
                 Selecionar Solicitação Pendente
               </label>
-              <select
-                id="selectSolicitacao"
-                bind:value={solicitacaoId}
-                class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="" disabled>Selecione um paciente...</option>
-                {#each solicitacoes as s (s.solicitacaoId)}
-                  <option value={s.solicitacaoId}>
-                    {s.nomePaciente} — {s.cpfPaciente}
-                  </option>
-                {/each}
-              </select>
-            </div>
+             <div class="relative">
+                    <input 
+                      id="combobox-agendamento"
+                      type="text" 
+                      bind:value={valorBusca}
+                      onfocus={() => comboboxAberto = true}
+                      onblur={() => setTimeout(() => { comboboxAberto = false }, 150)}
+                      placeholder="Digite o nome ou CPF para buscar..."
+                      class="border border-gray-300 rounded-lg p-2 w-full focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+
+                    {#if comboboxAberto && solicitacoesFiltradas().length > 0}
+                      <ul class="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                        {#each solicitacoesFiltradas() as s (s.solicitacaoId)}
+                          <li 
+                            onmousedown={() => selecionarSolicitacao(s)}
+                            class="p-3 hover:bg-emerald-100 cursor-pointer"
+                          >
+                            {s.nomePaciente} — {s.cpfPaciente}
+                          </li>
+                        {/each}
+                      </ul>
+                    {/if}
+</div>
+              
 
             {#if solicitacaoSelecionada}
               <div class="border-t pt-6 space-y-4">
