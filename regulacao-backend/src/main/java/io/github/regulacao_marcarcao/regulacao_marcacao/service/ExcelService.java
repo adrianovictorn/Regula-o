@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,11 @@ public class ExcelService {
         }
 
         List<SolicitacaoEspecialidade> especialidades = especialidadeRepository.findAgendadasPorDataEEnums(data, tipos);
+        
+        // Agrupando as especialidades por paciente
+        Map<Solicitacao, List<SolicitacaoEspecialidade>> agendamentosPorPaciente = especialidades.stream()
+                .collect(Collectors.groupingBy(SolicitacaoEspecialidade::getSolicitacao));
+
         XSSFWorkbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Relatório de Agendamentos");
 
@@ -86,20 +93,18 @@ public class ExcelService {
             CreationHelper helper = workbook.getCreationHelper();
             Drawing<?> drawing = sheet.createDrawingPatriarch();
             ClientAnchor anchor = helper.createClientAnchor();
-            // pequena acima do título: col D (3) linha 0 até col E (4) linha 2
             anchor.setCol1(3);
             anchor.setRow1(0);
             anchor.setCol2(4);
             anchor.setRow2(3);
             anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
             Picture pic = drawing.createPicture(anchor, picIdx);
-            pic.resize(0.99); // metade do tamanho original
+            pic.resize(0.99);
         } catch (Exception e) {
             System.err.println("Erro ao carregar brasão: " + e.getMessage());
         }
 
         // ========== Cabeçalho de Texto ========== //
-        // Título
         Row rowTitle = sheet.createRow(3);
         rowTitle.setHeightInPoints(20);
         Cell cellTitle = rowTitle.createCell(0);
@@ -107,7 +112,6 @@ public class ExcelService {
         cellTitle.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 5));
 
-        // Subtítulo
         Row rowSub = sheet.createRow(4);
         rowSub.setHeightInPoints(16);
         Cell cellSub = rowSub.createCell(0);
@@ -127,25 +131,35 @@ public class ExcelService {
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         int r = 7;
-        for (SolicitacaoEspecialidade esp : especialidades) {
+        
+        for (Map.Entry<Solicitacao, List<SolicitacaoEspecialidade>> entry : agendamentosPorPaciente.entrySet()) {
             Row row = sheet.createRow(r++);
-            row.setHeightInPoints(18);
-            Solicitacao sol = esp.getSolicitacao();
-            AgendamentoSolicitacao ag = esp.getAgendamentoSolicitacao();
+            
+            Solicitacao sol = entry.getKey();
+            List<SolicitacaoEspecialidade> listaDeEspecialidades = entry.getValue();
 
-            Cell c0 = row.createCell(0);
-            c0.setCellValue(sol.getNomePaciente()); c0.setCellStyle(dataStyle);
+            // --- **INÍCIO DA CORREÇÃO** ---
+            // Lógica para ajustar a altura da linha dinamicamente
+            float alturaBase = 18f;
+            int procedimentosPorLinha = 3; // Ajuste este valor se necessário
+            int numeroDeLinhas = (int) Math.ceil((double) listaDeEspecialidades.size() / procedimentosPorLinha);
+            row.setHeightInPoints(Math.max(alturaBase, numeroDeLinhas * alturaBase));
+            // --- **FIM DA CORREÇÃO** ---
 
-            Cell c1 = row.createCell(1);
-            c1.setCellValue(sol.getDataNascimento() != null ? sol.getDataNascimento().format(fmt) : "");
-            c1.setCellStyle(centerStyle);
+            // Colunas de dados do paciente
+            Cell c0 = row.createCell(0); c0.setCellValue(sol.getNomePaciente()); c0.setCellStyle(dataStyle);
+            Cell c1 = row.createCell(1); c1.setCellValue(sol.getDataNascimento() != null ? sol.getDataNascimento().format(fmt) : ""); c1.setCellStyle(centerStyle);
+            Cell c2 = row.createCell(2); c2.setCellValue(sol.getUsfOrigem().name()); c2.setCellStyle(centerStyle);
 
-            Cell c2 = row.createCell(2);
-            c2.setCellValue(sol.getUsfOrigem().name()); c2.setCellStyle(centerStyle);
+            // Agrupar nomes das especialidades
+            String especialidadesAgrupadas = listaDeEspecialidades.stream()
+                    .map(esp -> esp.getEspecialidadeSolicitada().getDescricao())
+                    .collect(Collectors.joining(", "));
+            
+            Cell c3 = row.createCell(3); c3.setCellValue(especialidadesAgrupadas); c3.setCellStyle(dataStyle);
 
-            Cell c3 = row.createCell(3);
-            c3.setCellValue(esp.getEspecialidadeSolicitada().getDescricao()); c3.setCellStyle(dataStyle);
-
+            AgendamentoSolicitacao ag = listaDeEspecialidades.get(0).getAgendamentoSolicitacao();
+            
             Cell c4 = row.createCell(4);
             c4.setCellValue(ag != null && ag.getDataAgendada() != null ? ag.getDataAgendada().format(fmt) : "");
             c4.setCellStyle(centerStyle);

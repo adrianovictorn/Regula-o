@@ -3,8 +3,8 @@
   // Importa a nossa função postApi que já envia o token JWT
   import { postApi } from '$lib/api.js'; 
   import { opcoesEspecialidades } from '$lib/Especialidades.js'; // Usando o objeto centralizado
-    import Menu from '$lib/Menu.svelte';
-    import UserMenu from '$lib/UserMenu.svelte';
+  import Menu from '$lib/Menu.svelte';
+  import UserMenu from '$lib/UserMenu.svelte';
 
   // --- ESTADO DO FORMULÁRIO ---
   let errors: { [key: string]: string } = {};

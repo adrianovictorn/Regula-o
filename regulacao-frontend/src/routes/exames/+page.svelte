@@ -4,126 +4,12 @@
     import UserMenu from '$lib/UserMenu.svelte';
     import { Label } from 'bits-ui';
   import { onMount } from 'svelte';
+  import { opcoesEspecialidades } from '$lib/Especialidades.js';
 
-  const todosOsExamesDoEnum = [
-    { value: 'DOPPLER', label: 'Doppler' },
-    { value: 'MAMOGRAFIA', label: 'Mamografia' },
-    { value: 'HOLTER', label: 'Holter' },
-    { value: 'TESTE_ERGOMETRICO', label: 'Teste Ergométrico' },
-    { value: 'MAPA', label: 'M.A.P.A.' },
-    { value: 'TOMOGRAFIA', label: 'Tomografia Computadorizada' },
-    { value: 'RESSONANCIA', label: 'Ressonância Magnética' },
-    { value: 'CINTILOGRAFIA', label: 'Cintilografia' },
-    { value: 'ELETRONEUROMIOGRAFIA', label: 'Eletroneuromiografia' },
-    { value: 'CATETERISMO', label: 'Cateterismo' },
-    { value: 'HEMOGRAMA_COMPLETO', label: 'Hemograma Completo' },
-    { value: 'GLICEMIA_JEJUM', label: 'Glicemia de Jejum' },
-    { value: 'HEMOGLOBINA_GLICADA_HBA1C', label: 'Hemoglobina Glicada (HbA1c)' },
-    { value: 'COLESTEROL_TOTAL', label: 'Colesterol Total' },
-    { value: 'HDL_COLESTEROL', label: 'HDL Colesterol' },
-    { value: 'LDL_COLESTEROL', label: 'LDL Colesterol' },
-    { value: 'VLDL_COLESTEROL', label: 'VLDL Colesterol' },
-    { value: 'TRIGLICERIDEOS', label: 'Triglicerídeos' },
-    { value: 'UREIA', label: 'Ureia' },
-    { value: 'CREATININA', label: 'Creatinina' },
-    { value: 'SODIO', label: 'Sódio' },
-    { value: 'POTASSIO', label: 'Potássio' },
-    { value: 'ACIDO_URICO', label: 'Ácido Úrico' },
-    { value: 'SUMARIO_DE_URINA_EAS', label: 'Sumário de Urina (EAS)' },
-    { value: 'UROCULTURA_COM_ANTIBIOGRAMA', label: 'Urocultura com Antibiograma' },
-    { value: 'PARASITOLOGICO_DE_FEZES', label: 'Parasitológico de Fezes' },
-    { value: 'PESQUISA_SANGUE_OCULTO_FEZES', label: 'Pesquisa de Sangue Oculto nas Fezes' },
-    { value: 'TESTE_RAPIDO_GRAVIDEZ_TIG', label: 'Teste Rápido de Gravidez (TIG)' },
-    { value: 'TESTE_RAPIDO_HIV', label: 'Teste Rápido para HIV' },
-    { value: 'SOROLOGIA_HIV', label: 'Sorologia para HIV' },
-    { value: 'TESTE_RAPIDO_SIFILIS', label: 'Teste Rápido para Sífilis' },
-    { value: 'VDRL', label: 'VDRL' },
-    { value: 'TESTE_RAPIDO_HEPATITE_B', label: 'Teste Rápido para Hepatite B' },
-    { value: 'HBSAG', label: 'HBsAg' },
-    { value: 'ANTI_HBS', label: 'Anti-HBs' },
-    { value: 'TESTE_RAPIDO_HEPATITE_C', label: 'Teste Rápido para Hepatite C' },
-    { value: 'ANTI_HCV', label: 'Anti-HCV' },
-    { value: 'TSH_HORMONIO_TIREOESTIMULANTE', label: 'TSH' },
-    { value: 'T4_LIVRE', label: 'T4 Livre' },
-    { value: 'PSA_TOTAL', label: 'PSA Total' },
-    { value: 'PSA_LIVRE', label: 'PSA Livre' },
-    { value: 'BACILOSCOPIA_DE_ESCARRO_BAAR', label: 'Baciloscopia de Escarro (BAAR)' },
-    { value: 'CULTURA_DE_ESCARRO', label: 'Cultura de Escarro' },
-    { value: 'ELETROCARDIOGRAMA_ECG', label: 'Eletrocardiograma (ECG)' },
-    { value: 'COLPOSCOPIA', label: 'Colposcopia' },
-    { value: 'BIOPSIA_COLO_UTERINO', label: 'Biópsia de Colo Uterino' },
-    { value: 'MAMOGRAFIA_BILATERAL', label: 'Mamografia Bilateral' },
-    { value: 'ULTRASSONOGRAFIA_ABDOMINAL_TOTAL', label: 'USG Abdominal Total' },
-    { value: 'ULTRASSONOGRAFIA_ABDOMEN_SUPERIOR', label: 'USG Abdômen Superior' },
-    { value: 'ULTRASSONOGRAFIA_PELVICA_VIA_ABDOMINAL', label: 'USG Pélvica (Abdominal)' },
-    { value: 'ULTRASSONOGRAFIA_PELVICA_TRANSVAGINAL', label: 'USG Pélvica (Transvaginal)' },
-    { value: 'ULTRASSONOGRAFIA_OBSTETRICA', label: 'USG Obstétrica' },
-    { value: 'ULTRASSONOGRAFIA_VIAS_URINARIAS', label: 'USG Vias Urinárias' },
-    { value: 'ULTRASSONOGRAFIA_PROSTATA_VIA_ABDOMINAL', label: 'USG Próstata (Abdominal)' },
-    { value: 'ULTRASSONOGRAFIA_TIREOIDE', label: 'USG Tireoide' },
-    { value: 'ULTRASSONOGRAFIA_ARTICULAR', label: 'USG Articular' },
-    { value: 'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_UNILATERAL', label: 'USG Doppler Arterial MI Unilateral' },
-    { value: 'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_BILATERAL', label: 'USG Doppler Arterial MI Bilateral' },
-    { value: 'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL', label: 'USG Doppler Venoso MI Unilateral' },
-    { value: 'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL', label: 'USG Doppler Venoso MI Bilateral' },
-    { value: 'ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS', label: 'USG Doppler Carótidas e Vertebrais' },
-    { value: 'RAIO_X_TORAX_PA', label: 'Raio-X Tórax PA' },
-    { value: 'RAIO_X_TORAX_PA_PERFIL', label: 'Raio-X Tórax PA/Perfil' },
-    { value: 'RAIO_X_SEIOS_DA_FACE', label: 'Raio-X Seios da Face' },
-    { value: 'RAIO_X_COLUNA_CERVICAL', label: 'Raio-X Coluna Cervical' },
-    { value: 'RAIO_X_COLUNA_DORSAL', label: 'Raio-X Coluna Dorsal' },
-    { value: 'RAIO_X_COLUNA_LOMBO_SACRA', label: 'Raio-X Coluna Lombo-Sacra' },
-    { value: 'RAIO_X_ABDOMEN_SIMPLES', label: 'Raio-X Abdômen Simples' },
-    { value: 'RAIO_X_ABDOMEN_AGUDO', label: 'Raio-X Abdômen Agudo' },
-    { value: 'RAIO_X_ARTICULACAO_COXO_FEMURAL_BACIA', label: 'Raio-X Bacia' },
-    { value: 'RAIO_X_JOELHO', label: 'Raio-X Joelho' },
-    { value: 'RAIO_X_MAO_OU_QUIRODACTILOS', label: 'Raio-X Mão/Quirodáctilos' },
-    { value: 'RAIO_X_PE_OU_PODODACTILOS', label: 'Raio-X Pé/Pododáctilos' },
-    { value: 'TESTE_ERGOMETRICO_CONVENCIONAL', label: 'Teste Ergométrico Convencional' },
-    { value: 'HOLTER_24_HORAS_3_CANAIS', label: 'Holter 24 Horas (3 Canais)' },
-    { value: 'MAPA_24_HORAS_MONITORIZACAO_AMBULATORIAL_PRESSAO_ARTERIAL', label: 'MAPA 24 Horas' },
-    { value: 'ENDOSCOPIA_DIGESTIVA_ALTA', label: 'Endoscopia Digestiva Alta' },
-    { value: 'ENDOSCOPIA_DIGESTIVA_ALTA_COM_BIOPSIA', label: 'Endoscopia Digestiva Alta com Biópsia' },
-    { value: 'COLONOSCOPIA', label: 'Colonoscopia' },
-    { value: 'COLONOSCOPIA_COM_BIOPSIA', label: 'Colonoscopia com Biópsia' },
-    { value: 'AUDIOMETRIA_TONAL_LIMIAR_COM_TESTES_DE_DISCRIMINACAO', label: 'Audiometria Tonal e Vocal' },
-    { value: 'IMPEDANCIOMETRIA', label: 'Impedanciometria' },
-    { value: 'FUNDOSCOPIA_BINOCULAR_INDIRETA', label: 'Fundoscopia Binocular Indireta' },
-    { value: 'TONOMETRIA_APLANACAO', label: 'Tonometria de Aplanação' },
-    { value: 'DENSITOMETRIA_OSSEA_COLUNA_E_FEMUR', label: 'Densitometria Óssea' },
-    { value: 'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER', label: 'Ecocardiograma Transtorácico com Doppler' },
-    { value: 'ESPIROMETRIA_PROVA_VENTILATORIA_COMPLETA', label: 'Espirometria Completa' },
-    { value: 'ELETROENCEFALOGRAMA_CONVENCIONAL', label: 'Eletroencefalograma Convencional' },
-    { value: 'TOMOGRAFIA_COMPUTADORIZADA_CRANIO', label: 'TC Crânio' },
-    { value: 'TOMOGRAFIA_COMPUTADORIZADA_TORAX', label: 'TC Tórax' },
-    { value: 'TOMOGRAFIA_COMPUTADORIZADA_ABDOMEN_TOTAL', label: 'TC Abdômen Total' },
-    { value: 'RESSONANCIA_MAGNETICA_CRANIO_ENCEFALO', label: 'RM Crânio/Encéfalo' },
-    { value: 'RESSONANCIA_MAGNETICA_COLUNA_CERVICAL', label: 'RM Coluna Cervical' },
-    { value: 'RESSONANCIA_MAGNETICA_COLUNA_LOMBAR', label: 'RM Coluna Lombar' },
-    { value: 'RESSONANCIA_MAGNETICA_JOELHO', label: 'RM Joelho' },
-    { value: 'CINTILOGRAFIA_MIOCARDIO_PERFUSAO_REPOUSO_ESTRESSE', label: 'Cintilografia Miocárdio (Repouso/Estresse)' },
-    { value: 'CINTILOGRAFIA_TIREOIDE_CAPTACAO', label: 'Cintilografia Tireoide com Captação' },
-    { value: 'CINTILOGRAFIA_OSSEA', label: 'Cintilografia Óssea' },
-    { value: 'ELETRONEUROMIOGRAFIA_MEMBROS_SUPERIORES', label: 'Eletroneuromiografia MMSS' },
-    { value: 'ELETRONEUROMIOGRAFIA_MEMBROS_INFERIORES', label: 'Eletroneuromiografia MMII' },
-    { value: 'CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO', label: 'Cateterismo Cardíaco Diagnóstico' },
-    { value: 'AVALIACAO_URODINAMICA_COMPLETA', label: 'Avaliação Urodinâmica Completa' },
-    { value: 'EXERESE_PEQUENAS_LESOES_PELE_ANATOMOPATOLOGICO', label: 'Exerese Pequenas Lesões de Pele + AP' },
-    { value: 'ASLO', label: 'ASLO'},
-    { value: 'TGO', label: 'TGO'},
-    { value: 'TGP', label: 'TGP'},
-    { value: 'CALCIO', label: 'Cálcio'},
-    { value: 'FATOR_REUMATOIDE', label: 'Fator Reumatoide'}, // CORRIGIDO
-    { value: 'COAGULOGRAMA', label: 'Coagulograma'},
-    { value: 'GAMA_GT', label:'Gama GT'},
-    { value: 'PESQUISA_OVOS_CISTOS_PARASITAS', label: 'Pesquisa de Ovos, Cistos e Parasitas'},
-    { value: 'FOSFATASE_ALCALINA', label: 'Fosfatase Alcalina'}, // FALTANDO
-    { value: 'BILIRRUBINA_TOTAL_FRACOES', label: 'Bilirrubina total e frações'}, // FALTANDO
-    { value: 'TIPO_SANGUINEO', label: 'Tipo Sanguíneo'}, // FALTANDO
-    { value: 'TP', label: 'TP'}, // FALTANDO
-    { value: 'TTPA', label: 'TTPA'} // FALTANDO
-
-].map(ex => ({ ...ex, selecionado: false }));
+  const todosOsExamesDoEnum = opcoesEspecialidades.examesEProcedimentos.map(ex => ({ 
+  ...ex, 
+  selecionado: false 
+}));
 
   let examesDisponiveisParaCheckbox = $state(todosOsExamesDoEnum);
   let listaDeSolicitacoesParaDropdown = $state<any[]>([]);
@@ -303,7 +189,7 @@
 </script>
 
 <svelte:head>
-    <title>Exame</title>
+    <title>Exame/Procedimento</title>
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
