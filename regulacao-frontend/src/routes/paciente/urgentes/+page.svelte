@@ -66,7 +66,15 @@
   function nextPage() { if (currentPage < totalPages) currentPage++; }
 </script>
 
+
+<svelte:head>
+    <title>Urgentes</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
+
+
+  
   <!-- Sidebar navigation -->
   <Menu activePage="/urgentes" />
 

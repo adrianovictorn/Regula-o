@@ -302,6 +302,10 @@
   }
 </script>
 
+<svelte:head>
+    <title>Exame</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
     <Menu activePage="/exames" />
 

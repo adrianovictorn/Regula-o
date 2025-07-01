@@ -22,6 +22,10 @@
   }
 </script>
 
+<svelte:head>
+    <title>Perfil</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-50 font-sans">
   <Menu activePage="/perfil" />
 

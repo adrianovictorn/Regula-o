@@ -217,6 +217,9 @@
   }
 
 </script>
+<svelte:head>
+    <title>Relatórios</title>
+</svelte:head>
 
 <div class="flex h-screen bg-gray-100">
     <Menu activePage="/exportar" />

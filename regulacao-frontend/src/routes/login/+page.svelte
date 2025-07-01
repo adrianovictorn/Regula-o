@@ -43,6 +43,10 @@ async function handleLogin() {
 }
 </script>
 
+<svelte:head>
+    <title>Login - SIRG</title>
+</svelte:head>
+
 <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-emerald-100 p-4">
 
   <div class="w-full max-w-md p-8 space-y-8 bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20">

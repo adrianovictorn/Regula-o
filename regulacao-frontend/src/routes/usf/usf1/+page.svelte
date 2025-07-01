@@ -88,6 +88,10 @@
   function nextPage() { if (currentPage < totalPages) currentPage++; }
 </script>
 
+<svelte:head>
+    <title>USF01</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar navigation -->
      <Menu activePage="/home" />

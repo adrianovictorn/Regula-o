@@ -76,6 +76,10 @@
   function nextPage() { if (currentPage < totalPages) currentPage++; }
 </script>
 
+<svelte:head>
+    <title>Pacientes</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
   <Menu activePage="/paciente" />
 

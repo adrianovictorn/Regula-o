@@ -99,6 +99,10 @@
   }
 </script>
 
+<svelte:head>
+    <title>Consulta</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
   <Menu activePage="/cadastrar" />

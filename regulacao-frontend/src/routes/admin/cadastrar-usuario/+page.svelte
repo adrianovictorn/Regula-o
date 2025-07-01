@@ -73,6 +73,10 @@
   }
 </script>
 
+<svelte:head>
+    <title>Cadastro de Usuário</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
   <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">

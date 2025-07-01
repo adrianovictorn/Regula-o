@@ -1,3 +1,7 @@
+<svelte:head>
+    <title>SIRG</title>
+</svelte:head>
+
 <header class="bg-gray-800 shadow-lg flex items-center justify-between h-20 px-6 md:px-10">
   <div class="flex items-center space-x-4">
     <img src="/images/logo.png" alt="SIRG Logo" class="h-20 w-auto">

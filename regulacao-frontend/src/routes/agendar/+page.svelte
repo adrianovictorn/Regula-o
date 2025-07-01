@@ -295,6 +295,10 @@ function selecionarSolicitacao(solicitacao) {
   }
 </script>
 
+<svelte:head>
+    <title>Agendamento</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
   <Menu activePage="/agendar" />
 

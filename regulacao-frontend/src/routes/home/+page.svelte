@@ -56,6 +56,10 @@
   };
 </script>
 
+<svelte:head>
+    <title>Dashboard</title>
+</svelte:head>
+
 <!-- O HTML agora é condicional com base no estado de carregamento -->
 {#if isLoading}
   <div class="flex items-center justify-center h-screen">

@@ -131,6 +131,10 @@
 
 </script>
 
+<svelte:head>
+    <title>Paciente</title>
+</svelte:head>
+
 <div class="flex h-screen bg-gray-100">
  <Menu activePage = "/paciente"/>
 
