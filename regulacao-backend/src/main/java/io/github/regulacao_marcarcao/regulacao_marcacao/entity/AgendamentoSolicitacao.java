@@ -3,6 +3,7 @@ package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
 import java.time.LocalDate;
 import java.util.List;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.LocalDeAgendamentoEnum;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.TurnoEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,5 +46,9 @@ public class AgendamentoSolicitacao {
     @ManyToOne()
     @JoinColumn(name = "solicitacao_id", nullable = false)
     private Solicitacao solicitacao;
+
+    @Column(name = "turno")
+    @Enumerated(EnumType.STRING)
+    private TurnoEnum turno;
 
 }

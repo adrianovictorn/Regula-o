@@ -4,6 +4,7 @@
     import { goto } from '$app/navigation';
     import { getApi, postApi, putApi, deleteApi } from '$lib/api'; // Importando deleteApi
     import { opcoesEspecialidades } from '$lib/Especialidades.js';
+    import Menu from "$lib/Menu.svelte";
 
     // --- Estado do Componente com Svelte 5 Runes ---
     let solicitacao = $state<any>(null);
@@ -131,18 +132,7 @@
 </script>
 
 <div class="flex h-screen bg-gray-100">
- <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded bg-emerald-700">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • © 2025</div>
- </aside>
+ <Menu activePage = "/paciente"/>
 
  <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white p-4 flex justify-between items-center">

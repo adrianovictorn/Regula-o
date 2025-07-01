@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getApi } from "$lib/api";
+    import Menu from "$lib/Menu.svelte";
+    import UserMenu from "$lib/UserMenu.svelte";
 
   // Variáveis de estado declaradas com as "runes" do Svelte 5
   let isLoading = $state(true);
@@ -75,23 +77,12 @@
 </script>
 
 <div class="flex h-screen bg-gray-100">
- <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded bg-emerald-700">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • © 2025</div>
- </aside>
+  <Menu activePage="/paciente" />
 
  <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">Pacientes</h1>
-      <div>Bem-vindo(a), Usuário</div>
+          <UserMenu/>
     </header>
 
     <main class="flex-1 overflow-auto p-6">
@@ -145,9 +136,9 @@
 
               {#if totalPages > 1}
                 <div class="flex justify-center items-center space-x-2 mt-6">
-                  <button on:click={prevPage} class="px-3 py-1 bg-emerald-600 hover:bg-emerald-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed transition" disabled={currentPage === 1}>&laquo; Anterior</button>
+                  <button on:click={prevPage} class="px-3 py-1 bg-emerald-600 hover:bg-emerald-800 cursor-pointer text-white rounded disabled:opacity-50 disabled:cursor-not-allowed transition" disabled={currentPage === 1}>&laquo; Anterior</button>
                   <span class="text-gray-700">Página {currentPage} de {totalPages}</span>
-                  <button on:click={nextPage} class="px-3 py-1 bg-emerald-600 hover:bg-emerald-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed transition" disabled={currentPage === totalPages}>Próximo &raquo;</button>
+                  <button on:click={nextPage} class="px-3 py-1 bg-emerald-600 hover:bg-emerald-800 cursor-pointer text-white rounded disabled:opacity-50 disabled:cursor-not-allowed transition" disabled={currentPage === totalPages}>Próximo &raquo;</button>
                 </div>
               {/if}
             {/if}

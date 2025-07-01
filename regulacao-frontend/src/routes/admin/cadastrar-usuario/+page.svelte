@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { postApi } from '$lib/api.js';
+    import UserMenu from '$lib/UserMenu.svelte';
 
   // --- ESTADO DO FORMULÁRIO ---
   let nome = '';
@@ -89,7 +90,7 @@
   <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">Gerenciamento de Usuários</h1>
-      <div>Administração</div>
+          <UserMenu/>
     </header>
 
     <main class="flex-1 overflow-auto p-6">

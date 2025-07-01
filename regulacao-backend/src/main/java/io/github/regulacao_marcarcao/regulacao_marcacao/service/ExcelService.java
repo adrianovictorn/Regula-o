@@ -1,22 +1,25 @@
 package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
-import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao; // Importar Solicitacao
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.AgendamentoSolicitacao;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map; // Importar Map
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,84 +27,157 @@ public class ExcelService {
 
     private final SolicitacaoEspecialidadeRepository especialidadeRepository;
 
-    /**
-     * MÉTODO ATUALIZADO PARA AGRUPAR EXAMES POR PACIENTE
-     */
     public ByteArrayInputStream gerarPlanilhaAgendamentos(List<EspecialidadesEnum> tipos, LocalDate data) throws IOException {
-        
         if (tipos == null || tipos.isEmpty()) {
             return new ByteArrayInputStream(new ByteArrayOutputStream().toByteArray());
         }
 
-        List<SolicitacaoEspecialidade> especialidadesFiltradas = especialidadeRepository.findAgendadasPorDataEEnums(data, tipos);
-
-        // --- INÍCIO DA NOVA LÓGICA DE AGRUPAMENTO ---
-        // 1. Agrupamos a lista de especialidades pelo objeto 'Solicitacao' pai.
-        // O resultado é um Mapa onde a chave é a Solicitação (paciente) e o valor é a lista de seus exames.
-        Map<Solicitacao, List<SolicitacaoEspecialidade>> agrupadoPorPaciente = especialidadesFiltradas.stream()
-                .collect(Collectors.groupingBy(SolicitacaoEspecialidade::getSolicitacao));
-        // --- FIM DA NOVA LÓGICA DE AGRUPAMENTO ---
-
-
+        List<SolicitacaoEspecialidade> especialidades = especialidadeRepository.findAgendadasPorDataEEnums(data, tipos);
         XSSFWorkbook workbook = new XSSFWorkbook();
-        String sheetName = tipos.get(0).getDescricao();
-        Sheet sheet = workbook.createSheet(sheetName);
+        Sheet sheet = workbook.createSheet("Relatório de Agendamentos");
+
+        // ========== Estilos ========== //
+        Font titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 14);
+        titleFont.setFontName("Arial");
+        CellStyle titleStyle = workbook.createCellStyle();
+        titleStyle.setFont(titleFont);
+        titleStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        Font subtitleFont = workbook.createFont();
+        subtitleFont.setFontHeightInPoints((short) 10);
+        subtitleFont.setFontName("Arial");
+        CellStyle subtitleStyle = workbook.createCellStyle();
+        subtitleStyle.setFont(subtitleFont);
+        subtitleStyle.setAlignment(HorizontalAlignment.CENTER);
 
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setFontHeightInPoints((short) 12);
-        CellStyle headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFont(headerFont);
-        headerCellStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
-        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerFont.setFontHeightInPoints((short) 10);
+        headerFont.setFontName("Arial");
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.SEA_GREEN.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
 
-        String[] columns = {"NOME", "DATA DE NASCIMENTO", "USF DE ORIGEM", "ESPECIALIDADE/EXAME"};
-        Row headerRow = sheet.createRow(0);
-        for (int i = 0; i < columns.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(columns[i]);
-            cell.setCellStyle(headerCellStyle);
+        CellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setBorderBottom(BorderStyle.THIN);
+        dataStyle.setBorderLeft(BorderStyle.THIN);
+        dataStyle.setBorderRight(BorderStyle.THIN);
+        dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        dataStyle.setAlignment(HorizontalAlignment.LEFT);
+        dataStyle.setWrapText(true);
+
+        CellStyle centerStyle = workbook.createCellStyle();
+        centerStyle.cloneStyleFrom(dataStyle);
+        centerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        // ========== Inserção do Brasão ========== //
+        try (InputStream is = new ClassPathResource("images/brasao.png").getInputStream()) {
+            byte[] bytes = IOUtils.toByteArray(is);
+            int picIdx = workbook.addPicture(bytes, Workbook.PICTURE_TYPE_PNG);
+            CreationHelper helper = workbook.getCreationHelper();
+            Drawing<?> drawing = sheet.createDrawingPatriarch();
+            ClientAnchor anchor = helper.createClientAnchor();
+            // pequena acima do título: col D (3) linha 0 até col E (4) linha 2
+            anchor.setCol1(3);
+            anchor.setRow1(0);
+            anchor.setCol2(4);
+            anchor.setRow2(3);
+            anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
+            Picture pic = drawing.createPicture(anchor, picIdx);
+            pic.resize(0.99); // metade do tamanho original
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar brasão: " + e.getMessage());
         }
 
-        int rowNum = 1;
-        // 2. Iteramos sobre o Mapa agrupado, não mais sobre a lista original.
-        for (Map.Entry<Solicitacao, List<SolicitacaoEspecialidade>> entry : agrupadoPorPaciente.entrySet()) {
-            Row row = sheet.createRow(rowNum++);
-            
-            Solicitacao paciente = entry.getKey();
-            List<SolicitacaoEspecialidade> examesDoPaciente = entry.getValue();
+        // ========== Cabeçalho de Texto ========== //
+        // Título
+        Row rowTitle = sheet.createRow(3);
+        rowTitle.setHeightInPoints(20);
+        Cell cellTitle = rowTitle.createCell(0);
+        cellTitle.setCellValue("SIRG - Sistema de Regulação");
+        cellTitle.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 5));
 
-            // 3. Pegamos os dados do paciente (que agora são únicos por linha)
-            row.createCell(0).setCellValue(paciente.getNomePaciente());
-            LocalDate dataNasc = paciente.getDataNascimento();
-            row.createCell(1).setCellValue(dataNasc != null ? dataNasc.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-            row.createCell(2).setCellValue(paciente.getUsfOrigem().name());
+        // Subtítulo
+        Row rowSub = sheet.createRow(4);
+        rowSub.setHeightInPoints(16);
+        Cell cellSub = rowSub.createCell(0);
+        cellSub.setCellValue("Central de Regulação de Conceição do Almeida");
+        cellSub.setCellStyle(subtitleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(4, 4, 0, 5));
 
-            // 4. Mapeamos a lista de exames para seus nomes e juntamos com ", "
-            String examesAgrupados = examesDoPaciente.stream()
-                    .map(exame -> exame.getEspecialidadeSolicitada().getDescricao())
-                    .collect(Collectors.joining(", "));
-
-            row.createCell(3).setCellValue(examesAgrupados);
+        // ========== Tabela ========== //
+        String[] headers = {"NOME", "NASCIMENTO", "USF", "ESPECIALIDADE/EXAME", "AGENDAMENTO", "TURNO"};
+        Row rowHead = sheet.createRow(6);
+        rowHead.setHeightInPoints(18);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = rowHead.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
         }
 
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        int r = 7;
+        for (SolicitacaoEspecialidade esp : especialidades) {
+            Row row = sheet.createRow(r++);
+            row.setHeightInPoints(18);
+            Solicitacao sol = esp.getSolicitacao();
+            AgendamentoSolicitacao ag = esp.getAgendamentoSolicitacao();
 
-        for (int i = 0; i < columns.length; i++) {
-            sheet.autoSizeColumn(i);
+            Cell c0 = row.createCell(0);
+            c0.setCellValue(sol.getNomePaciente()); c0.setCellStyle(dataStyle);
+
+            Cell c1 = row.createCell(1);
+            c1.setCellValue(sol.getDataNascimento() != null ? sol.getDataNascimento().format(fmt) : "");
+            c1.setCellStyle(centerStyle);
+
+            Cell c2 = row.createCell(2);
+            c2.setCellValue(sol.getUsfOrigem().name()); c2.setCellStyle(centerStyle);
+
+            Cell c3 = row.createCell(3);
+            c3.setCellValue(esp.getEspecialidadeSolicitada().getDescricao()); c3.setCellStyle(dataStyle);
+
+            Cell c4 = row.createCell(4);
+            c4.setCellValue(ag != null && ag.getDataAgendada() != null ? ag.getDataAgendada().format(fmt) : "");
+            c4.setCellStyle(centerStyle);
+
+            Cell c5 = row.createCell(5);
+            c5.setCellValue(ag != null && ag.getTurno() != null ? ag.getTurno().name() : "");
+            c5.setCellStyle(centerStyle);
         }
+
+        // ========== Ajustes Finais ========== //
+        sheet.setColumnWidth(0, 40 * 256);
+        sheet.setColumnWidth(1, 15 * 256);
+        sheet.setColumnWidth(2, 15 * 256);
+        sheet.setColumnWidth(3, 45 * 256);
+        sheet.setColumnWidth(4, 15 * 256);
+        sheet.setColumnWidth(5, 12 * 256);
+
+        Footer footer = sheet.getFooter();
+        footer.setCenter("Direitos reservados a SIRG, desenvolvido por Adriano Victor N. Ribeiro e Filipe da Silva Ribeiro");
+
+        sheet.getPrintSetup().setLandscape(true);
+        sheet.setFitToPage(true);
+        sheet.getPrintSetup().setFitWidth((short) 1);
+        sheet.getPrintSetup().setFitHeight((short) 0);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         workbook.write(out);
         workbook.close();
         return new ByteArrayInputStream(out.toByteArray());
     }
-    
-    // O método de verificação não precisa ser alterado.
+
     public boolean haDadosParaRelatorio(List<EspecialidadesEnum> tipos, LocalDate data) {
-        if (tipos == null || tipos.isEmpty()) {
-            return false;
-        }
-        long count = especialidadeRepository.countAgendadasPorDataEEnums(data, tipos);
-        return count > 0;
+        return tipos != null && !tipos.isEmpty() && especialidadeRepository.countAgendadasPorDataEEnums(data, tipos) > 0;
     }
 }

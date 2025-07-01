@@ -15,7 +15,6 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
-import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +59,7 @@ public class AgendamentoService {
         ag.setLocalAgendado(dto.localAgendado());
         ag.setDataAgendada(dto.dataAgendada());
         ag.setObservacoes(dto.observacoes());
+        ag.setTurno(dto.turno());
         ag = agendamentoRepository.save(ag);
 
         // atualiza status da especialidade
@@ -101,6 +101,7 @@ public class AgendamentoService {
         novoAgendamento.setLocalAgendado(dto.localAgendado());
         novoAgendamento.setDataAgendada(dto.dataAgendada());
         novoAgendamento.setObservacoes(dto.observacoes());
+        novoAgendamento.setTurno(dto.turno());
         
         // Salva para obter um ID.
         AgendamentoSolicitacao agendamentoSalvo = agendamentoRepository.save(novoAgendamento);

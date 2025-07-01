@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getApi } from "$lib/api";
+    import Menu from "$lib/Menu.svelte";
+    import UserMenu from "$lib/UserMenu.svelte";
 
   // --- Estado do Componente (Svelte 5 Runes) ---
   let isLoading = $state(true);
@@ -66,25 +68,14 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar navigation -->
-  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">Regula System</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • Adriano Victor, Filipe Ribeiro © 2025</div>
-  </aside>
+  <Menu activePage="/urgentes" />
 
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">
     <!-- Header -->
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">Pacientes Pendentes</h1>
-      <div>Bem-vindo(a), Usuário</div>
+          <UserMenu/>
     </header>
 
     <!-- Content -->

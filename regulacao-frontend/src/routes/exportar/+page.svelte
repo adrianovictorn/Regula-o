@@ -5,6 +5,8 @@
   import autoTable from 'jspdf-autotable';
   import { opcoesEspecialidades } from '$lib/Especialidades.js';
     import { Label } from "bits-ui";
+    import Menu from "$lib/Menu.svelte";
+    import UserMenu from "$lib/UserMenu.svelte";
 
   // --- Estado do Componente ---
   let dataSelecionada = $state(new Date().toISOString().split('T')[0]);
@@ -13,90 +15,100 @@
   let isLoadingData = $state(true);
 
   // --- ESTRUTURA DE RELATÓRIOS ---
-  const tiposDeRelatorio = [
-    {
-      label: 'Laboratório',
-      color: 'bg-emerald-600',
-      hover: 'hover:bg-emerald-700',
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />`,
-      especialidades: [
-        'HEMOGRAMA_COMPLETO', 'GLICEMIA_JEJUM', 'HEMOGLOBINA_GLICADA_HBA1C', 
-        'COLESTEROL_TOTAL', 'HDL_COLESTEROL', 'LDL_COLESTEROL', 'VLDL_COLESTEROL', 
-        'TRIGLICERIDEOS', 'UREIA', 'CREATININA', 'SODIO', 'POTASSIO', 'ACIDO_URICO', 
-        'SUMARIO_DE_URINA_EAS', 'UROCULTURA_COM_ANTIBIOGRAMA', 'PARASITOLOGICO_DE_FEZES', 
-        'PESQUISA_SANGUE_OCULTO_FEZES', 'TESTE_RAPIDO_GRAVIDEZ_TIG', 'TESTE_RAPIDO_HIV', 
-        'SOROLOGIA_HIV', 'TESTE_RAPIDO_SIFILIS', 'VDRL', 'TESTE_RAPIDO_HEPATITE_B', 
-        'HBSAG', 'ANTI_HBS', 'TESTE_RAPIDO_HEPATITE_C', 'ANTI_HCV', 
-        'TSH_HORMONIO_TIREOESTIMULANTE', 'T4_LIVRE', 'PSA_TOTAL', 'PSA_LIVRE', 
-        'BACILOSCOPIA_DE_ESCARRO_BAAR', 'CULTURA_DE_ESCARRO'
-      ]
-    },
-    {
-      label: 'Raio X',
-      color: 'bg-sky-600',
-      hover: 'hover:bg-sky-700',
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
-      especialidades: [
-        'RAIO_X_TORAX_PA', 'RAIO_X_TORAX_PA_PERFIL', 'RAIO_X_SEIOS_DA_FACE', 
-        'RAIO_X_COLUNA_CERVICAL', 'RAIO_X_COLUNA_DORSAL', 'RAIO_X_COLUNA_LOMBO_SACRA', 
-        'RAIO_X_ABDOMEN_SIMPLES', 'RAIO_X_ABDOMEN_AGUDO', 'RAIO_X_ARTICULACAO_COXO_FEMURAL_BACIA', 
-        'RAIO_X_JOELHO', 'RAIO_X_MAO_OU_QUIRODACTILOS', 'RAIO_X_PE_OU_PODODACTILOS'
-      ]
-    },
-    {
-      label: 'Ultrassonografia',
-      color: 'bg-indigo-600',
-      hover: 'hover:bg-indigo-700',
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />`,
-      especialidades: [
-        'ULTRASSONOGRAFIA_PARTES_MOLES', 'ULTRASSONOGRAFIA_ABDOMINAL_TOTAL', 
-        'ULTRASSONOGRAFIA_ABDOMEN_SUPERIOR', 'ULTRASSONOGRAFIA_PELVICA_VIA_ABDOMINAL', 
-        'ULTRASSONOGRAFIA_PELVICA_TRANSVAGINAL', 'ULTRASSONOGRAFIA_OBSTETRICA', 
-        'ULTRASSONOGRAFIA_VIAS_URINARIAS', 'ULTRASSONOGRAFIA_PROSTATA_VIA_ABDOMINAL', 
-        'ULTRASSONOGRAFIA_TIREOIDE', 'ULTRASSONOGRAFIA_ARTICULAR'
-      ]
-    },
-    {
-      label: 'Cardiologia',
-      color: 'bg-rose-600',
-      hover: 'hover:bg-rose-700',
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />`,
-      especialidades: [
-        'CARDIOLOGISTA', 'TESTE_ERGOMETRICO', 'HOLTER', 'MAPA', 
-        'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER', 'CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO'
-      ]
-    },
-     {
-      label: 'Doppler',
-      color: 'bg-teal-600',
-      hover: 'hover:bg-teal-700',
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />`,
-      especialidades: [
-        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_UNILATERAL',
-        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_BILATERAL',
-        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL',
-        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL',
-        'ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS'
-      ]
-    },{
-      label: 'Pediatria',
-      color: 'bg-blue-300',
-      hover: 'hover:bg-blue-400',
-      icon: ``,
-      especialidades: [
-        'PEDIATRIA'
-      ]
-    },
-    {
-      Label: 'Ortopedista',
-      color: '',
-      hover: '',
-      icon: '',
-      especialidades: [
-        'ORTOPEDISTA'
-      ]
-    }
-  ];
+   const tiposDeRelatorio = [
+    {
+      label: 'Laboratório',
+      color: 'bg-emerald-600',
+      hover: 'hover:bg-emerald-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />`,
+      especialidades: [
+        'HEMOGRAMA_COMPLETO', 'GLICEMIA_JEJUM', 'HEMOGLOBINA_GLICADA_HBA1C', 
+        'COLESTEROL_TOTAL', 'HDL_COLESTEROL', 'LDL_COLESTEROL', 'VLDL_COLESTEROL', 
+        'TRIGLICERIDEOS', 'UREIA', 'CREATININA', 'SODIO', 'POTASSIO', 'ACIDO_URICO', 
+        'SUMARIO_DE_URINA_EAS', 'UROCULTURA_COM_ANTIBIOGRAMA', 'PARASITOLOGICO_DE_FEZES', 
+        'PESQUISA_SANGUE_OCULTO_FEZES', 'TESTE_RAPIDO_GRAVIDEZ_TIG', 'TESTE_RAPIDO_HIV', 
+        'SOROLOGIA_HIV', 'TESTE_RAPIDO_SIFILIS', 'VDRL', 'TESTE_RAPIDO_HEPATITE_B', 
+        'HBSAG', 'ANTI_HBS', 'TESTE_RAPIDO_HEPATITE_C', 'ANTI_HCV', 
+        'TSH_HORMONIO_TIREOESTIMULANTE', 'T4_LIVRE', 'PSA_TOTAL', 'PSA_LIVRE', 
+        'BACILOSCOPIA_DE_ESCARRO_BAAR', 'CULTURA_DE_ESCARRO'
+      ]
+    },
+    {
+      label: 'Raio X',
+      color: 'bg-sky-600',
+      hover: 'hover:bg-sky-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+      especialidades: [
+        'RAIO_X_TORAX_PA', 'RAIO_X_TORAX_PA_PERFIL', 'RAIO_X_SEIOS_DA_FACE', 
+        'RAIO_X_COLUNA_CERVICAL', 'RAIO_X_COLUNA_DORSAL', 'RAIO_X_COLUNA_LOMBO_SACRA', 
+        'RAIO_X_ABDOMEN_SIMPLES', 'RAIO_X_ABDOMEN_AGUDO', 'RAIO_X_ARTICULACAO_COXO_FEMURAL_BACIA', 
+        'RAIO_X_JOELHO', 'RAIO_X_MAO_OU_QUIRODACTILOS', 'RAIO_X_PE_OU_PODODACTILOS'
+      ]
+    },
+    {
+      label: 'Ultrassonografia',
+      color: 'bg-indigo-600',
+      hover: 'hover:bg-indigo-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />`,
+      especialidades: [
+        'ULTRASSONOGRAFIA_PARTES_MOLES', 'ULTRASSONOGRAFIA_ABDOMINAL_TOTAL', 
+        'ULTRASSONOGRAFIA_ABDOMEN_SUPERIOR', 'ULTRASSONOGRAFIA_PELVICA_VIA_ABDOMINAL', 
+        'ULTRASSONOGRAFIA_PELVICA_TRANSVAGINAL', 'ULTRASSONOGRAFIA_OBSTETRICA', 
+        'ULTRASSONOGRAFIA_VIAS_URINARIAS', 'ULTRASSONOGRAFIA_PROSTATA_VIA_ABDOMINAL', 
+        'ULTRASSONOGRAFIA_TIREOIDE', 'ULTRASSONOGRAFIA_ARTICULAR'
+      ]
+    },
+    {
+      label: 'Cardiologia',
+      color: 'bg-rose-600',
+      hover: 'hover:bg-rose-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />`,
+      especialidades: [
+        'CARDIOLOGISTA', 'TESTE_ERGOMETRICO', 'HOLTER', 'MAPA', 
+        'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER', 'CATETERISMO_CARDIACO_ESQUERDO_DIAGNOSTICO'
+      ]
+    },
+    {
+      label: 'Doppler',
+      color: 'bg-teal-600',
+      hover: 'hover:bg-teal-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />`,
+      especialidades: [
+        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_UNILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_BILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL',
+        'ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS'
+      ]
+    },
+    {
+      label: 'Pediatria',
+      color: 'bg-amber-500',
+      hover: 'hover:bg-amber-600',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 9.75h.008v.008H9v-.008zm6 0h.008v.008H15v-.008z" />`,
+      especialidades: [
+        'PEDIATRIA'
+      ]
+    },
+    {
+      label: 'Ortopedista',
+      color: 'bg-cyan-600',
+      hover: 'hover:bg-cyan-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.092 1.21-.138 2.43-.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7zM12 12h.008v.008H12V12z" />`,
+      especialidades: [
+        'ORTOPEDISTA'
+      ]
+    },
+    {
+      label: 'Eletrocardiograma',
+      color: 'bg-red-500',
+      hover: 'hover:bg-red-600',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z">`,
+      especialidades: [
+        'ELETROCARDIOGRAMA_ECG'
+      ]
+    }
+  ];
 
 
   onMount(async () => {
@@ -207,23 +219,12 @@
 </script>
 
 <div class="flex h-screen bg-gray-100">
-  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded bg-emerald-700 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • © 2025</div>
-  </aside>
+    <Menu activePage="/exportar" />
 
   <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">Gerar Planilhas de Encaminhamento</h1>
-      <div>Bem-vindo(a), Usuário</div>
+          <UserMenu/>
     </header>
 
     <main class="flex-1 p-6 overflow-auto">

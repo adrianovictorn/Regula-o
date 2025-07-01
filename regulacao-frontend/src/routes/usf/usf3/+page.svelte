@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getApi } from "$lib/api";
+    import Menu from "$lib/Menu.svelte";
+    import { opcoesEspecialidades } from "$lib/Especialidades";
+    import UserMenu from "$lib/UserMenu.svelte";
 
   // --- Estado do Componente (Svelte 5 Runes) ---
   let isLoading = $state(true);
@@ -10,6 +13,27 @@
   let buscar = $state('');
   let currentPage = $state(1);
   const itemsPerPage = 10;
+
+  
+   function formatarData(dataString: string | null): string {
+    if (!dataString) return 'N/A';
+    // Cria a data em UTC para evitar problemas de fuso horário
+    const data = new Date(dataString);
+    // Adiciona 1 dia para compensar o fuso-horário (a data vem como YYYY-MM-DD e o JS pode interpretar como dia anterior)
+    data.setDate(data.getDate() + 1);
+    return data.toLocaleDateString('pt-BR');
+  }
+
+   function getNomeEspecialidade(valorEnum: string): string {
+    const todasAsOpcoes = [
+      ...opcoesEspecialidades.especialidadesMedicas,
+      ...opcoesEspecialidades.examesEProcedimentos
+    ];
+    // Encontra o objeto correspondente ao valor do enum
+    const opcao = todasAsOpcoes.find(opt => opt.value === valorEnum);
+    // Retorna o label se encontrou, ou o próprio valor do enum como fallback
+    return opcao ? opcao.label : valorEnum;
+  }
 
   // --- Carregamento e Processamento de Dados (Client-Side) ---
   onMount(async () => {
@@ -66,25 +90,15 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar navigation -->
-  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">Regula System</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • Adriano Victor, Filipe Ribeiro © 2025</div>
-  </aside>
+     <Menu activePage="/home" />
+
 
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">
     <!-- Header -->
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
-      <h1 class="text-xl font-semibold">Pacientes Pendentes - USF 01</h1>
-      <div>Bem-vindo(a), Usuário</div>
+      <h1 class="text-xl font-semibold">Pacientes Pendentes - USF 03</h1>
+          <UserMenu/>
     </header>
 
     <!-- Content -->
@@ -92,7 +106,7 @@
       <div class="bg-white rounded-lg shadow-lg p-6 space-y-6">
         <!-- Title and search -->
         <div class="flex flex-col md:flex-row md:justify-between md:items-center">
-          <h2 class="text-2xl font-bold text-emerald-800 mb-4 md:mb-0">Lista de Pacientes Pendentes (USF 01)</h2>
+          <h2 class="text-2xl font-bold text-emerald-800 mb-4 md:mb-0">Lista de Pacientes Pendentes (USF 03)</h2>
           <div class="flex w-full md:w-1/2">
             <input
               type="text"
@@ -117,7 +131,7 @@
                 {#if buscar.trim()}
                     Nenhuma solicitação encontrada para "{buscar}".
                 {:else}
-                    Nenhuma solicitação pendente para a USF 01 no momento.
+                    Nenhuma solicitação pendente para a USF 03 no momento.
                 {/if}
               </p>
             {:else}
@@ -132,7 +146,7 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
                         <div><span class="font-semibold">CPF:</span> {s.cpfPaciente}</div>
                         <div><span class="font-semibold">USF:</span> {s.usfOrigem}</div>
-                        <div><span class="font-semibold">Data:</span> {s.dataMalote}</div>
+                        <div><span class="font-semibold">Data:</span> {formatarData(s.dataMalote)}</div>
                         <div>
                           <span class="font-semibold">Prioridade:</span>
                           <span
@@ -142,7 +156,7 @@
                             class:bg-green-500={s.especialidades[0]?.prioridade === 'NORMAL'}
                           >{s.especialidades[0]?.prioridade}</span>
                         </div>
-                        <div class="col-span-full"><span class="font-semibold">Especialidade:</span> {s.especialidades.map(e => e.especialidadeSolicitada).join(', ')}</div>
+                        <div class="col-span-full"><span class="font-semibold">Especialidade:</span> {s.especialidades.map(e => getNomeEspecialidade(e.especialidadeSolicitada)).join(', ')}</div>
                         <div class="col-span-full"><span class="font-semibold">Observações:</span> {s.observacoes}</div>
                       </div>
                     </div>

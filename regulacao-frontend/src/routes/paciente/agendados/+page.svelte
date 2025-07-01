@@ -1,20 +1,29 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getApi } from "$lib/api";
+  import { opcoesEspecialidades } from "$lib/Especialidades.js";
     import Menu from "$lib/Menu.svelte";
-    import { opcoesEspecialidades } from "$lib/Especialidades";
     import UserMenu from "$lib/UserMenu.svelte";
 
   // --- Estado do Componente (Svelte 5 Runes) ---
   let isLoading = $state(true);
   let error = $state<string | null>(null);
-  let solicitacoes = $state<any[]>([]); // Armazenará os dados filtrados da USF01
+  let solicitacoesPendentes = $state<any[]>([]);
   
   let buscar = $state('');
   let currentPage = $state(1);
   const itemsPerPage = 10;
 
-   function getNomeEspecialidade(valorEnum: string): string {
+  function formatarData(dataString: string | null): string {
+    if (!dataString) return 'N/A';
+    // Cria a data em UTC para evitar problemas de fuso horário
+    const data = new Date(dataString);
+    // Adiciona 1 dia para compensar o fuso-horário (a data vem como YYYY-MM-DD e o JS pode interpretar como dia anterior)
+    data.setDate(data.getDate() + 1);
+    return data.toLocaleDateString('pt-BR');
+  }
+
+  function getNomeEspecialidade(valorEnum: string): string {
     const todasAsOpcoes = [
       ...opcoesEspecialidades.especialidadesMedicas,
       ...opcoesEspecialidades.examesEProcedimentos
@@ -25,30 +34,19 @@
     return opcao ? opcao.label : valorEnum;
   }
 
-  
-   function formatarData(dataString: string | null): string {
-    if (!dataString) return 'N/A';
-    // Cria a data em UTC para evitar problemas de fuso horário
-    const data = new Date(dataString);
-    // Adiciona 1 dia para compensar o fuso-horário (a data vem como YYYY-MM-DD e o JS pode interpretar como dia anterior)
-    data.setDate(data.getDate() + 1);
-    return data.toLocaleDateString('pt-BR');
-  }
-
   // --- Carregamento e Processamento de Dados (Client-Side) ---
   onMount(async () => {
     try {
-      // 1. Busca TODAS as solicitações usando a API segura
+      // 1. Busca os dados da API de forma autenticada
       const response = await getApi('solicitacoes'); 
       if (!response.ok) {
         throw new Error('Falha ao carregar as solicitações do servidor.');
       }
       const todasSolicitacoes = await response.json();
 
-      // 2. Filtra os dados APÓS a busca, no lado do cliente
-      solicitacoes = todasSolicitacoes.filter((s: any) => 
-        s.usfOrigem === 'USF05' && // Filtro específico para USF01
-        s.especialidades.some((e: any) => e.status === 'AGUARDANDO') // Filtro para pendentes
+      // 2. Filtra apenas as solicitações que têm itens pendentes
+      solicitacoesPendentes = todasSolicitacoes.filter((s: any) => 
+        s.especialidades.some((e: any) => e.status === 'AGENDADO')
       );
 
     } catch (e: any) {
@@ -59,10 +57,10 @@
   });
 
   // --- Lógica Reativa com Runes ---
-  // 3. Usa `$derived` para criar valores que se atualizam automaticamente
+  // 3. Converte a sintaxe de reatividade de `$` para `$derived`
   let filtradas = $derived(
     buscar.trim()
-      ? solicitacoes.filter(s => {
+      ? solicitacoesPendentes.filter(s => {
           const termo = buscar.toLowerCase();
           const nomeMatch = s.nomePaciente.toLowerCase().includes(termo);
           const cpfMatch = s.cpfPaciente.includes(termo);
@@ -71,9 +69,10 @@
           const prioMatch = s.especialidades.some((e: any) => e.prioridade.toLowerCase().includes(termo));
           return nomeMatch || cpfMatch || usfMatch || espMatch || prioMatch;
         })
-      : solicitacoes
+      : solicitacoesPendentes
   );
   
+  // CORREÇÃO: Trocado 'filtrados' por 'filtradas' para corresponder ao nome da variável.
   let totalPages = $derived(Math.ceil(filtradas.length / itemsPerPage));
   let paged = $derived(filtradas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage));
 
@@ -90,14 +89,13 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar navigation -->
-     <Menu activePage="/home" />
-
+    <Menu activePage="/home" />
 
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">
     <!-- Header -->
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
-      <h1 class="text-xl font-semibold">Pacientes Pendentes - USF 05</h1>
+      <h1 class="text-xl font-semibold">Pacientes Agendados</h1>
           <UserMenu/>
     </header>
 
@@ -106,7 +104,7 @@
       <div class="bg-white rounded-lg shadow-lg p-6 space-y-6">
         <!-- Title and search -->
         <div class="flex flex-col md:flex-row md:justify-between md:items-center">
-          <h2 class="text-2xl font-bold text-emerald-800 mb-4 md:mb-0">Lista de Pacientes Pendentes (USF 05)</h2>
+          <h2 class="text-2xl font-bold text-emerald-800 mb-4 md:mb-0">Lista de Pacientes Agendados</h2>
           <div class="flex w-full md:w-1/2">
             <input
               type="text"
@@ -119,7 +117,7 @@
 
         <!-- Feedback de Carregamento e Erro -->
         {#if isLoading}
-            <p class="text-center text-gray-500 py-10">Carregando solicitações...</p>
+            <p class="text-center text-gray-500 py-10">Carregando solicitações agendadas...</p>
         {:else if error}
             <p class="text-center text-red-600 bg-red-100 p-4 rounded-lg">Erro ao carregar dados: {error}</p>
         {:else}
@@ -131,7 +129,7 @@
                 {#if buscar.trim()}
                     Nenhuma solicitação encontrada para "{buscar}".
                 {:else}
-                    Nenhuma solicitação pendente para a USF 05 no momento.
+                    Nenhuma solicitação pendente no momento.
                 {/if}
               </p>
             {:else}
@@ -147,16 +145,26 @@
                         <div><span class="font-semibold">CPF:</span> {s.cpfPaciente}</div>
                         <div><span class="font-semibold">USF:</span> {s.usfOrigem}</div>
                         <div><span class="font-semibold">Data:</span> {formatarData(s.dataMalote)}</div>
-                        <div>
-                          <span class="font-semibold">Prioridade:</span>
-                          <span
-                            class="px-2 py-1 rounded text-white text-xs"
-                            class:bg-red-600={s.especialidades[0]?.prioridade === 'EMERGENCIA'}
-                            class:bg-yellow-500={s.especialidades[0]?.prioridade === 'URGENTE'}
-                            class:bg-green-500={s.especialidades[0]?.prioridade === 'NORMAL'}
-                          >{s.especialidades[0]?.prioridade}</span>
+                       
+                      <div class="col-span-full mt-2">
+                     <span class="font-semibold text-gray-700">Procedimentos Agendados:</span>
+  
+                          <ul class="list-disc list-inside pl-4 mt-1 space-y-1">
+                            {#each s.especialidades.filter(e => e.status === 'AGENDADO') as esp}
+                              <li class="text-gray-600 ">
+                                {getNomeEspecialidade(esp.especialidadeSolicitada)} -
+
+                                
+                                {#if esp.agendamentoId}
+                                    {@const agendamento = s.agendamentos.find(ag => ag.id === esp.agendamentoId)}
+                                    {#if agendamento}
+                                      <span class="text-xs py-0.5  bg-emerald-200 w-max rounded"> Agendado para: {formatarData(agendamento.dataAgendada)}  </span>
+                                    {/if}
+                                  {/if}
+                              </li>
+                            {/each}
+                          </ul>
                         </div>
-                        <div class="col-span-full"><span class="font-semibold">Especialidade:</span> {s.especialidades.map(e => getNomeEspecialidade(e.especialidadeSolicitada)).join(', ')}</div>
                         <div class="col-span-full"><span class="font-semibold">Observações:</span> {s.observacoes}</div>
                       </div>
                     </div>
@@ -167,10 +175,9 @@
               <!-- Pagination controls -->
               {#if totalPages > 1}
                 <div class="flex justify-center items-center space-x-2 mt-6">
-                  <!-- CORREÇÃO: on:click para onclick -->
-                  <button onclick={prevPage} class="px-3 py-1 bg-emerald-600 text-white rounded disabled:opacity-50" disabled={currentPage === 1}>&laquo; Anterior</button>
+                  <button onclick={prevPage} class="px-3 py-1 bg-emerald-600 hover:bg-emerald-800 cursor-pointer text-white rounded disabled:opacity-50" disabled={currentPage === 1}>&laquo; Anterior</button>
                   <span class="text-gray-700">Página {currentPage} de {totalPages}</span>
-                  <button onclick={nextPage} class="px-3 py-1 bg-emerald-600 text-white rounded disabled:opacity-50" disabled={currentPage === totalPages}>Próximo &raquo;</button>
+                  <button onclick={nextPage} class="px-3 py-1 bg-emerald-600 hover:bg-emerald-800 cursor-pointer text-white rounded disabled:opacity-50" disabled={currentPage === totalPages}>Próximo &raquo;</button>
                 </div>
               {/if}
             {/if}

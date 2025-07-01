@@ -4,6 +4,8 @@
   import autoTable from 'jspdf-autotable';
   import { getApi, postApi } from '$lib/api';
   import { opcoesEspecialidades } from '$lib/Especialidades.js';
+    import Menu from '$lib/Menu.svelte';
+    import UserMenu from '$lib/UserMenu.svelte';
 
   // --- Estado do Componente ---
   let solicitacoes = $state<any[]>([]);
@@ -255,7 +257,7 @@ function selecionarSolicitacao(solicitacao) {
       return;
     }
 
-    const body = { examesSelecionados, dataAgendada, localAgendado, observacoes };
+    const body = { examesSelecionados, dataAgendada, localAgendado, observacoes, turno };
 
     try {
       postApi(`agendamentos/${solicitacaoId}`, body).then(async (resposta) => {
@@ -294,23 +296,12 @@ function selecionarSolicitacao(solicitacao) {
 </script>
 
 <div class="flex h-screen bg-gray-100">
-  <aside class="w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded bg-emerald-700">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • © 2025</div>
-  </aside>
+  <Menu activePage="/agendar" />
 
   <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">Agendar Múltiplos Exames</h1>
-      <div>Bem-vindo(a), Usuário</div>
+          <UserMenu/>
     </header>
 
     <main class="flex-1 overflow-auto p-6">

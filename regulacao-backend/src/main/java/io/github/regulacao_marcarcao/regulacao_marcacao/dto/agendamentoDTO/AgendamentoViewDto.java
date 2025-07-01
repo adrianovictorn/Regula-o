@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.TurnoEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.UsfEnum;
 
 public record AgendamentoViewDto(

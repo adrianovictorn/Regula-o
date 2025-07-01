@@ -3,6 +3,8 @@
   // Importa a nossa função postApi que já envia o token JWT
   import { postApi } from '$lib/api.js'; 
   import { opcoesEspecialidades } from '$lib/Especialidades.js'; // Usando o objeto centralizado
+    import Menu from '$lib/Menu.svelte';
+    import UserMenu from '$lib/UserMenu.svelte';
 
   // --- ESTADO DO FORMULÁRIO ---
   let errors: { [key: string]: string } = {};
@@ -99,18 +101,7 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
-  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded bg-emerald-700 transition">Nova Solicitação</a>
-      <a href="/exames" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Laboratório</a>
-      <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800">Agendamento</a>
-      <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800">Paciente</a>
-      <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Exportar Dados</a>
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • Adriano Victor, Filipe Ribeiro © 2025</div>
-  </aside>
+  <Menu activePage="/cadastrar" />
 
   <!-- Main Area -->
   <div class="flex-1 flex flex-col">
@@ -118,7 +109,7 @@
     <!-- Header -->
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">Cadastro de Solicitações</h1>
-      <div>Bem-vindo(a), Usuário</div>
+          <UserMenu/>
     </header>
 
     <!-- Form Container -->
