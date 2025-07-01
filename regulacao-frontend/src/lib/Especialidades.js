@@ -146,6 +146,7 @@ export const opcoesEspecialidades = {
     { label: 'Fundoscopia Binocular Indireta', value: 'FUNDOSCOPIA_BINOCULAR_INDIRETA' },
     { label: 'Gama GT', value: 'GAMA_GT' },
     { label: 'Glicemia de Jejum', value: 'GLICEMIA_JEJUM' },
+    { label: 'Glicose', value: 'GLICOSE'},
     { label: 'HBsAg', value: 'HBSAG' },
     { label: 'HDL Colesterol', value: 'HDL_COLESTEROL' },
     { label: 'Hematócrito', value: 'HEMATOCRITO' },

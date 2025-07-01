@@ -74,38 +74,54 @@
 
               <hr class="my-8 border-gray-200" />
 
-              <form on:submit|preventDefault={handleSaveChanges} class="space-y-6">
-                <div class="relative">
-                  <label for="nome" class="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-600">Nome Completo</label>
-                  <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
-                    </div>
-                    <input type="text" id="nome" bind:value={nomeUsuario} disabled={!isEditing} class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 focus:ring-emerald-500 focus:border-emerald-500 transition disabled:opacity-70 disabled:bg-gray-100" />
-                  </div>
-                </div>
-                
-                <div class="relative">
-                  <label for="cpf" class="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-600">CPF</label>
-                  <div class="relative">
-                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm3 1a1 1 0 100-2 1 1 0 000 2zm3-1a1 1 0 11-2 0 1 1 0 012 0zm3 1a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
-                    </div>
-                    <input type="text" id="cpf" value={$user.cpf} disabled class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md bg-gray-200 text-gray-500 cursor-not-allowed" />
-                  </div>
-                </div>
+              <form on:submit|preventDefault={handleSaveChanges} class="space-y-8">
+  <div class="relative">
+    <label for="nome" class="absolute -top-2.5 left-2 z-10 inline-block bg-white px-1 text-xs font-medium text-gray-600">
+      Nome Completo
+    </label>
+    
+    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+    </div>
+    
+    <input 
+      type="text" 
+      id="nome" 
+      bind:value={nomeUsuario} 
+      disabled={!isEditing} 
+      class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 focus:ring-emerald-500 focus:border-emerald-500 transition disabled:opacity-70 disabled:bg-gray-100" 
+    />
+  </div>
+  
+  <div class="relative">
+    <label for="cpf" class="absolute -top-2.5 left-2 z-10 inline-block bg-white px-1 text-xs font-medium text-gray-600">
+      CPF
+    </label>
+    
+    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm3 1a1 1 0 100-2 1 1 0 000 2zm3-1a1 1 0 11-2 0 1 1 0 012 0zm3 1a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+    </div>
 
-                {#if isEditing}
-                  <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" on:click={() => isEditing = false} class="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
-                      Cancelar
-                    </button>
-                    <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
-                      Salvar Alterações
-                    </button>
-                  </div>
-                {/if}
-              </form>
+    <input 
+      type="text" 
+      id="cpf" 
+      value={$user.cpf} 
+      disabled 
+      class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md bg-gray-200 text-gray-500 cursor-not-allowed" 
+    />
+  </div>
+
+  {#if isEditing}
+    <div class="flex justify-end space-x-4 pt-4">
+      <button type="button" on:click={() => isEditing = false} class="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+        Cancelar
+      </button>
+      <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+        Salvar Alterações
+      </button>
+    </div>
+  {/if}
+</form>
             </div>
           </div>
         </div>

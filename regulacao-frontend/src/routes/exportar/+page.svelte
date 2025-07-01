@@ -155,6 +155,7 @@
     'TESTE_FTA_ABS_IGG_DIAGNOSTICO_SIFILIS',
     'TESTE_FTA_ABS_IGM_DIAGNOSTICO_SIFILIS',
     'TESTE_TUBERCULINICO_PPD',
+    'GLICOSE',
     'VDRL_DETECCAO_SIFILIS_EM_GESTANTE'
       ]
     },
@@ -236,7 +237,8 @@
   label: 'Ressonância',
   color: 'bg-purple-400',
   hover: 'hover:bg-purple-500',
-  icon: ``,
+  icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+  <path stroke-linecap="round" stroke-linejoin="round" d="M9 9.563C9 9.252 9.252 9 9.563 9h4.874c.311 0 .563.252.563.563v4.874c0 .311-.252.563-.563.563H9.564A.562.562 0 0 1 9 14.437V9.564Z">`,
   especialidades: [
     'RESSONANCIA_MAGNETICA_ARTICULACAO_TEMPORO_MANDIBULAR_BILATERAL',
     'RESSONANCIA_MAGNETICA_BACIA_PELVE_ABDOMEN_INFERIOR',
@@ -254,7 +256,8 @@
   label: 'Tomografia',
   color: 'bg-green-400',
   hover: 'hover:bg-green-500',
-  icon: ``,
+  icon: `  <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25">
+`,
   especialidades: [
     'TOMOGRAFIA_COMPUTADORIZADA_ARTICULACOES_MEMBRO_INFERIOR',
     'TOMOGRAFIA_COMPUTADORIZADA_ARTICULACOES_MEMBRO_SUPERIOR',

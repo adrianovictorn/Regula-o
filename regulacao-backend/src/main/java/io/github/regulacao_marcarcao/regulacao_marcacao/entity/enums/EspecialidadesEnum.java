@@ -297,6 +297,7 @@ public enum EspecialidadesEnum {
     TOMOGRAFIA_COMPUTADORIZADA_SELA_TURCICA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomografia Computadorizada de Sela Túrcica"),
     TOMOGRAFIA_COMPUTADORIZADA_PESCOCO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomografia Computadorizada do Pescoço"),
     TOMOGRAFIA_POR_EMISSAO_DE_POSITRONS_PET_CT(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomografia por Emissão de Pósitrons - PET CT"),
+    GLICOSE(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Glicose"),
     TOMOMIELOGRAFIA_COMPUTADORIZADA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomomielografia Computadorizada");
 
     private final ItemCategoria categoria;
