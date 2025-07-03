@@ -20,7 +20,7 @@ public class SolicitacaoEspecialidadeController {
 
     private final SolicitacaoEspecialidadeService service; 
 
-    @PutMapping("/id")
+    @PutMapping("/{id}")
     public ResponseEntity<SolicitacaoEspecialidadeViewDTO> atualizarEspecialidade(@PathVariable Long id, @RequestBody EspecialidadeUpdateDTO dto){
         SolicitacaoEspecialidadeViewDTO view = service.atualizarStatusEspecialidade(dto, id);
 
