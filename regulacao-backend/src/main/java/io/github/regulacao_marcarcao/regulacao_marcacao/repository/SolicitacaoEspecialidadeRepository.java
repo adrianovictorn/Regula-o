@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,6 +25,12 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
        "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
        "AND se.especialidadeSolicitada IN :enums")
 long countAgendadasPorDataEEnums(@Param("data") LocalDate data, @Param("enums") List<EspecialidadesEnum> enums);
+
+        List<SolicitacaoEspecialidade> findByAgendamentoSolicitacaoId(Long agendamentoId);
+
+@Modifying
+    @Query("UPDATE SolicitacaoEspecialidade se SET se.agendamentoSolicitacao = NULL, se.status = 'AGUARDANDO' WHERE se.agendamentoSolicitacao.id = :agendamentoId")
+    void desvincularAgendamento(@Param("agendamentoId") Long agendamentoId);
 }
   
 
