@@ -27,9 +27,7 @@
 
    function formatarData(dataString: string | null): string {
     if (!dataString) return 'N/A';
-    // Cria a data em UTC para evitar problemas de fuso horário
     const data = new Date(dataString);
-    // Adiciona 1 dia para compensar o fuso-horário (a data vem como YYYY-MM-DD e o JS pode interpretar como dia anterior)
     data.setDate(data.getDate() + 1);
     return data.toLocaleDateString('pt-BR');
   }

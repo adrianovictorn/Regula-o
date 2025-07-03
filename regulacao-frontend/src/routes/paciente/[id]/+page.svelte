@@ -9,8 +9,18 @@
     // --- Estado do Componente com Svelte 5 Runes ---
     let solicitacao = $state<any>(null);
     let agendamentos = $state<any[]>([]);
+    let especialidades = $state<any[]>([]); // Alterado para um array
     let isLoading = $state(true);
     let error = $state<string | null>(null);
+
+    
+    function formatarData(dataString: string | null): string{
+        if(!dataString) return 'N/A';
+        const data = new Date(dataString);
+        data.setDate(data.getDate() + 1);
+        return data.toLocaleDateString('pt-BR');
+
+    } 
 
     // Variáveis para o formulário de edição
     let nomePaciente = $state('');
@@ -32,15 +42,16 @@
             // Busca dados da solicitação e agendamentos em paralelo
             const [resSolicitacao, resAgendamentos] = await Promise.all([
                 getApi(`solicitacoes/${id}`),
-                getApi(`agendamentos/solicitacao/${id}`)
+                getApi(`agendamentos/solicitacao/${id}`),
             ]);
 
             if (!resSolicitacao.ok) {
                 throw new Error('Falha ao buscar os dados do paciente.');
             }
-            
-            // Popula o estado com os dados recebidos
+
             solicitacao = await resSolicitacao.json();
+            especialidades = solicitacao.especialidades || []; // Inicializa as especialidades a partir da solicitação
+
             if (resAgendamentos.ok) {
                 agendamentos = await resAgendamentos.json();
             } else {
@@ -112,7 +123,7 @@
             if (res.ok) {
                 alert('Especialidade removida com sucesso!');
                
-                solicitacao.especialidades = solicitacao.especialidades.filter((e: any) => e.id !== especialidadeId);
+                especialidades = especialidades.filter((e: any) => e.id !== especialidadeId);
             } else if (res.status === 404) {
                  alert('Especialidade não encontrada.');
             }
@@ -142,8 +153,28 @@
         }
     }
 
+    async function atualizarPrioridade(especialidadeId: number, novaPrioridade: string){
+        if(!confirm('Tem certeza que deseja atualizar a prioridade dessa solicitação ?')) return;
+        try{
+            const res = await putApi(`especialidades/${especialidadeId}`, { prioridade: novaPrioridade })
+            if(res.ok){
+                alert('Prioridade atualizada com sucesso!');
+                // Atualiza o estado localmente para refletir a mudança
+                const index = especialidades.findIndex(e => e.id === especialidadeId);
+                if (index !== -1) {
+                    especialidades[index].prioridade = novaPrioridade;
+                }
+            }else if (res.status === 404){
+                alert('Especialidade não encontrada. ');
+            } else{
+                alert ('Erro ao atualizar especialidade. ');
+            }
+        }catch (e: any){
+            alert (`Erro na requisição: ${e.message}`)
+        }
+    }
     // Valores derivados para exibir na tela de forma reativa
-    let historico = $derived(solicitacao?.especialidades || []);
+    let historico = $derived(especialidades);
     let especPendentes = $derived(historico.filter((e: any) => e.status === 'AGUARDANDO'));
 
 </script>
@@ -229,7 +260,7 @@
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Data</p>
-                                            <p class="text-base font-medium text-gray-900">{ag.dataAgendada}</p>
+                                            <p class="text-base font-medium text-gray-900">{formatarData(ag.dataAgendada)}</p>
                                         </div>
                                         
                                     </div>
@@ -270,6 +301,11 @@
                                     <span class="text-gray-800 font-medium">{e.especialidadeSolicitada.replace(/_/g, ' ')}</span>
                                     <div class="flex items-center space-x-2">
                                         <span class="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">{e.status}</span>
+                                        <select bind:value={e.prioridade} on:change={(event) => atualizarPrioridade(e.id, event.currentTarget.value)}>
+                                            <option value="NORMAL">Normal</option>
+                                            <option value="URGENTE">Urgente</option>
+                                        </select>
+                                        
                                         <button 
                                             on:click={() => removerEspecialidade(e.id)} 
                                             class="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
