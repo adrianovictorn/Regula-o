@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.AgendamentoSolicitacaoSimpleViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.AgendamentoViewDto;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.MultiAgendamentoCreateDTO;
-import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.AgendamentoSolicitacaoCreateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.AgendamentoService; // Mantido AgendamentoService
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoService; // Importar SolicitacaoService também
 import lombok.RequiredArgsConstructor;
@@ -62,8 +61,13 @@ public class AgendamentoController {
      */
     @GetMapping("/solicitacao/{solicitacaoId}")
     public ResponseEntity<List<AgendamentoSolicitacaoSimpleViewDTO>> listarAgendamentosPorSolicitacaoId(@PathVariable Long solicitacaoId) {
-        // Chame o método correto do SolicitacaoService (onde foi implementado)
         List<AgendamentoSolicitacaoSimpleViewDTO> agendamentos = solicitacaoService.listarAgendamentosPorSolicitacaoId(solicitacaoId);
         return ResponseEntity.ok(agendamentos);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarAgendamento(@PathVariable Long id){
+        agendamentoService.deleteAgendamento(id);
+        return ResponseEntity.noContent().build();
     }
 }

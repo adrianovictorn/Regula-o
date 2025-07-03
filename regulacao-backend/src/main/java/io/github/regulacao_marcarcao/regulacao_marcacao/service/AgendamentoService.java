@@ -130,6 +130,12 @@ public class AgendamentoService {
     }
 
 
+    @Transactional
+    public void deleteAgendamento(Long id){
+       AgendamentoSolicitacao agendamento = agendamentoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Agendamento não encontrado"));
+       agendamentoRepository.delete(agendamento);
+    }
+
   
 }
 

@@ -111,14 +111,31 @@
             const res = await deleteApi(`solicitacoes/especialidades/${especialidadeId}`); // Chame o endpoint DELETE
             if (res.ok) {
                 alert('Especialidade removida com sucesso!');
-                // Atualiza a lista de especialidades localmente para refletir a mudança sem recarregar a página.
-                // Isso é importante para Svelte 5 com `$state` para manter a reatividade.
+               
                 solicitacao.especialidades = solicitacao.especialidades.filter((e: any) => e.id !== especialidadeId);
             } else if (res.status === 404) {
                  alert('Especialidade não encontrada.');
             }
             else {
                 alert('Erro ao remover especialidade.');
+            }
+        } catch (e: any) {
+            alert(`Erro na requisição: ${e.message}`);
+        }
+    }
+
+    async function removerAgendamento(agendamentoId: number) {
+    if (!confirm('Tem certeza que deseja remover este agendamento?')) return;
+
+        try {
+            const res = await deleteApi(`agendamentos/${agendamentoId}`);
+            if (res.ok) {
+                alert('Agendamento removido com sucesso!');
+                agendamentos = agendamentos.filter(a => a.id !== agendamentoId); // Remove do array local
+            } else if (res.status === 404) {
+                alert('Agendamento não encontrado.');
+            } else {
+                alert('Erro ao remover agendamento.');
             }
         } catch (e: any) {
             alert(`Erro na requisição: ${e.message}`);
@@ -214,6 +231,7 @@
                                             <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Data</p>
                                             <p class="text-base font-medium text-gray-900">{ag.dataAgendada}</p>
                                         </div>
+                                        
                                     </div>
                                 </div>
                                 <div class="p-4">
@@ -223,6 +241,15 @@
                                             <li class="flex justify-between items-center text-sm">
                                                 <span class="text-gray-800">{h.especialidadeSolicitada.replace(/_/g, ' ')}</span>
                                                 <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{h.status}</span>
+                                                <button 
+                                                    on:click={() => removerAgendamento(ag.id)}
+                                                    class="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                                    title="Remover Especialidade">
+
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                </button>
                                             </li>
                                         {/each}
                                     </ul>
