@@ -28,16 +28,13 @@ public class ExcelController {
 
     @GetMapping("/planilha")
     public ResponseEntity<InputStreamResource> exportarPlanilha(
-            // ATUALIZADO: Recebe uma lista de tipos (enums)
             @RequestParam List<EspecialidadesEnum> tipos,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            // ATUALIZADO: Recebe o label para o nome do arquivo
             @RequestParam String label) throws IOException {
 
         ByteArrayInputStream bais = excelService.gerarPlanilhaAgendamentos(tipos, data);
 
         HttpHeaders headers = new HttpHeaders();
-        // Nome do arquivo dinâmico com base no label recebido
         String filename = "planilha_" + label.replaceAll("\\s+", "_").toLowerCase() + "_" + data.toString() + ".xlsx";
         headers.add("Content-Disposition", "inline; filename=" + filename);
 
@@ -48,16 +45,40 @@ public class ExcelController {
                 .body(new InputStreamResource(bais));
     }
 
+    @GetMapping("/planilha-aguardando")
+    public ResponseEntity<InputStreamResource> exportarPlanilhaAguardando(
+            @RequestParam List<EspecialidadesEnum> tipos,
+            @RequestParam String label) throws IOException {
+
+        ByteArrayInputStream bais = excelService.gerarPlanilhaAguardando(tipos);
+
+        HttpHeaders headers = new HttpHeaders();
+        String filename = "planilha_pendentes_" + label.replaceAll("\\s+", "_").toLowerCase() + ".xlsx";
+        headers.add("Content-Disposition", "inline; filename=" + filename);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(new InputStreamResource(bais));
+    }
 
     @GetMapping("/verificar-dados")
     public ResponseEntity<Map<String, Boolean>> verificarDados(
-             // ATUALIZADO: Recebe uma lista de tipos (enums)
             @RequestParam List<EspecialidadesEnum> tipos,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            // O label não é necessário aqui, mas o frontend o envia, então podemos ignorá-lo
             @RequestParam(required = false) String label) {
         
         boolean dadosDisponiveis = excelService.haDadosParaRelatorio(tipos, data);
+        return ResponseEntity.ok(Map.of("dadosDisponiveis", dadosDisponiveis));
+    }
+
+    @GetMapping("/verificar-dados-aguardando")
+    public ResponseEntity<Map<String, Boolean>> verificarDadosAguardando(
+            @RequestParam List<EspecialidadesEnum> tipos,
+            @RequestParam(required = false) String label) {
+        
+        boolean dadosDisponiveis = excelService.haDadosParaRelatorioAguardando(tipos);
         return ResponseEntity.ok(Map.of("dadosDisponiveis", dadosDisponiveis));
     }
 }
