@@ -14,6 +14,8 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @EnableWebMvc
 public class WebConfiguration implements WebMvcConfigurer {
 
+        
+
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/login")
