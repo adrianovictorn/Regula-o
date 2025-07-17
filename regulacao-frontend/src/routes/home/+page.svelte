@@ -46,7 +46,7 @@
 
   $: pendentes = solicitacoes.filter(s => s.especialidades.some(esp => esp.status === 'AGUARDANDO')).length;
   $: agendado = solicitacoes.filter(s => s.especialidades.some(esp => esp.status === 'AGENDADO')).length;
-  $: concluida = solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === "CONCLUIDO")).length;
+  $: concluida = solicitacoes.filter(solicitacao => solicitacao.especialidades.some(esp => esp.status === "REALIZADO")).length;
   $: totalDeSolicitacoes = solicitacoes.length;
   $: urgencia = solicitacoes.filter(s => s.especialidades.some(esp => (esp.prioridade === 'URGENTE' || esp.prioridade === 'EMERGENCIA') && esp.status === 'AGUARDANDO')).length; 
   

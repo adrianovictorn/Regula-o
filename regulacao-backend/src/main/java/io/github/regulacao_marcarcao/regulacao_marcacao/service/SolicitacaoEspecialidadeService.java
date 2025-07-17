@@ -17,8 +17,15 @@ public class SolicitacaoEspecialidadeService {
 
     public SolicitacaoEspecialidadeViewDTO atualizarStatusEspecialidade(EspecialidadeUpdateDTO dto, Long id){
         SolicitacaoEspecialidade especialidade = repository.findById(id).orElseThrow(() -> new RuntimeException("Especialidade não encontrada!"));
+        
+        if (dto.prioridade() != null) {
+            especialidade.setPrioridade(dto.prioridade());
+        }
 
-        especialidade.setPrioridade(dto.prioridade());
+        if (dto.status() != null) {
+            especialidade.setStatus(dto.status());
+        }
+
         SolicitacaoEspecialidade especialidadeAtualizada = repository.save(especialidade);
         SolicitacaoEspecialidadeViewDTO viewDTO = SolicitacaoEspecialidadeViewDTO.fromSolicitacaoEspecialidade(especialidadeAtualizada);
         return viewDTO;

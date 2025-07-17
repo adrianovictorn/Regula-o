@@ -1,19 +1,50 @@
-<script>
-    import { getApi } from "$lib/api";
+<script lang="ts">
+    import { getApi, postApi, putApi } from "$lib/api";
     import Menu2 from "$lib/Menu2.svelte";
     import UserMenu from "$lib/UserMenu.svelte";
-    import { error } from "@sveltejs/kit";
+    import { onMount } from "svelte";
 
+    let solicitacaosAgendadas = $state([]);
+    let erro = $state(null);
 
 async function carregarSolicitacoes() {
-        const res = await getApi('/solicitacoes');
-        if(!res.ok){
-            throw new Error(`Falha ao receber dados`)
-        }
-        return res.json();
+       try{
+          const res = await getApi(`/solicitacoes`);
+          if(!res.ok){
+              throw new Error(`Falha ao receber dados`)
+          }
+          const todasSolicitacoes = await res.json();
+
+          solicitacaosAgendadas = todasSolicitacoes.filter(s => s.especialidades.some(e => e.status === 'AGENDADO'))
+       } catch(e){
+
+        erro = e.message;
+
+       }
 
 }
-const promessaSolicitacoes = carregarSolicitacoes();
+
+async function confirmarSolicitacao(especialidadeId: number, novoStatus: 'REALIZADO' | 'CANCELADO'){
+  try{ 
+    const res = await putApi(`especialidades/${especialidadeId}`, {status: novoStatus})
+
+    if(!res.ok){
+      throw new Error('Erro ao atualizar status');
+    }
+
+    await carregarSolicitacoes();
+
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+onMount(()=> {
+
+  carregarSolicitacoes();
+})
+
+
 
 </script>
 
@@ -44,12 +75,10 @@ const promessaSolicitacoes = carregarSolicitacoes();
       <!-- Dashboard Cards -->
       <main class="flex-1 p-6 overflow-auto">       
 
-        {#await promessaSolicitacoes}
-          <p>Carregando painel</p>
-        {:then solicitacoes}
-        {#if solicitacoes && solicitacoes.length > 0}
+        <p>Carregando painel</p>
+        {#if solicitacaosAgendadas && solicitacaosAgendadas.length > 0}
         <div class="space-y-4">
-            {#each solicitacoes as s}
+            {#each solicitacaosAgendadas as s}
             <div class="rounded shadow bg-white p-4">
               <p>Nome  do Paciente: {s.nomePaciente}</p>
               <div class="flex">
@@ -57,8 +86,17 @@ const promessaSolicitacoes = carregarSolicitacoes();
                 <p>USF: {s.usfOrigem}</p>
               </div>
 
-              <button>Confirmar V</button>
-              <button>Não compareceu F</button>
+              {#each s.especialidades as e}
+              <div>
+                <label >Especialidades:</label>
+                <span>{e.especialidadeSolicitada}</span>
+              </div>
+              
+              <div class="flex flex-row-reverse">
+                <button on:click={() => confirmarSolicitacao(e.id, 'REALIZADO')} class="rounded-lg bg-green-600 hover:bg-green-700 text-white px-3 py-1 cursor-pointer">Confirmar</button>
+                <button on:click={() => confirmarSolicitacao(e.id, 'CANCELADO')} class="rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-1 cursor-pointer">Faltou</button>
+              </div>
+              {/each}
             </div>
             {/each}
         </div>
@@ -67,9 +105,6 @@ const promessaSolicitacoes = carregarSolicitacoes();
           <p>Nenhuma solicitação encontrada</p>
         {/if}
         
-      {:catch error}
-          <p>Erro ao carregar dados {error.message}</p>
-        {/await}
          
      </main>
     
