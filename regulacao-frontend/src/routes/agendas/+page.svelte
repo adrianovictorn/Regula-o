@@ -6,6 +6,7 @@
 
     let solicitacaosAgendadas = $state([]);
     let erro = $state(null);
+    let carregando = $state(true);
 
 async function carregarSolicitacoes() {
        try{
@@ -17,10 +18,10 @@ async function carregarSolicitacoes() {
 
           solicitacaosAgendadas = todasSolicitacoes.filter(s => s.especialidades.some(e => e.status === 'AGENDADO'))
        } catch(e){
-
         erro = e.message;
-
        }
+
+       carregando = false;
 
 }
 
@@ -75,7 +76,8 @@ onMount(()=> {
       <!-- Dashboard Cards -->
       <main class="flex-1 p-6 overflow-auto">       
 
-        <p>Carregando painel</p>
+        {#if !carregando}
+
         {#if solicitacaosAgendadas && solicitacaosAgendadas.length > 0}
         <div class="space-y-4">
             {#each solicitacaosAgendadas as s}
@@ -93,8 +95,9 @@ onMount(()=> {
               </div>
               
               <div class="flex flex-row-reverse">
+                                <button on:click={() => confirmarSolicitacao(e.id, 'CANCELADO')} class="rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-1 cursor-pointer">Faltou</button>
+
                 <button on:click={() => confirmarSolicitacao(e.id, 'REALIZADO')} class="rounded-lg bg-green-600 hover:bg-green-700 text-white px-3 py-1 cursor-pointer">Confirmar</button>
-                <button on:click={() => confirmarSolicitacao(e.id, 'CANCELADO')} class="rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-1 cursor-pointer">Faltou</button>
               </div>
               {/each}
             </div>
@@ -105,6 +108,11 @@ onMount(()=> {
           <p>Nenhuma solicitação encontrada</p>
         {/if}
         
+          {:else}
+          <p>Carregando painel...</p>  
+        {/if}
+        
+
          
      </main>
     
