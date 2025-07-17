@@ -8,6 +8,10 @@
     let solicitacoesDeHoje = $state([]);
     let erro = $state(null);
     let carregando = $state(true);
+    let total = $state();
+    let dataHoje = $state();
+
+    dataHoje = getHojeFormatado();
 
     // Função para obter a data de hoje no formato YYYY-MM-DD
     function getHojeFormatado() {
@@ -30,12 +34,9 @@
             const todasSolicitacoes = await res.json();
             const hoje = getHojeFormatado();
 
-            // Filtra as solicitações pela data de hoje e pela especialidade
             solicitacoesDeHoje = todasSolicitacoes.filter(solicitacao =>
                 solicitacao.especialidades.some(especialidade => {
-                    // Encontra o agendamento correspondente a esta especialidade
                     const agendamento = solicitacao.agendamentos.find(ag => ag.id === especialidade.agendamentoId);
-                    
                     return (
                         especialidade.status === 'AGENDADO' &&
                         especialidade.especialidadeSolicitada === 'CARDIOLOGISTA' &&
@@ -43,6 +44,8 @@
                     );
                 })
             );
+
+            total = solicitacoesDeHoje.length;
         } catch (e) {
             erro = e.message;
         } finally {
@@ -50,18 +53,19 @@
         }
     }
 
-    // Função para atualizar o status da especialidade
+    // Função para atualizar o status da especialidade com confirmação
     async function confirmarSolicitacao(especialidadeId: number, novoStatus: 'REALIZADO' | 'CANCELADO') {
-        try {
-            const res = await putApi(`especialidades/${especialidadeId}`, { status: novoStatus });
-            if (!res.ok) {
-                throw new Error('Erro ao atualizar o status');
+        const acao = novoStatus === 'REALIZADO' ? 'confirmar a presença' : 'marcar a falta';
+        if (confirm(`Tem certeza que deseja ${acao} deste paciente?`)) {
+            try {
+                const res = await putApi(`especialidades/${especialidadeId}`, { status: novoStatus });
+                if (!res.ok) {
+                    throw new Error('Erro ao atualizar o status');
+                }
+                await carregarSolicitacoes();
+            } catch (e) {
+                alert(e.message);
             }
-            // Recarrega a lista para refletir a mudança
-            alert(`Confirmar`)
-            await carregarSolicitacoes();
-        } catch (e) {
-            alert(e.message);
         }
     }
     
@@ -80,54 +84,66 @@
 </script>
 
 <svelte:head>
-    <title>Dashboard Cardiologia - Hoje</title>
+    <title>Agenda de Cardiologia</title>
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
     <Menu2 activePage='/home' />
     <div class="flex-1 flex flex-col">
         <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Painel - Cardiologia (Agendados para Hoje)</h1>
+            <h1 class="text-xl font-semibold">Agenda do Dia - Cardiologia</h1>
             <UserMenu />
         </header>
 
         <main class="flex-1 p-6 overflow-auto">
             {#if carregando}
-                <p class="text-center">Carregando painel...</p>
+                <p class="text-center text-gray-500 animate-pulse">Carregando painel...</p>
             {:else if erro}
                 <p class="text-red-500 text-center">Erro: {erro}</p>
             {:else if solicitacoesDeHoje.length === 0}
-                <p class="text-center">Nenhuma solicitação de Cardiologia agendada para hoje.</p>
-            {:else}
-                <div class="space-y-4">
-                    {#each solicitacoesDeHoje as s (s.id)}
-                        <div class="rounded shadow bg-white p-4">
-                            <p><b>Nome do Paciente:</b> {s.nomePaciente}</p>
-                            <div class="flex space-x-4 text-sm">
-                                <p><b>CPF: </b> {s.cpfPaciente}</p>
-                                <p><b>CNS: </b>{s.cns}</p>
-                                <p><b>USF: </b> {s.usfOrigem}</p>
-                            </div>
-                            
-                            {#each s.especialidades as e (e.id)}
-                                {@const agendamento = s.agendamentos.find(ag => ag.id === e.agendamentoId)}
-                                {#if e.especialidadeSolicitada === 'CARDIOLOGISTA' && e.status === 'AGENDADO' && agendamento?.dataAgendada === getHojeFormatado()}
-                                    <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-3">
-                                        <div>
-                                            <span class="font-medium">{e.especialidadeSolicitada.replace('_', ' ')}</span>
-                                            <p class="text-sm text-blue-600 font-semibold">
-                                                Data: {formatarData(agendamento.dataAgendada)}
-                                            </p>
-                                        </div>
-                                        <div class="flex gap-2 flex-shrink-0">
-                                            <button on:click={() => confirmarSolicitacao(e.id, 'REALIZADO')} class="rounded-lg bg-green-600 hover:bg-green-700 text-white px-3 py-1">Confirmar</button>
-                                            <button on:click={() => confirmarSolicitacao(e.id, 'CANCELADO')} class="rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-1">Faltou</button>
-                                        </div>
+                <div class="text-center p-10 bg-white rounded-lg shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-700">Nenhum paciente para hoje.</h2>
+                    <p class="text-gray-500 mt-2">Não há agendamentos de cardiologia para a data de hoje.</p>
+                </div>
+            {:else}                    
+                <div class="py-3">
+                    <h2><b>Total de Atendimentos previsto para hoje:</b> {total}</h2>
+                    <h2><b>Data do Atendimento:</b> {formatarData(dataHoje)}</h2>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md">
+                    <div class="grid grid-cols-3 gap-4 p-4 border-b font-bold text-emerald-800 bg-emerald-100 rounded-t-lg">
+                        <div class="col-span-1">Paciente</div>
+                        <div class="col-span-1">Detalhes do Agendamento</div>
+                        <div class="col-span-1 text-right">Ações</div>
+                    </div>
+
+                    <div class="space-y-2">
+                        {#each solicitacoesDeHoje as s (s.id)}
+                            {@const especialidadeAgendada = s.especialidades.find(e => e.status === 'AGENDADO' && e.especialidadeSolicitada === 'CARDIOLOGISTA')}
+                            {@const agendamento = s.agendamentos.find(ag => ag.id === especialidadeAgendada?.agendamentoId)}
+
+                            {#if especialidadeAgendada && agendamento}
+                                <div class="grid grid-cols-3 gap-4 p-4 items-center border-t">
+                                    <div class="col-span-1">
+                                        <p class="font-semibold text-gray-800">{s.nomePaciente}</p>
+                                        <p class=" text-gray-500 font-mono">CPF: {s.cpfPaciente}</p>
+                                        <p class=" text-gray-500 font-mono">CNS: {s.cns}</p>
                                     </div>
-                                {/if}
-                            {/each}
-                        </div>
-                    {/each}
+                                    
+                                    <div class="col-span-1">
+                                        <p class="font-medium text-gray-700">{especialidadeAgendada.especialidadeSolicitada.replace('_', ' ')}</p>
+                                        <p class="text-sm text-blue-600">{formatarData(agendamento.dataAgendada)}</p>
+                                    </div>
+
+                                    <div class="col-span-1 flex justify-end gap-2">
+                                        <button on:click={() => confirmarSolicitacao(especialidadeAgendada.id, 'REALIZADO')} class="rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-sm font-semibold shadow-sm transition-colors cursor-pointer">Confirmar</button>
+                                        <button on:click={() => confirmarSolicitacao(especialidadeAgendada.id, 'CANCELADO')} class="rounded-md bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-sm font-semibold shadow-sm transition-colors cursor-pointer">Faltou</button>
+                                    </div>
+                                </div>
+                            {/if}
+                        {/each}
+                    </div>
                 </div>
             {/if}
         </main>
