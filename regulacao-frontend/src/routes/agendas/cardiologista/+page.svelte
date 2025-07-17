@@ -4,11 +4,19 @@
     import UserMenu from "$lib/UserMenu.svelte";
     import { onMount } from "svelte";
 
-    // Variáveis de estado para a UI
-    let solicitacoesAgendadas = $state([]);
-    let agendamentos = $state([]);
+    // Variáveis de estado
+    let solicitacoesDeHoje = $state([]);
     let erro = $state(null);
     let carregando = $state(true);
+
+    // Função para obter a data de hoje no formato YYYY-MM-DD
+    function getHojeFormatado() {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        return `${ano}-${mes}-${dia}`;
+    }
 
     // Função para carregar e filtrar as solicitações
     async function carregarSolicitacoes() {
@@ -20,11 +28,20 @@
                 throw new Error('Falha ao carregar as solicitações');
             }
             const todasSolicitacoes = await res.json();
+            const hoje = getHojeFormatado();
 
-            solicitacoesAgendadas = todasSolicitacoes.filter(solicitacao =>
-                solicitacao.especialidades.some(esp =>
-                    esp.status === 'AGENDADO' && esp.especialidadeSolicitada === 'CARDIOLOGISTA'
-                )
+            // Filtra as solicitações pela data de hoje e pela especialidade
+            solicitacoesDeHoje = todasSolicitacoes.filter(solicitacao =>
+                solicitacao.especialidades.some(especialidade => {
+                    // Encontra o agendamento correspondente a esta especialidade
+                    const agendamento = solicitacao.agendamentos.find(ag => ag.id === especialidade.agendamentoId);
+                    
+                    return (
+                        especialidade.status === 'AGENDADO' &&
+                        especialidade.especialidadeSolicitada === 'CARDIOLOGISTA' &&
+                        agendamento && agendamento.dataAgendada === hoje
+                    );
+                })
             );
         } catch (e) {
             erro = e.message;
@@ -41,69 +58,68 @@
                 throw new Error('Erro ao atualizar o status');
             }
             // Recarrega a lista para refletir a mudança
+            alert(`Confirmar`)
             await carregarSolicitacoes();
         } catch (e) {
             alert(e.message);
         }
     }
-
-
-    async function consultarData() {
-      try{
-        const res = await getApi('agendamentos');
-        if(!res.ok){
-          throw new Error('Erro ao receber dados de agendamento');
-        }
-
-        agendamentos =await res.json();
-        return agendamentos;
-      } catch(e){
-        alert(e.message);
-      }
+    
+    // Função para formatar a data para exibição (DD/MM/YYYY)
+    function formatarData(dataString) {
+        if (!dataString) return 'Data não informada';
+        const [ano, mes, dia] = dataString.split('-');
+        return `${dia}/${mes}/${ano}`;
     }
 
     // Carrega os dados quando o componente é montado
     onMount(() => {
         carregarSolicitacoes();
-        consultarData();
     });
 
 </script>
 
 <svelte:head>
-    <title>Dashboard Cardiologia</title>
+    <title>Dashboard Cardiologia - Hoje</title>
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
     <Menu2 activePage='/home' />
     <div class="flex-1 flex flex-col">
         <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Painel - Cardiologia</h1>
+            <h1 class="text-xl font-semibold">Painel - Cardiologia (Agendados para Hoje)</h1>
             <UserMenu />
         </header>
 
         <main class="flex-1 p-6 overflow-auto">
             {#if carregando}
-                <p>Carregando painel...</p>
+                <p class="text-center">Carregando painel...</p>
             {:else if erro}
-                <p class="text-red-500">Erro: {erro}</p>
-            {:else if solicitacoesAgendadas.length === 0}
-                <p>Nenhuma solicitação de Cardiologia agendada encontrada.</p>
+                <p class="text-red-500 text-center">Erro: {erro}</p>
+            {:else if solicitacoesDeHoje.length === 0}
+                <p class="text-center">Nenhuma solicitação de Cardiologia agendada para hoje.</p>
             {:else}
                 <div class="space-y-4">
-                    {#each solicitacoesAgendadas as s (s.id)}
+                    {#each solicitacoesDeHoje as s (s.id)}
                         <div class="rounded shadow bg-white p-4">
                             <p><b>Nome do Paciente:</b> {s.nomePaciente}</p>
                             <div class="flex space-x-4 text-sm">
-                                <p><b>CPF:</b> {s.cpfPaciente}</p>
-                                <p><b>USF:</b> {s.usfOrigem}</p>
+                                <p><b>CPF: </b> {s.cpfPaciente}</p>
+                                <p><b>CNS: </b>{s.cns}</p>
+                                <p><b>USF: </b> {s.usfOrigem}</p>
                             </div>
                             
                             {#each s.especialidades as e (e.id)}
-                                {#if e.especialidadeSolicitada === 'CARDIOLOGISTA' && e.status === 'AGENDADO'}
-                                    <div class="mt-4 flex flex-row items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                        <span class="font-medium">{e.especialidadeSolicitada.replace('_', ' ')}</span>
-                                        <div class="flex gap-2">
+                                {@const agendamento = s.agendamentos.find(ag => ag.id === e.agendamentoId)}
+                                {#if e.especialidadeSolicitada === 'CARDIOLOGISTA' && e.status === 'AGENDADO' && agendamento?.dataAgendada === getHojeFormatado()}
+                                    <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-3">
+                                        <div>
+                                            <span class="font-medium">{e.especialidadeSolicitada.replace('_', ' ')}</span>
+                                            <p class="text-sm text-blue-600 font-semibold">
+                                                Data: {formatarData(agendamento.dataAgendada)}
+                                            </p>
+                                        </div>
+                                        <div class="flex gap-2 flex-shrink-0">
                                             <button on:click={() => confirmarSolicitacao(e.id, 'REALIZADO')} class="rounded-lg bg-green-600 hover:bg-green-700 text-white px-3 py-1">Confirmar</button>
                                             <button on:click={() => confirmarSolicitacao(e.id, 'CANCELADO')} class="rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-1">Faltou</button>
                                         </div>
