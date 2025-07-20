@@ -11,7 +11,14 @@
     let total = $state(0);
     let dataHoje = $state(getHojeFormatado());
 
-    const especialidadesDoPainel = ['CARDIOLOGISTA', 'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER'];
+    const especialidadesDoPainel = [
+        'DOPPLER',
+        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_BILATERAL' ,
+        'ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_UNILATERAL' ,
+        'ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS' ,
+        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL' ,
+        'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL',
+    ];
 
     function getHojeFormatado() {
         const hoje = new Date();

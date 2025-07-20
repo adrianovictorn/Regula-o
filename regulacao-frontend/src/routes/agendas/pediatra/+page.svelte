@@ -11,7 +11,7 @@
     let total = $state(0);
     let dataHoje = $state(getHojeFormatado());
 
-    const especialidadesDoPainel = ['CARDIOLOGISTA', 'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER'];
+    const especialidadesDoPainel = ['PEDIATRIA'];
 
     function getHojeFormatado() {
         const hoje = new Date();

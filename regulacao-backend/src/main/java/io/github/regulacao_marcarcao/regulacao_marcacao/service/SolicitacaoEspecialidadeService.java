@@ -1,11 +1,15 @@
 package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadeUpdateDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadesStatusUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.SolicitacaoEspecialidadeViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,5 +35,19 @@ public class SolicitacaoEspecialidadeService {
         return viewDTO;
 
 
+    }
+
+    @Transactional
+    public void atualizarStatusEspecialidadesEmLote(EspecialidadesStatusUpdateDTO dto) {
+        if (dto.especialidadeIds() == null || dto.especialidadeIds().isEmpty()) {
+            return; // Nada a fazer
+        }
+        List<SolicitacaoEspecialidade> especialidades = repository.findAllById(dto.especialidadeIds());
+
+        for (SolicitacaoEspecialidade especialidade : especialidades) {
+            especialidade.setStatus(dto.status());
+        }
+
+        repository.saveAll(especialidades);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadeUpdateDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadesStatusUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.SolicitacaoEspecialidadeViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoEspecialidadeService;
 import lombok.RequiredArgsConstructor;
@@ -25,5 +26,13 @@ public class SolicitacaoEspecialidadeController {
         SolicitacaoEspecialidadeViewDTO view = service.atualizarStatusEspecialidade(dto, id);
 
         return ResponseEntity.ok(view);
+    }
+
+    // Dentro da classe SolicitacaoEspecialidadeController
+
+    @PutMapping("/status/batch")
+    public ResponseEntity<Void> atualizarStatusEmLote(@RequestBody EspecialidadesStatusUpdateDTO dto) {
+        service.atualizarStatusEspecialidadesEmLote(dto);
+        return ResponseEntity.noContent().build();
     }
 }

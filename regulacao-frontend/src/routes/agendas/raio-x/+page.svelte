@@ -11,7 +11,21 @@
     let total = $state(0);
     let dataHoje = $state(getHojeFormatado());
 
-    const especialidadesDoPainel = ['CARDIOLOGISTA', 'ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER'];
+    
+    const especialidadesDoPainel = [
+    'RAIO_X_COLUNA_CERVICAL',
+    'RAIO_X_ABDOMEN_AGUDO' ,
+    'RAIO_X_ABDOMEN_SIMPLES' ,
+    'RAIO_X_ARTICULACAO_COXO_FEMURAL_BACIA',
+    'RAIO_X_COLUNA_DORSAL',
+    'RAIO_X_COLUNA_LOMBO_SACRA',
+    'RAIO_X_JOELHO',
+    'RAIO_X_MAO_OU_QUIRODACTILOS',
+    'RAIO_X_PE_OU_PODODACTILOS',
+    'RAIO_X_SEIOS_DA_FACE',
+    'RAIO_X_TORAX_PA',
+    'RAIO_X_TORAX_PA_PERFIL'
+];
 
     function getHojeFormatado() {
         const hoje = new Date();
