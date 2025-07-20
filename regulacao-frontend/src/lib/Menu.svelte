@@ -22,7 +22,7 @@
 <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
   <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
   <nav class="flex-1 flex flex-col space-y-2 px-6">
-    <a href="/home" class="py-2 px-4 rounded transition" class:bg-emerald-700={activePage === '/home'} class:hover:bg-emerald-800={activePage !== '/home'}>Dashboard</a>
+    <a href="/dashboard" class="py-2 px-4 rounded transition" class:bg-emerald-700={activePage === '/dashboard'} class:hover:bg-emerald-800={activePage !== '/dashboard'}>Dashboard</a>
 
     <div>
       <button on:click={toggleSolicitacao} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
@@ -42,5 +42,5 @@
     <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/exportar'}>Relatórios</a>
     <a href="/admin/cadastrar-usuario" class="py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/cadastrar-usuario'}>Cadastrar Usuário</a>
   </nav>
-  <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • Adriano Victor, Filipe Ribeiro © 2025</div>
+  <div class="px-6 mt-4 text-sm text-emerald-200">v1.1 • Adriano Victor, Filipe Ribeiro © 2025</div>
 </aside>

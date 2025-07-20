@@ -43,12 +43,7 @@
                 })
             );
             
-            total = solicitacoesDeHoje.reduce((acc, solicitacao) => {
-                return acc + solicitacao.especialidades.filter(e => {
-                    const agendamento = solicitacao.agendamentos.find(ag => ag.id === e.agendamentoId);
-                    return e.status === 'AGENDADO' && especialidadesDoPainel.includes(e.especialidadeSolicitada) && agendamento?.dataAgendada === hoje;
-                }).length;
-            }, 0);
+            total = solicitacoesDeHoje.length
 
         } catch (e) {
             erro = e.message;
@@ -83,14 +78,14 @@
 </script>
 
 <svelte:head>
-    <title>Agenda de Cardiologia</title>
+    <title>Agenda de Ortopedista</title>
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
-    <Menu2 activePage='/home' />
+    <Menu2/>
     <div class="flex-1 flex flex-col">
         <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Agenda do Dia - Cardiologia</h1>
+            <h1 class="text-xl font-semibold">Agenda do Dia - Ortopedista</h1>
             <UserMenu />
         </header>
 
