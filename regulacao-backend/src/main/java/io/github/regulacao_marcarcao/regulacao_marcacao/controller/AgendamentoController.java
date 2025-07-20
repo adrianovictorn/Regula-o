@@ -18,11 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AgendamentoController {
 
-    // Se a lógica de agendamento está em SolicitacaoService,
-    // você precisará injetar SolicitacaoService aqui.
-    // Caso contrário, se AgendamentoService for onde os métodos de agendamento residem,
-    // você pode manter como está, mas certifique-se de que AgendamentoService
-    // tenha acesso ao AgendamentoSolicitacaoRepository.
+
     private final AgendamentoService agendamentoService;
     private final SolicitacaoService solicitacaoService; // Injetando SolicitacaoService
 

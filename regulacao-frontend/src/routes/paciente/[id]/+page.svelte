@@ -234,63 +234,123 @@
                     </div>
                     <button on:click={salvarPaciente} class="mt-4 bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">Salvar Alterações</button>
                 </section>
-                
-                <!-- Seção Histórico de Agendamentos -->
+
+           
                 <section class="bg-white rounded-lg shadow p-6">
-                    <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Histórico de Agendamentos</h2>
-                    {#if agendamentos.length === 0}
-                        <div class="text-center py-8 bg-gray-50 rounded-md">
-                            <p class="text-gray-500">Nenhum agendamento encontrado.</p>
-                        </div>
-                    {:else}
-                        <div class="space-y-4">
-                            {#each agendamentos as ag}
-                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                                    <div class="p-4 bg-gray-50 border-b flex justify-between items-start gap-4">
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 flex-grow">
-                                            <div>
-                                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Local</p>
-                                                <p class="text-base font-medium text-gray-900">{ag.localAgendado.replace(/_/g, ' ')}</p>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data</p>
-                                                <p class="text-base font-medium text-gray-900">{formatarData(ag.dataAgendada)}</p>
+                    <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Histórico de Procedimentos Concluídos</h2>
+
+                    <!-- Adicionado bloco #if para dar um pai válido para a tag @const -->
+                    {#if agendamentos}
+                        <!-- Filtra agendamentos para incluir apenas aqueles com itens realizados -->
+                        {@const agendamentosConcluidos = agendamentos.map(ag => {
+                            return {
+                                ...ag,
+                                itensRealizados: historico.filter(h => h.agendamentoId === ag.id && h.status === 'REALIZADO')
+                            };
+                        }).filter(ag => ag.itensRealizados.length > 0)}
+
+                        {#if agendamentosConcluidos.length === 0}
+                            <div class="text-center py-8 bg-gray-50 rounded-md">
+                                <p class="text-gray-500">Nenhum procedimento concluído encontrado para este paciente.</p>
+                            </div>
+                        {:else}
+                            <div class="space-y-4">
+                                {#each agendamentosConcluidos as ag}
+                                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                                        <div class="p-4 bg-gray-50 border-b flex justify-between items-start gap-4">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 flex-grow">
+                                                <div>
+                                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Local</p>
+                                                    <p class="text-base font-medium text-gray-900">{ag.localAgendado.replace(/_/g, ' ')}</p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data</p>
+                                                    <p class="text-base font-medium text-gray-900">{formatarData(ag.dataAgendada)}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <button on:click={() => removerAgendamento(ag.id)}
-                                            class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors flex-shrink-0"
-                                            title="Remover Agendamento e Itens Associados">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                                        <div class="p-4">
+                                            <h4 class="text-sm font-semibold text-gray-700 mb-2">Itens Realizados:</h4>
+                                            <ul class="space-y-2">
+                                                {#each ag.itensRealizados as h}
+                                                    <li class="flex justify-between items-center text-sm">
+                                                        <span class="text-gray-800">{getNomeEspecialidade(h.especialidadeSolicitada)}</span>
+                                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                                            {h.status}
+                                                        </span>
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <div class="p-4">
-                                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Itens Agendados:</h4>
-                                        <ul class="space-y-2">
-                                            {#each historico.filter(h => h.agendamentoId === ag.id) as h}
-                                                <li class="flex justify-between items-center text-sm">
-                                                    <span class="text-gray-800">{getNomeEspecialidade(h.especialidadeSolicitada)}</span>
-                                                    <div class="flex items-center space-x-3">
-                                                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{h.status}</span>
-                                                        <button on:click={() => removerEspecialidade(h.id)} 
-                                                            class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors"
-                                                            title="Remover Especialidade Agendada">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </li>
-                                            {/each}
-                                        </ul>
-                                    </div>
-                                </div>
-                            {/each}
-                        </div>
+                                {/each}
+                            </div>
+                        {/if}
                     {/if}
                 </section>
+                <!-- Seção Histórico de Agendamentos -->
+                 <section class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Histórico de Agendamentos Ativos</h2>
 
+                    {#if agendamentos}
+                        {@const agendamentosAtivos = agendamentos.map(ag => ({
+                            ...ag,
+                            itensAgendados: especialidades.filter(e => e.agendamentoId === ag.id && e.status === 'AGENDADO')
+                        })).filter(ag => ag.itensAgendados.length > 0)}
+
+                        {#if agendamentosAtivos.length === 0}
+                            <div class="text-center py-8 bg-gray-50 rounded-md">
+                                <p class="text-gray-500">Nenhum agendamento ativo encontrado.</p>
+                            </div>
+                        {:else}
+                            <div class="space-y-4">
+                                {#each agendamentosAtivos as ag (ag.id)}
+                                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                                        <div class="p-4 bg-gray-50 border-b flex justify-between items-start gap-4">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 flex-grow">
+                                                <div>
+                                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Local</p>
+                                                    <p class="text-base font-medium text-gray-900">{ag.localAgendado.replace(/_/g, ' ')}</p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data</p>
+                                                    <p class="text-base font-medium text-gray-900">{formatarData(ag.dataAgendada)}</p>
+                                                </div>
+                                            </div>
+                                            <button on:click={() => removerAgendamento(ag.id)}
+                                                    class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors flex-shrink-0"
+                                                    title="Remover Agendamento e Itens Associados">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="p-4">
+                                            <h4 class="text-sm font-semibold text-gray-700 mb-2">Itens Agendados:</h4>
+                                            <ul class="space-y-2">
+                                                {#each ag.itensAgendados as h (h.id)}
+                                                    <li class="flex justify-between items-center text-sm">
+                                                        <span class="text-gray-800">{getNomeEspecialidade(h.especialidadeSolicitada)}</span>
+                                                        <div class="flex items-center space-x-3">
+                                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">AGENDADO</span>
+                                                            <button on:click={() => removerEspecialidade(h.id)} 
+                                                                    class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors"
+                                                                    title="Desvincular e Remover Especialidade">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
+                    {/if}
+                </section>
                 <!-- Seção Especialidades Pendentes -->
                 <section class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Especialidades Pendentes</h2>
@@ -327,6 +387,64 @@
                         </div>
                      {/if}
                 </section>
+
+    <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Histórico de Procedimentos Cancelados</h2>
+
+        {#if agendamentos}
+            {@const agendamentosComCancelados = agendamentos.map(ag => ({
+                ...ag,
+                itensCancelados: especialidades.filter(e => e.agendamentoId === ag.id && e.status === 'CANCELADO')
+            })).filter(ag => ag.itensCancelados.length > 0)}
+
+            {#if agendamentosComCancelados.length === 0}
+                <div class="text-center py-8 bg-gray-50 rounded-md">
+                    <p class="text-gray-500">Nenhum procedimento cancelado encontrado.</p>
+                </div>
+            {:else}
+                <div class="space-y-4">
+                    {#each agendamentosComCancelados as ag (ag.id)}
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                            
+                            <div class="p-4 bg-gray-50 border-b flex justify-between items-start gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 flex-grow">
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-500 uppercase">Local</p>
+                                        <p class="text-base font-medium text-gray-900">{ag.localAgendado.replace(/_/g, ' ')}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-500 uppercase">Data</p>
+                                        <p class="text-base font-medium text-gray-900">{formatarData(ag.dataAgendada)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-4">
+                                {#if ag.observacoes}
+                                    <div class="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-md">
+                                        <p class="text-xs font-bold text-gray-600">Observações do Agendamento:</p>
+                                        <p class="text-sm text-gray-800 italic">"{ag.observacoes}"</p>
+                                    </div>
+                                {/if}
+
+                                <h4 class="text-sm font-semibold text-gray-700 mb-2">Itens Cancelados:</h4>
+                                <ul class="space-y-2">
+                                    {#each ag.itensCancelados as item (item.id)}
+                                        <li class="flex justify-between items-center text-sm">
+                                            <span class="text-gray-800">{getNomeEspecialidade(item.especialidadeSolicitada)}</span>
+                                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                                CANCELADO
+                                            </span>
+                                        </li>
+                                    {/each}
+                                </ul>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
+        {/if}
+    </section>
 
                 <!-- Seção Adicionar Nova Especialidade -->
                 <section class="bg-white rounded-lg shadow p-6">

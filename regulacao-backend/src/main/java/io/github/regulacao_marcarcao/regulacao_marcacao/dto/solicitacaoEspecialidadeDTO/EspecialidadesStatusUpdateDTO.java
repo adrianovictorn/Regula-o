@@ -5,6 +5,8 @@ import java.util.List;
 
 public record EspecialidadesStatusUpdateDTO(
     List<Long> especialidadeIds,
-    StatusDaMarcacao status
+    StatusDaMarcacao status,
+    Long agendamentoId,     
+    String observacao   
 ) {
 }
