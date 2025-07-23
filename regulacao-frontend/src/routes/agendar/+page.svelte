@@ -296,7 +296,7 @@ function selecionarSolicitacao(solicitacao) {
 </script>
 
 <svelte:head>
-    <title>Agendamento1</title>
+    <title>Agendamento</title>
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">

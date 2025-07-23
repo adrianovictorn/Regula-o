@@ -60,4 +60,11 @@ public class SolicitacaoEspecialidadeService {
             agendamentoRepository.save(agendamento);
         }
     }
+
+    public List<SolicitacaoEspecialidadeViewDTO> listarTodasEspecialidades(){
+       List<SolicitacaoEspecialidade> dto = especialidadeRepository.findAll();
+       List<SolicitacaoEspecialidadeViewDTO> dtos = dto.stream().map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+
+       return dtos;     
+    }
 }
