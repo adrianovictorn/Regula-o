@@ -18,6 +18,8 @@ public enum EspecialidadesEnum {
     NEUROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Neurologista"),
     NEUROPEDIATRIA(ItemCategoria.ESPECIALIDADE_MEDICA, "Neuropediatria"),
     PEDIATRIA(ItemCategoria.ESPECIALIDADE_MEDICA, "Pediatria"),
+    PROCTOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Proctologista"),
+
     OTORRINOLARINGOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Otorrinolaringologista"),
     UROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Urologista"),
     REUMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Reumatologista"),

@@ -106,9 +106,10 @@
 
 
     // MODO UPDATE
+    // MODO UPDATE
     if (idSolicitacao) {
       const paraAdicionar = examesSelecionados
-        .filter(sel => !examesDaSolicitacaoAtual.some(ex => ex.especialidadeSolicitada === sel.value))
+        // A linha de filtro foi removida daqui
         .map(sel => ({
             especialidadeSolicitada: sel.value,
             status: 'AGUARDANDO',

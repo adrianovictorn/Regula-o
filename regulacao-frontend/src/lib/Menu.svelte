@@ -39,6 +39,7 @@
 
     <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/agendar'}>Agendamento</a>
     <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/paciente'}>Paciente</a>
+    <a href="/dashboard/procedimentos" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/dashboard/procedimentos'}>Consultar Agenda do Dia</a>
     <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/exportar'}>Relatórios</a>
     <a href="/admin/cadastrar-usuario" class="py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/cadastrar-usuario'}>Cadastrar Usuário</a>
   </nav>

@@ -21,6 +21,7 @@ export const opcoesEspecialidades = {
     { label: 'Otorrinolaringologista', value: 'OTORRINOLARINGOLOGISTA' },
     { label: 'Pediatra', value: 'PEDIATRIA' },
     { label: 'Pneumologista', value: 'PNEUMOLOGISTA' },
+    { label:'Proctologista', value: 'PROCTOLOGISTA'},
     { label: 'Reumatologista', value: 'REUMATOLOGISTA' },
     { label: 'Urologista', value: 'UROLOGISTA' },
   ],
