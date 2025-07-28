@@ -23,6 +23,12 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
             @Param("enums") List<EspecialidadesEnum> enums
     );
 
+
+     @Query("SELECT COUNT(DISTINCT se.solicitacao.id) FROM SolicitacaoEspecialidade se " +
+           "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
+           "AND se.especialidadeSolicitada IN :enums")
+    long countDistinctSolicitacoesPorDataEEnums(@Param("data") LocalDate data, @Param("enums") List<EspecialidadesEnum> enums);
+
     @Query("SELECT COUNT(se) FROM SolicitacaoEspecialidade se " +
        "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
        "AND se.especialidadeSolicitada IN :enums")
@@ -50,4 +56,15 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
     @Modifying
     @Query("UPDATE SolicitacaoEspecialidade se SET se.agendamentoSolicitacao = NULL, se.status = 'AGUARDANDO' WHERE se.agendamentoSolicitacao.id = :agendamentoId")
     void desvincularAgendamento(@Param("agendamentoId") Long agendamentoId);
+
+
+        @Query("SELECT se FROM SolicitacaoEspecialidade se " +
+        "JOIN FETCH se.solicitacao s " + // Apenas o join com a solicitação é necessário
+        "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
+        "AND se.especialidadeSolicitada IN :enums " +
+        "ORDER BY s.nomePaciente, se.agendamentoSolicitacao.turno") // Ordenando por s.nomePaciente
+        List<SolicitacaoEspecialidade> findAgendadasCompletasPorDataEEnums(
+        @Param("data") LocalDate data,
+        @Param("enums") List<EspecialidadesEnum> enums
+        );
 }

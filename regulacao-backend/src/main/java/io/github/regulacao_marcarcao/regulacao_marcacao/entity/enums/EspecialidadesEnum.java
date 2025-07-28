@@ -28,6 +28,17 @@ public enum EspecialidadesEnum {
     CONSULTA_OFTALMOLOGICA_REFRACAO(ItemCategoria.ESPECIALIDADE_MEDICA, "Consulta Oftalmológica (Refração)"),
     CIRURGIAO_GERAL(ItemCategoria.ESPECIALIDADE_MEDICA, "Cirurgião Geral"),
     ALERGOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Alergologista"),
+    OFTALMOLOGISTA_ESPECIALISTA_EM_RETINA(ItemCategoria.ESPECIALIDADE_MEDICA, "Oftamologista Especialista em Retina"), 
+    OFTALMOLOGISTA_ESPECIALISTA_EM_GLAUCOMA(ItemCategoria.ESPECIALIDADE_MEDICA, "Oftamologista Especialista em Glaucoma"), 
+    RETINOLOGO(ItemCategoria.ESPECIALIDADE_MEDICA, "Retinologo"), 
+    ESPECILISTA_EM_OMBRO(ItemCategoria.ESPECIALIDADE_MEDICA,"Especialista em Ombro"), 
+    ESPECIALISTA_EM_JOELHO(ItemCategoria.ESPECIALIDADE_MEDICA,"Especialista em Joelho"), 
+    ESPECIALISTA_EM_QUADRIL(ItemCategoria.ESPECIALIDADE_MEDICA, "Especialista em Quadril"), 
+    ESPECIALISTA_EM_COLUNA(ItemCategoria.ESPECIALIDADE_MEDICA, "Especialista em Coluna"), 
+    ESPECIALISTA_EM_PE(ItemCategoria.ESPECIALIDADE_MEDICA,"Especialista em Pé"), 
+    ESPECIALISTA_EM_MAO(ItemCategoria.ESPECIALIDADE_MEDICA, "Especialista em Mão"), 
+    ESPECIASTA_EM_REDUCAO_DE_MAMA(ItemCategoria.ESPECIALIDADE_MEDICA, "Especialista em Redução de Mama"), 
+    ONCOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Oncologista"), 
 
     // --- EXAMES OU PROCEDIMENTOS (Existentes) ---
     DOPPLER(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Doppler"),
@@ -92,6 +103,8 @@ public enum EspecialidadesEnum {
     ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Doppler Venoso MI Unilateral"),
     ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Doppler Venoso MI Bilateral"),
     ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Doppler Carótidas e Vertebrais"),
+
+    //RAIO X
     RAIO_X_TORAX_PA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Tórax PA"),
     RAIO_X_TORAX_PA_PERFIL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Tórax PA/Perfil"),
     RAIO_X_SEIOS_DA_FACE(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Seios da Face"),
@@ -104,6 +117,14 @@ public enum EspecialidadesEnum {
     RAIO_X_JOELHO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Joelho"),
     RAIO_X_MAO_OU_QUIRODACTILOS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Mão/Quirodáctilos"),
     RAIO_X_PE_OU_PODODACTILOS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Pé/Pododáctilos"),
+    RAIO_X_CALCANEO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Calcaneo"),
+    RAIO_X_COLUNA_LOMBAR(ItemCategoria.EXAME_OU_PROCEDIMENTO,"Raio-X Coluna Lombar"),
+    RAIO_X_OMBRO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Ombro"),
+    RAIO_X_CAVUM(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Cavum"),
+    RAIO_X_COLUNA_TORACICA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Coluna Toracica"),
+    RAIO_X_ESCAPULA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Escapula"),
+    RAIO_X_REGIAO_CERVICAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Região Cervical"),
+
     TESTE_ERGOMETRICO_CONVENCIONAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Teste Ergométrico Convencional"),
     HOLTER_24_HORAS_3_CANAIS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Holter 24 Horas (3 Canais)"),
     MAPA_24_HORAS_MONITORIZACAO_AMBULATORIAL_PRESSAO_ARTERIAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "MAPA 24 Horas"),
@@ -300,7 +321,8 @@ public enum EspecialidadesEnum {
     TOMOGRAFIA_COMPUTADORIZADA_PESCOCO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomografia Computadorizada do Pescoço"),
     TOMOGRAFIA_POR_EMISSAO_DE_POSITRONS_PET_CT(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomografia por Emissão de Pósitrons - PET CT"),
     GLICOSE(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Glicose"),
-    TOMOMIELOGRAFIA_COMPUTADORIZADA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomomielografia Computadorizada");
+    TOMOMIELOGRAFIA_COMPUTADORIZADA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomomielografia Computadorizada"),
+    ANGIOTOMOGRAFIA(ItemCategoria.EXAME_OU_PROCEDIMENTO,"Angiotomografia");
 
     private final ItemCategoria categoria;
     private final String descricao;
