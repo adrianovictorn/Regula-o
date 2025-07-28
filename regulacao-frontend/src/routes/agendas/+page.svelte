@@ -60,7 +60,7 @@ onMount(()=> {
   <div class="flex h-screen bg-gray-100">
     <!-- Sidebar -->
      
-    <Menu2 activePage='/home'></Menu2>
+    <Menu2></Menu2>
   
    <!-- Main Content -->
     <div class="flex-1 flex flex-col">
