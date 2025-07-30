@@ -85,7 +85,11 @@
     { value: 'PRIMAGEM', label: 'Primagem' },
     { value: 'PONTO_ALTO_IMAGEM', label: 'Ponto Alto Imagem' },
     { value: 'HOSPITAL_REGIONAL', label: 'Hospital Regional' },
-    { value: 'HOSPITAL_SANTA_IZABEL', label: 'Hospital Santa Izabel' }
+    { value: 'HOSPITAL_SANTA_IZABEL', label: 'Hospital Santa Izabel' },
+    { value: 'CLINICA_MURITIBA', label: 'Clínica Muritiba' },
+    { value: 'HOSPITAL_MARTAGAO_GESTEIRA', label: 'Hospital Martagão Gesteira' },
+    { value: 'ADAB', label: 'ADAB' },
+    { value: 'HOSPITAL_DA_CRIANCA', label: 'Hospital da Criança' }
   ];
   const brasaoUrl =
     'https://upload.wikimedia.org/wikipedia/commons/9/97/Bras%C3%A3o_de_Concei%C3%A7%C3%A3o_do_Almeida.png';
