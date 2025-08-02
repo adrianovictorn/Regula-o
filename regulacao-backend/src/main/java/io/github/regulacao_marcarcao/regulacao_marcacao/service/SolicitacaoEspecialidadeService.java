@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadeUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadesStatusUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.SolicitacaoEspecialidadeViewDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.AgendamentoSolicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,5 +68,44 @@ public class SolicitacaoEspecialidadeService {
        List<SolicitacaoEspecialidadeViewDTO> dtos = dto.stream().map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
 
        return dtos;     
+    }
+
+    public List<SolicitacaoEspecialidadeViewDTO> listarStatusAguardando(){
+        List<SolicitacaoEspecialidade> statusAguardando = especialidadeRepository.findAll();
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusAguardando.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.AGUARDANDO).map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+        return viewDTOs;
+    }
+
+    public List<SolicitacaoEspecialidadeViewDTO> listarStatusAgendado(){
+        List<SolicitacaoEspecialidade> statusAgendado = especialidadeRepository.findAll();
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusAgendado.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.AGENDADO).map(solicitacaoEspecialidade -> SolicitacaoEspecialidadeViewDTO.fromSolicitacaoEspecialidade(solicitacaoEspecialidade)).toList();
+
+        return viewDTOs;
+    }
+
+    public List<SolicitacaoEspecialidadeViewDTO> listarStatusRealizado(){
+        List<SolicitacaoEspecialidade> statusRealizado = especialidadeRepository.findAll();
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusRealizado.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.REALIZADO).map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+        return viewDTOs;
+    }
+
+    public List<SolicitacaoEspecialidadeViewDTO> listarStatusRetorno(){
+        List<SolicitacaoEspecialidade> statusRetorno = especialidadeRepository.findAll();
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusRetorno.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.RETORNO).map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+        return viewDTOs;
+    }
+
+    public List<SolicitacaoEspecialidadeViewDTO> listarStatusRetornoPoliClinica(){
+        List<SolicitacaoEspecialidade> statusRetornoPoliclinica = especialidadeRepository.findAll();
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusRetornoPoliclinica.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.RETORNO_POLICLINICA).map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+
+        return viewDTOs;
+    }
+
+     public List<SolicitacaoEspecialidadeViewDTO> listarStatusCancelado(){
+        List<SolicitacaoEspecialidade> statusCancelado = especialidadeRepository.findAll();
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusCancelado.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.CANCELADO).map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+
+        return viewDTOs;
     }
 }

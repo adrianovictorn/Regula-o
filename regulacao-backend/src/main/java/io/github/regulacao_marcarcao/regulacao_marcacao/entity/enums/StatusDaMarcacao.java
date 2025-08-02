@@ -4,5 +4,7 @@ public enum StatusDaMarcacao {
     AGUARDANDO,
     AGENDADO,
     CANCELADO,
-    REALIZADO
+    REALIZADO,
+    RETORNO,
+    RETORNO_POLICLINICA
 }

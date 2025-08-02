@@ -38,11 +38,39 @@ public class SolicitacaoEspecialidadeController {
         return ResponseEntity.ok(view);
     }
 
-    // Dentro da classe SolicitacaoEspecialidadeController
-
     @PutMapping("/status/batch")
     public ResponseEntity<Void> atualizarStatusEmLote(@RequestBody EspecialidadesStatusUpdateDTO dto) {
         service.atualizarStatusEspecialidadesEmLote(dto);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/status/aguardando")
+    public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusAguardando(){
+        return ResponseEntity.ok(service.listarStatusAguardando());
+    }
+
+    @GetMapping("/status/agendado")
+    public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusAgendado(){
+        return ResponseEntity.ok(service.listarStatusAgendado());
+    }
+
+    @GetMapping("/status/realizado")
+    public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusRealizado(){
+        return ResponseEntity.ok(service.listarStatusRealizado());
+    }
+
+    @GetMapping("/status/retorno")
+    public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusRetorno(){
+        return ResponseEntity.ok(service.listarStatusRetorno());
+    }
+
+    @GetMapping("/status/retorno/policlinica")
+    public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusRetornoPoliclinica(){
+        return ResponseEntity.ok(service.listarStatusRetornoPoliClinica());
+    }
+
+     @GetMapping("/status/cancelado")
+    public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusCancelado(){
+        return ResponseEntity.ok(service.listarStatusCancelado());
     }
 }
