@@ -67,4 +67,6 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
         @Param("data") LocalDate data,
         @Param("enums") List<EspecialidadesEnum> enums
         );
+
+        List<SolicitacaoEspecialidade> findByStatus(StatusDaMarcacao status);
 }

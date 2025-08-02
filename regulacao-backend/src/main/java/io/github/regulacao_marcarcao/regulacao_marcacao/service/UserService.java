@@ -90,7 +90,8 @@ public class UserService {
             usuarioExistente.setPassword(user.getPassword());
             usuarioExistente.setRole(user.getRole());
 
-            return UserViewDTO.from(usuarioExistente);
+            User usuarioAtualizado = userRepository.save(usuarioExistente);
+            return UserViewDTO.from(usuarioAtualizado);
         }
         
         //[ATUALIZAR]

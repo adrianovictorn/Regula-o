@@ -71,14 +71,14 @@ public class SolicitacaoEspecialidadeService {
     }
 
     public List<SolicitacaoEspecialidadeViewDTO> listarStatusAguardando(){
-        List<SolicitacaoEspecialidade> statusAguardando = especialidadeRepository.findAll();
-        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusAguardando.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.AGUARDANDO).map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
+        List<SolicitacaoEspecialidade> statusAguardando = especialidadeRepository.findByStatus(StatusDaMarcacao.AGUARDANDO);
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusAguardando.stream().map(SolicitacaoEspecialidadeViewDTO::fromSolicitacaoEspecialidade).toList();
         return viewDTOs;
     }
 
     public List<SolicitacaoEspecialidadeViewDTO> listarStatusAgendado(){
-        List<SolicitacaoEspecialidade> statusAgendado = especialidadeRepository.findAll();
-        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusAgendado.stream().filter(especialidade -> especialidade.getStatus() == StatusDaMarcacao.AGENDADO).map(solicitacaoEspecialidade -> SolicitacaoEspecialidadeViewDTO.fromSolicitacaoEspecialidade(solicitacaoEspecialidade)).toList();
+        List<SolicitacaoEspecialidade> statusAgendado = especialidadeRepository.findByStatus(StatusDaMarcacao.AGENDADO);
+        List<SolicitacaoEspecialidadeViewDTO> viewDTOs = statusAgendado.stream().map(solicitacaoEspecialidade -> SolicitacaoEspecialidadeViewDTO.fromSolicitacaoEspecialidade(solicitacaoEspecialidade)).toList();
 
         return viewDTOs;
     }
