@@ -3,6 +3,7 @@
   import { getApi } from "$lib/api";
     import Menu from "$lib/Menu.svelte";
     import UserMenu from "$lib/UserMenu.svelte";
+    import RoleBasedMenu from "$lib/RoleBasedMenu.svelte";
 
   // Variáveis de estado declaradas com as "runes" do Svelte 5
   let isLoading = $state(true);
@@ -81,7 +82,7 @@
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
-  <Menu activePage="/paciente" />
+  <RoleBasedMenu activePage="/paciente" />
 
  <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">

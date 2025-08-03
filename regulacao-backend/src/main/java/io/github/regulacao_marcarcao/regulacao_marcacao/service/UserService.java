@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.usuariosDTO.UserCreateDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.usuariosDTO.UserUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.usuariosDTO.UserViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.User;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.Roles;
@@ -82,16 +83,16 @@ public class UserService {
 // -------------------
 
         //[ATUALIZAR]
-        public UserViewDTO atualizarUser(Long id, User user){
+        public UserViewDTO atualizarUser(Long id, UserUpdateDTO user){
             User usuarioExistente = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-            usuarioExistente.setCpf(user.getCpf());
-            usuarioExistente.setNome(user.getNome());
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            usuarioExistente.setCpf(user.cpf());
+            usuarioExistente.setNome(user.nome());
+            if (user.password() != null && !user.password().isEmpty()) {
                     // Criptografa a nova senha antes de salvar.
-                    usuarioExistente.setPassword(passwordEncoder.encode(user.getPassword()));
+                    usuarioExistente.setPassword(passwordEncoder.encode(user.password()));
             }           
-             usuarioExistente.setRole(user.getRole());
+             usuarioExistente.setRole(user.role());
 
             User usuarioAtualizado = userRepository.save(usuarioExistente);
             return UserViewDTO.from(usuarioAtualizado);

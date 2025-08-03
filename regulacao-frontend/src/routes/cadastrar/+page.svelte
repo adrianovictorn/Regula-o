@@ -3,7 +3,7 @@
   // Importa a nossa função postApi que já envia o token JWT
   import { postApi } from '$lib/api.js'; 
   import { opcoesEspecialidades } from '$lib/Especialidades.js'; // Usando o objeto centralizado
-  import Menu from '$lib/Menu.svelte';
+  import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
   import UserMenu from '$lib/UserMenu.svelte';
 
   // --- ESTADO DO FORMULÁRIO ---
@@ -105,7 +105,7 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
-  <Menu activePage="/cadastrar" />
+  <RoleBasedMenu activePage="/cadastrar" />
 
   <!-- Main Area -->
   <div class="flex-1 flex flex-col">

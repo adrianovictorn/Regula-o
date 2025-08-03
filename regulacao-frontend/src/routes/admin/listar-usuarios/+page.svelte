@@ -1,5 +1,5 @@
 <script>
-    import { getApi } from "$lib/api";
+    import { getApi, putApi } from "$lib/api";
     import Menu from "$lib/Menu.svelte";
     import ModalEditarUsuarios from "$lib/ModalEditarUsuarios.svelte";
     import UserHome from "$lib/UserHome.svelte";
@@ -39,13 +39,7 @@ async function listarUsuarios() {
 async function atualizarUsuario(userData) {
     try {
         // Faz a requisição para a API
-        const res = await fetch(`/api/users/${userData.id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(userData),
-        });
+      const res = await putApi(`users/${userData.id}`,userData)
 
         // Verifica se a requisição foi bem-sucedida
         if (res.ok) {

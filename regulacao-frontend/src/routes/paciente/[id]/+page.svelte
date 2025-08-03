@@ -4,7 +4,7 @@
     import { goto } from '$app/navigation';
     import { getApi, postApi, putApi, deleteApi } from '$lib/api';
     import { opcoesEspecialidades } from '$lib/Especialidades.js';
-    import Menu from "$lib/Menu.svelte";
+    import RoleBasedMenu from "$lib/RoleBasedMenu.svelte";
 
     // --- Estado do Componente com Svelte 5 Runes ---
     let solicitacao = $state<any>(null);
@@ -37,6 +37,7 @@
     let dataMalote = $state('');
     let observacoes = $state('');
     let telefone = $state('');
+    let status = $state('');
 
     // Objeto reativo para a nova especialidade a ser adicionada
     let novaEspecialidadeObj = $state({ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' });
@@ -169,7 +170,7 @@
 
     // Valores derivados para exibir na tela de forma reativa
     let historico = $derived(especialidades);
-    let especPendentes = $derived(historico.filter((e: any) => e.status === 'AGUARDANDO'));
+    let especPendentes = $derived(historico.filter((e: any) => e.status === 'AGUARDANDO' || e.status === 'RETORNO' || e.status === 'RETORNO_POLICLINICA'));
 
 </script>
 
@@ -178,7 +179,7 @@
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
-    <Menu activePage="/paciente" />
+    <RoleBasedMenu activePage="/paciente" />
 
     <div class="flex-1 flex flex-col">
         <header class="bg-emerald-700 text-white p-4 flex justify-between items-center shadow-md">
@@ -351,6 +352,7 @@
                         {/if}
                     {/if}
                 </section>
+
                 <!-- Seção Especialidades Pendentes -->
                 <section class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Especialidades Pendentes</h2>
@@ -361,7 +363,12 @@
                                     <li class="p-3 flex justify-between items-center hover:bg-gray-50">
                                         <span class="text-gray-800 font-medium">{getNomeEspecialidade(e.especialidadeSolicitada)}</span>
                                         <div class="flex items-center space-x-3">
-                                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">{e.status}</span>
+                                            {#if e.status === 'AGUARDANDO'}
+                                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">{e.status}</span>
+                                            {/if}
+                                           {#if e.status === 'RETORNO' || e.status === 'RETORNO_POLICLINICA'}
+                                             <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-200 text-blue-800">{e.status}</span>
+                                           {/if}
                                             <select bind:value={e.prioridade} 
                                                     on:change={(event) => handlePrioridadeChange(e.id, event)}
                                                     class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 ease-in-out py-1">
@@ -450,7 +457,7 @@
                 <section class="bg-white rounded-lg shadow p-6">
                      <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Adicionar Nova Especialidade</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="lg:col-span-2">
+                        <div class="lg:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
                             <select bind:value={novaEspecialidadeObj.especialidadeSolicitada} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                                 <option value="" disabled>Selecione...</option>
@@ -469,9 +476,18 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
                             <select bind:value={novaEspecialidadeObj.prioridade} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                <option value="NORMAL">Normal</option>
+                           
+                                <option value="NORMAL" disabled>Normal</option>
                                 <option value="URGENTE">Urgente</option>
                                 <option value="EMERGENCIA">Emergência</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Em caso de retorno... </label>
+                            <select bind:value={novaEspecialidadeObj.status} class="w-full border-gray-300 rounded-md shadow-sm">
+                                <option value="AGUARDANDO" disabled>Selecione...</option>
+                                <option value="RETORNO">Retorno</option>
+                                <option value="RETORNO_POLICLINICA">Retorno Policlínica</option>
                             </select>
                         </div>
                     </div>

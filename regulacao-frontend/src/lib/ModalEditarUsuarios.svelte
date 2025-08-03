@@ -30,7 +30,7 @@
             <option value="USER">Usuário Padrão</option>
             <option value="ENFERMEIRO">Enfermeiro</option>
             <option value="MEDICO">Médico</option>
-            <option value="RECEPCIONISTA">Recepcionista</option>
+            <option value="RECEPCAO">Recepcionista</option>
         </select>
 
            

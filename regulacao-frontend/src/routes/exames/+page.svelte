@@ -1,10 +1,10 @@
 <script lang='ts'>
   import { getApi, postApi } from '$lib/api';
-    import Menu from '$lib/Menu.svelte';
     import UserMenu from '$lib/UserMenu.svelte';
     import { Label } from 'bits-ui';
   import { onMount } from 'svelte';
   import { opcoesEspecialidades } from '$lib/Especialidades.js';
+    import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
 
   const todosOsExamesDoEnum = opcoesEspecialidades.examesEProcedimentos.map(ex => ({ 
   ...ex, 
@@ -194,7 +194,7 @@
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
-    <Menu activePage="/exames" />
+    <RoleBasedMenu activePage="/exames" />
 
   <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">

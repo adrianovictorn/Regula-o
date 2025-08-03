@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.usuariosDTO.UserCreateDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.usuariosDTO.UserUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.usuariosDTO.UserViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.User;
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.UserService;
@@ -58,7 +59,8 @@ public class UserController {
 
 
     @PutMapping("{id}")
-    public ResponseEntity<UserViewDTO> atualizarUsuario(@PathVariable Long id, @RequestBody User user){
-        return ResponseEntity.ok(userService.atualizarUser(id, user));
+    @PreAuthorize("hasRole('ADMIN')")    
+    public ResponseEntity<UserViewDTO> atualizarUsuario(@PathVariable Long id, @RequestBody UserUpdateDTO user){
+            return ResponseEntity.ok(userService.atualizarUser(id, user));
+        }
     }
-}

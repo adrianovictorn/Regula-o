@@ -30,21 +30,21 @@ public class SolicitacaoController {
     private final SolicitacaoService service; 
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER')") // Apenas ADMIN pode criar
+    @PreAuthorize("hasAnyRole('ADMIN','USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") // Apenas ADMIN pode criar
     public ResponseEntity<SolicitacaoViewDTO> criarSolicitacao(@Valid @RequestBody SolicitacaoCreateDTO dto){
         SolicitacaoViewDTO viewDTO = service.createSolicitacao(dto);
         return ResponseEntity.ok(viewDTO);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')") // ADMIN ou USER podem listar todas
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") // ADMIN ou USER podem listar todas
     public ResponseEntity<List<SolicitacaoViewDTO>> listarSolicitacoes(){
        List<SolicitacaoViewDTO> lista = service.todasSolicitacoes();
        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')") // ADMIN ou USER podem buscar por ID
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") // ADMIN ou USER podem buscar por ID
     public ResponseEntity<SolicitacaoViewDTO> buscarPorId (@PathVariable Long id){
         SolicitacaoViewDTO solicitacao = service.getSolicitacaoById(id);
         return ResponseEntity.ok(solicitacao);
@@ -58,7 +58,7 @@ public class SolicitacaoController {
     }
 
      @PostMapping("/{solicitacaoId}/especialidades")
-     @PreAuthorize("hasRole('ADMIN')") // Apenas ADMIN pode adicionar especialidades
+     @PreAuthorize("hasRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") // Apenas ADMIN pode adicionar especialidades
     public ResponseEntity<SolicitacaoViewDTO> adicionarEspecialidadeASolicitacao(
             @PathVariable Long solicitacaoId,
             @RequestBody EspecialidadeAdicionarDTO dto) {
@@ -67,7 +67,7 @@ public class SolicitacaoController {
     }
 
    @DeleteMapping("especialidades/{id}") // Corrigido: adicionado o PathVariable
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")
     public ResponseEntity<Void> deletarEspecialidade(@PathVariable Long id){
         service.removerEspecialidade(id); // Chamando o serviço correto
         return ResponseEntity.noContent().build(); // Retorna 204 No Content
