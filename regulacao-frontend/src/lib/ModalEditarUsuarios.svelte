@@ -33,6 +33,7 @@
             <option value="RECEPCIONISTA">Recepcionista</option>
         </select>
 
+           
         <div class="mt-4 flex justify-end gap-2">
             <button 
             type="button"
@@ -56,8 +57,8 @@
             </button>
         </div>
 
-        
-        Editar Usuário
+       
+     
     </div>
   </div>
 {/if}

@@ -87,8 +87,11 @@ public class UserService {
 
             usuarioExistente.setCpf(user.getCpf());
             usuarioExistente.setNome(user.getNome());
-            usuarioExistente.setPassword(user.getPassword());
-            usuarioExistente.setRole(user.getRole());
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                    // Criptografa a nova senha antes de salvar.
+                    usuarioExistente.setPassword(passwordEncoder.encode(user.getPassword()));
+            }           
+             usuarioExistente.setRole(user.getRole());
 
             User usuarioAtualizado = userRepository.save(usuarioExistente);
             return UserViewDTO.from(usuarioAtualizado);

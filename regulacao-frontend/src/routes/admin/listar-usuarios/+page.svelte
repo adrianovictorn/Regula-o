@@ -10,8 +10,8 @@
 
 
     let usuarios = $state([]);
-    let modalAberto = false;
-    let usuarioSelecionado = null;
+    let modalAberto =  $state(false);;
+    let usuarioSelecionado = $state(null);
 
     function abrirModal(user){
         usuarioSelecionado = user;
@@ -36,35 +36,44 @@ async function listarUsuarios() {
     }
 }
 
-async function atualizarUsuario(userData){
-    try{
-        const res = await fetch (`/api/users/${userData.id}`,{
+async function atualizarUsuario(userData) {
+    try {
+        // Faz a requisição para a API
+        const res = await fetch(`/api/users/${userData.id}`, {
             method: "PUT",
-            headers: {"Content-Type": "application/json",
-        },
-        body : JSON.stringify(userData),
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(userData),
+        });
 
-    });
+        // Verifica se a requisição foi bem-sucedida
+        if (res.ok) {
+            // Pega os dados atualizados do usuário que a API retornou
+            const usuarioAtualizado = await res.json();
 
-    if(!res.ok){
-        alert("Erro ao receber dados");
-        return
+            // Atualiza a lista local de usuários de forma reativa
+            // O .map cria um novo array, o que ajuda o Svelte a detectar a mudança
+            usuarios = usuarios.map((u) =>
+                u.id === usuarioAtualizado.id ? usuarioAtualizado : u
+            );
+            
+            alert('Usuário atualizado com sucesso!');
+            fecharModal(); // Fecha o modal após o sucesso
+
+        } else {
+            // Se a API retornou um erro (ex: 404, 500)
+            alert('Erro ao atualizar usuário.');
+            console.error('Erro na resposta da API:', await res.text());
+        }
+
+    } catch (err) {
+        // Se ocorreu um erro de rede ou outro problema
+        console.error("Erro ao tentar atualizar:", err);
+        alert("Erro na atualização.");
     }
-
-    const usuarioAtualizado = await res.json();
-    
-    usuarios = usuarios.map((u) =>
-      u.id === usuarioAtualizado.id ? usuarioAtualizado : u
-    );
-
-    fecharModal();
-        
-    }
-    catch (err) {
-    console.error(err);
-    alert("Erro na atualização.");
-  }
 }
+
 onMount( () => {
     listarUsuarios();
 })
