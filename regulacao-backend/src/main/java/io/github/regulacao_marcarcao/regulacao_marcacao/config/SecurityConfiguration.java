@@ -18,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import io.github.regulacao_marcarcao.regulacao_marcacao.config.JwtAuthenticationFilter; // Certifique-se que o import está correto
 
 @Configuration
 @EnableMethodSecurity

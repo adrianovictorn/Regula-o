@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.ContagemPainelPorDataLocalDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
@@ -69,4 +70,15 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
         );
 
         List<SolicitacaoEspecialidade> findByStatus(StatusDaMarcacao status);
+
+        @Query("SELECT new io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.ContagemAgrupadaDTO(" +
+           "se.especialidadeSolicitada, " +
+           "ag.localAgendado, " +
+           "ag.dataAgendada, " +
+           "COUNT(se)) " +
+           "FROM SolicitacaoEspecialidade se " +
+           "JOIN se.agendamentoSolicitacao ag " +
+           "WHERE se.status = 'AGENDADO' " +
+           "GROUP BY se.especialidadeSolicitada, ag.localAgendado, ag.dataAgendada")
+        List<ContagemPainelPorDataLocalDTO> contarAgendamentosAgrupados();
 }
