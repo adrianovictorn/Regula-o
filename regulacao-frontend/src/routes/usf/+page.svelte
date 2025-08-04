@@ -4,6 +4,7 @@
     import Menu from "$lib/Menu.svelte";
     import { opcoesEspecialidades } from "$lib/Especialidades";
     import UserMenu from "$lib/UserMenu.svelte";
+    import RoleBasedMenu from "$lib/RoleBasedMenu.svelte";
 
   // --- Estado do Componente (Svelte 5 Runes) ---
   let isLoading = $state(true);
@@ -92,7 +93,7 @@
 
   
   <!-- Sidebar navigation -->
-   <Menu activePage="/home" />
+   <RoleBasedMenu activePage="/home" />
 
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">

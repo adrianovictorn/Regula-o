@@ -58,7 +58,7 @@ public class SolicitacaoController {
     }
 
      @PostMapping("/{solicitacaoId}/especialidades")
-     @PreAuthorize("hasRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") // Apenas ADMIN pode adicionar especialidades
+     @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") // Apenas ADMIN pode adicionar especialidades
     public ResponseEntity<SolicitacaoViewDTO> adicionarEspecialidadeASolicitacao(
             @PathVariable Long solicitacaoId,
             @RequestBody EspecialidadeAdicionarDTO dto) {
@@ -67,7 +67,7 @@ public class SolicitacaoController {
     }
 
    @DeleteMapping("especialidades/{id}") // Corrigido: adicionado o PathVariable
-    @PreAuthorize("hasRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")
     public ResponseEntity<Void> deletarEspecialidade(@PathVariable Long id){
         service.removerEspecialidade(id); // Chamando o serviço correto
         return ResponseEntity.noContent().build(); // Retorna 204 No Content

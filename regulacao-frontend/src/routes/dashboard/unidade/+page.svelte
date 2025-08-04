@@ -74,7 +74,7 @@
   <div class="flex h-screen bg-gray-100">
     <!-- Sidebar -->
 
-  <Menu3 activePage="/dashboard" />    <!-- Main Content -->
+  <Menu3 activePage="/dashboard/unidade" />    <!-- Main Content -->
     <div class="flex-1 flex flex-col">
       <!-- Header com boas-vindas e botão de logout -->
       <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">

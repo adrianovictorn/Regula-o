@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { postApi } from '$lib/api.js';
+    import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
     import UserMenu from '$lib/UserMenu.svelte';
 
   // --- ESTADO DO FORMULÁRIO ---
@@ -79,16 +80,7 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
-  <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
-    <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-    <nav class="flex-1 flex flex-col space-y-2 px-6">
-      <a href="/home" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Dashboard</a>
-      <a href="/cadastrar" class="py-2 px-4 rounded hover:bg-emerald-800 transition">Nova Solicitação</a>
-      <a href="/admin/cadastrar-usuario" class="py-2 px-4 rounded bg-emerald-700">Cadastrar Usuário</a>
-      <!-- Adicione outras rotas de admin aqui -->
-    </nav>
-    <div class="px-6 mt-4 text-sm text-emerald-200">v1.0 • Adriano Victor, Filipe Ribeiro © 2025</div>
-  </aside>
+  <RoleBasedMenu activePage = "/admin/cadastrar-usuario"/>
 
   <!-- Main Content -->
   <div class="flex-1 flex flex-col">

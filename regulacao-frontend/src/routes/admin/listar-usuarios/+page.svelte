@@ -76,11 +76,11 @@ onMount( () => {
 
 <div class="flex h-screen bg-gray-100">
   
-  <Menu activePage="/admin/cadastrar-usuario" />
+  <Menu activePage="/admin/listar-usuarios" />
 
   <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">
-      <h1 class="text-xl font-semibold">Painel de Controle</h1>
+      <h1 class="text-xl font-semibold">Listagem de Usuários</h1>
     </header>
 
       <main >
