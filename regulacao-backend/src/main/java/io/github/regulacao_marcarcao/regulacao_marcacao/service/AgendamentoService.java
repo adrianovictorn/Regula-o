@@ -35,7 +35,7 @@ public class AgendamentoService {
     public List<AgendamentoViewDto> listarSolicitacoesPendentes() {
         return solicitacaoRepository.findAll().stream()
             .filter(s -> s.getEspecialidades().stream()
-                .anyMatch(e -> e.getStatus() == StatusDaMarcacao.AGUARDANDO))
+                .anyMatch(e -> e.getStatus() == StatusDaMarcacao.AGUARDANDO || e.getStatus() == StatusDaMarcacao.RETORNO || e.getStatus() == StatusDaMarcacao.RETORNO_POLICLINICA))
             .map(AgendamentoViewDto::fromSolicitacao)
             .collect(Collectors.toList());
     }
@@ -130,6 +130,8 @@ public class AgendamentoService {
 
         return AgendamentoSolicitacaoSimpleViewDTO.fromAgendamentoSolicitacao(agendamentoSalvo);
     }
+
+    
 
 
     @Transactional

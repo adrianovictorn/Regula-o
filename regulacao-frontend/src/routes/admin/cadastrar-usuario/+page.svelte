@@ -128,6 +128,9 @@
             <select id="role" bind:value={cargo} class="w-full border border-gray-300 rounded-lg p-2">
               <option value="ADMIN">Administrador</option>
               <option value="USER">Usuário Padrão</option>
+              <option value="RECEPCAO">Recepcionista</option>
+              <option value="ENFERMEIRO">Enfermeiro</option>
+              <option value="MEDICO">Medico</option>
               <option value="PACIENTE">Paciente</option>
             </select>
           </div>

@@ -223,6 +223,8 @@ public class AgendamentoController {
     }
 
 
+    
+
 
      @GetMapping("/pacientes-por-data")
     public List<PacienteAgendadoDTO> getPacientesPorData(

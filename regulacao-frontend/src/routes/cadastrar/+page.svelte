@@ -132,7 +132,7 @@
               <label class="text-sm font-medium text-gray-700 mb-1">USF Origem</label>
               <select bind:value={usfOrigem} class="border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required>
                 <option value="" disabled>Selecione...</option>
-                {#each ['USF01','USF02','USF03','USF04','USF05','USF06'] as u}
+                {#each ['USF01','USF02','USF03','USF04','USF05','USF06','HMCA'] as u}
                   <option value={u}>{u}</option>
                 {/each}
               </select>
@@ -186,8 +186,11 @@
                   <!-- Status -->
                   <select bind:value={esp.status} class="border-gray-300 rounded-lg p-2">
                     <option value="AGUARDANDO">Aguardando</option>
+                    <option value="RETORNO">Retorno</option>
+                    <option value="RETORNO_POLICLINICA">Retorno Policlinica</option>
                     <option value="AGENDADO">Agendado</option>
                     <option value="REALIZADO">Realizado</option>
+                    
                     <option value="CANCELADO">Cancelado</option>
                   </select>
 

@@ -6,5 +6,6 @@ public enum UsfEnum {
     USF03,
     USF04,
     USF05,
-    USF06
+    USF06,
+    HMCA
 }

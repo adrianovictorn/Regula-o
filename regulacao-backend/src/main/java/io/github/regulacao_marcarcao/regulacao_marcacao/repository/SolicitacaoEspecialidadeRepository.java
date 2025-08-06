@@ -71,14 +71,16 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
 
         List<SolicitacaoEspecialidade> findByStatus(StatusDaMarcacao status);
 
-        @Query("SELECT new io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.ContagemAgrupadaDTO(" +
-           "se.especialidadeSolicitada, " +
-           "ag.localAgendado, " +
-           "ag.dataAgendada, " +
-           "COUNT(se)) " +
-           "FROM SolicitacaoEspecialidade se " +
-           "JOIN se.agendamentoSolicitacao ag " +
-           "WHERE se.status = 'AGENDADO' " +
-           "GROUP BY se.especialidadeSolicitada, ag.localAgendado, ag.dataAgendada")
+        @Query("SELECT new io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.ContagemPainelPorDataLocalDTO(" +
+       "se.especialidadeSolicitada, " +
+       "ag.localAgendado, " +
+       "ag.dataAgendada, " +
+       "COUNT(se)) " +
+       "FROM SolicitacaoEspecialidade se " +
+       "JOIN se.agendamentoSolicitacao ag " +
+       "WHERE se.status = 'AGENDADO' " +
+       "GROUP BY se.especialidadeSolicitada, ag.localAgendado, ag.dataAgendada")
         List<ContagemPainelPorDataLocalDTO> contarAgendamentosAgrupados();
 }
+
+

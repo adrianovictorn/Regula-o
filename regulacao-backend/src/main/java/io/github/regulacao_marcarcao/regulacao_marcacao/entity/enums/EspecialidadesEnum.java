@@ -19,6 +19,7 @@ public enum EspecialidadesEnum {
     NEUROPEDIATRIA(ItemCategoria.ESPECIALIDADE_MEDICA, "Neuropediatria"),
     PEDIATRIA(ItemCategoria.ESPECIALIDADE_MEDICA, "Pediatria"),
     PROCTOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Proctologista"),
+    GINECOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Ginecologista"),
 
     OTORRINOLARINGOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Otorrinolaringologista"),
     UROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Urologista"),
@@ -322,7 +323,13 @@ public enum EspecialidadesEnum {
     TOMOGRAFIA_POR_EMISSAO_DE_POSITRONS_PET_CT(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomografia por Emissão de Pósitrons - PET CT"),
     GLICOSE(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Glicose"),
     TOMOMIELOGRAFIA_COMPUTADORIZADA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Tomomielografia Computadorizada"),
-    ANGIOTOMOGRAFIA(ItemCategoria.EXAME_OU_PROCEDIMENTO,"Angiotomografia");
+    ANGIOTOMOGRAFIA(ItemCategoria.EXAME_OU_PROCEDIMENTO,"Angiotomografia"),
+    
+    TOTG_75G(ItemCategoria.EXAME_OU_PROCEDIMENTO, "TOTG(75)"),
+    ACIDO_FOLICO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Ácido Fólico"),
+    COLESTEROL_TOTAL_E_FRACOES(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Colesterol Total e Frações"),
+
+    ;
 
     private final ItemCategoria categoria;
     private final String descricao;

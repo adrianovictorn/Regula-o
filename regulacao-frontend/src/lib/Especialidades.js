@@ -18,6 +18,7 @@ export const opcoesEspecialidades = {
     { label: 'Especialista em Mão', value: 'ESPECIALISTA_EM_MAO'}, 
     { label: 'Especialista em Redução de Mama', value: 'ESPECIASTA_EM_REDUCAO_DE_MAMA'}, 
     { label: 'Gastroenterologista', value: 'GASTROENTEROLOGISTA' },
+    { label: 'Ginecologista', value: 'GINECOLOGISTA' },
     { label: 'Hematologista', value: 'HEMATOLOGISTA' },
     { label: 'Mastologista', value: 'MASTOLOGISTA' },
     { label: 'Nefrologista', value: 'NEFROLOGISTA' },
@@ -43,6 +44,7 @@ export const opcoesEspecialidades = {
    */
   examesEProcedimentos: [
     { label: 'ASLO', value: 'ASLO' },
+    { label: 'Ácido Fólico', value: 'ACIDO_FOLICO'},
     { label: 'Ácido Úrico', value: 'ACIDO_URICO' },
     { label: 'Análise de Caracteres Físicos, Elementos e Sedimento da Urina', value: 'ANALISE_CARACTERES_FISICOS_ELEMENTOS_SEDIMENTO_URINA' },
     { label: 'Angiotomografia', value:'ANGIOTOMOGRAFIA'},
@@ -69,6 +71,7 @@ export const opcoesEspecialidades = {
     { label: 'Clearance de Creatinina', value: 'CLEARANCE_CREATININA' },
     { label: 'Coagulograma', value: 'COAGULOGRAMA' },
     { label: 'Colesterol Total', value: 'COLESTEROL_TOTAL' },
+    { label: 'Colesterol Total e Frações', value: 'COLESTEROL_TOTAL_E_FRACOES'},
     { label: 'Colonoscopia', value: 'COLONOSCOPIA' },
     { label: 'Colonoscopia com Biópsia', value: 'COLONOSCOPIA_COM_BIOPSIA' },
     { label: 'Colposcopia', value: 'COLPOSCOPIA' },
@@ -295,6 +298,7 @@ export const opcoesEspecialidades = {
     { label: 'Tomografia por Emissão de Pósitrons - PET CT', value: 'TOMOGRAFIA_POR_EMISSAO_DE_POSITRONS_PET_CT' },
     { label: 'Tomomielografia Computadorizada', value: 'TOMOMIELOGRAFIA_COMPUTADORIZADA' },
     { label: 'Tonometria de Aplanação', value: 'TONOMETRIA_APLANACAO' },
+    { label: 'TOTG(75G)', value: 'TOTG_75G'},
     { label: 'Triglicerídeos', value: 'TRIGLICERIDEOS' },
     { label: 'USG Abdômen Superior', value: 'ULTRASSONOGRAFIA_ABDOMEN_SUPERIOR' },
     { label: 'USG Abdominal Total', value: 'ULTRASSONOGRAFIA_ABDOMINAL_TOTAL' },
