@@ -18,7 +18,7 @@ public record AgendamentoViewDto(
 
     public static AgendamentoViewDto fromSolicitacao(Solicitacao solicitacao) {
         List<EspecialidadesEnum> pendentes = solicitacao.getEspecialidades().stream()
-            .filter(e -> e.getStatus() == StatusDaMarcacao.AGUARDANDO)
+            .filter(e -> e.getStatus() == StatusDaMarcacao.AGUARDANDO || e.getStatus() == StatusDaMarcacao.RETORNO || e.getStatus() == StatusDaMarcacao.RETORNO_POLICLINICA) 
             .map(e -> e.getEspecialidadeSolicitada())
             .collect(Collectors.toList());
 
