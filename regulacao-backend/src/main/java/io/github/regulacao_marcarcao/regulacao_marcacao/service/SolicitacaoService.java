@@ -194,6 +194,6 @@ public class SolicitacaoService {
 
     @Transactional
     public List<SolicitacaoPublicViewDTO> buscarPacientePorCpf(String cpf){
-        return solicitacaoRepository.findByCpfPaciente(cpf).stream().map(SolicitacaoPublicViewDTO::fromSolicitacao).collect(Collectors.toList());
+        return solicitacaoRepository.findByCpfPacienteSemPonto(cpf).stream().map(SolicitacaoPublicViewDTO::fromSolicitacao).collect(Collectors.toList());
     }
 }

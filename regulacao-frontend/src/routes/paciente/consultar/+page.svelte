@@ -6,16 +6,22 @@
     let mensagemErro = ''; // Exibe mensagens de erro para o usuário.
     let carregando = false; // Flag para indicar que uma busca está em andamento.
 
-    // Função para formatar CPF (opcional, para melhor UX)
+    // Função para formatar CPF, garantindo a remoção de caracteres não numéricos
     function formatarCpf(valor) {
         if (!valor) return '';
-        valor = valor.replace(/\D/g, ''); // Remove tudo que não for dígito
-        if (valor.length > 11) { // Limita o CPF a 11 dígitos
-            valor = valor.substring(0, 11);
+        
+        // CORREÇÃO: Remove tudo que não for dígito
+        let valorNumerico = valor.replace(/\D/g, '');
+
+        // Limita o CPF a 11 dígitos
+        if (valorNumerico.length > 11) {
+            valorNumerico = valorNumerico.substring(0, 11);
         }
-        return valor.replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+        // Aplica a máscara para exibição
+        return valorNumerico.replace(/(\d{3})(\d)/, '$1.$2')
+                          .replace(/(\d{3})(\d)/, '$1.$2')
+                          .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     }
 
     async function buscarSolicitacoes() {
@@ -29,21 +35,21 @@
             return;
         }
 
-        let url = '';
-        try {
-            const cpfLimpo = termoBusca.replace(/\D/g, '');
-            if (cpfLimpo.length !== 11) {
-                mensagemErro = 'CPF inválido. Por favor, digite 11 dígitos.';
-                carregando = false;
-                return;
-            }
-            url = `${API_BASE_URL}/api/solicitacoes/public/cpf/${cpfLimpo}`;
+        // CORREÇÃO: Limpa o CPF de qualquer pontuação antes de enviar para a API
+        const cpfLimpo = termoBusca.replace(/\D/g, '');
 
-            // Usar fetch diretamente para garantir que não enviamos o token de autenticação
+        if (cpfLimpo.length !== 11) {
+            mensagemErro = 'CPF inválido. Por favor, digite 11 dígitos.';
+            carregando = false;
+            return;
+        }
+        
+        const url = `${API_BASE_URL}/api/solicitacoes/public/cpf/${cpfLimpo}`;
+
+        try {
             const response = await fetch(url);
 
             if (!response.ok) {
-                // Tratar o erro 404 especificamente para "não encontrado"
                 if (response.status === 404) {
                     mensagemErro = 'Nenhuma solicitação encontrada para o CPF informado. Verifique os dados.';
                 } else if (response.status === 500) {
@@ -51,11 +57,11 @@
                 } else {
                     mensagemErro = `Erro na consulta: ${response.status} - ${response.statusText}`;
                 }
-                resultados = []; // Limpa resultados anteriores em caso de erro
+                resultados = [];
                 return;
             }
 
-            const data = await response.json(); // Para CPF, a resposta da API é sempre um array
+            const data = await response.json();
 
             if (data && data.length > 0) {
                 resultados = data;
@@ -66,14 +72,13 @@
 
         } catch (error) {
             console.error('Erro ao buscar solicitações:', error);
-            mensagemErro = 'Ocorreu um erro inesperado ao buscar as solicitações. Por favor, verifique sua conexão ou tente novamente.';
+            mensagemErro = 'Ocorreu um erro inesperado. Verifique sua conexão ou tente novamente.';
             resultados = [];
         } finally {
             carregando = false;
         }
     }
 
-    // Função para lidar com a formatação em tempo real no input de CPF
     function handleCpfInput(event) {
         termoBusca = formatarCpf(event.target.value);
     }
@@ -258,5 +263,3 @@
   <p class="mb-2">Desenvolvido por: Adriano Victor N. Ribeiro & Filipe da Silva Ribeiro</p>
 
   </footer>
-
-
