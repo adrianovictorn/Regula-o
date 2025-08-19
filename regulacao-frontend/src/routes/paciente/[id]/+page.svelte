@@ -6,6 +6,18 @@
     import { opcoesEspecialidades } from '$lib/Especialidades.js';
     import RoleBasedMenu from "$lib/RoleBasedMenu.svelte";
 
+    interface CID{
+        id: number
+        codigo: string
+        descricao: string
+    }
+
+    let todosOsCids = $state<CID[]>([]); // Guarda a lista completa de CIDs para o dropdown
+    let cidParaAdicionar = $state<number | null>(null); // Guarda o ID do CID selecionado no dropdown
+
+
+
+    let cidsAssociados: CID [] = [];
     // --- Estado do Componente com Svelte 5 Runes ---
     let solicitacao = $state<any>(null);
     let agendamentos = $state<any[]>([]);
@@ -45,55 +57,78 @@
     // --- Lógica de Carregamento de Dados ---
     onMount(async () => {
         const id = $page.params.id;
-        try {
-            const [resSolicitacao, resAgendamentos] = await Promise.all([
-                getApi(`solicitacoes/${id}`),
-                getApi(`agendamentos/solicitacao/${id}`),
-            ]);
+      try {
+        // Carrega dados da solicitação, agendamentos e a lista completa de CIDs em paralelo
+        const [resSolicitacao, resAgendamentos, resTodosOsCids] = await Promise.all([
+            getApi(`solicitacoes/${id}`),
+            getApi(`agendamentos/solicitacao/${id}`),
+            getApi('cid') // Busca todos os CIDs para o dropdown
+        ]);
 
-            if (!resSolicitacao.ok) {
-                const errorData = await resSolicitacao.text();
-                throw new Error(`Falha ao buscar os dados do paciente: ${errorData}`);
-            }
-
-            solicitacao = await resSolicitacao.json();
-            especialidades = solicitacao.especialidades || [];
-
-            if (resAgendamentos.ok) {
-                agendamentos = await resAgendamentos.json();
-            } else {
-                console.warn("Não foi possível carregar os agendamentos.");
-            }
-
-            // Preenche os campos do formulário para edição
-            nomePaciente = solicitacao.nomePaciente;
-            cpfPaciente = solicitacao.cpfPaciente;
-            cns = solicitacao.cns;
-            datanascimento = solicitacao.datanascimento;
-            usfOrigem = solicitacao.usfOrigem;
-            dataMalote = solicitacao.dataMalote;
-            observacoes = solicitacao.observacoes;
-            telefone = solicitacao.telefone || '';
-
-        } catch (e: any) {
-            error = e.message;
-        } finally {
-            isLoading = false;
+        if (!resSolicitacao.ok) {
+            throw new Error(`Falha ao buscar os dados do paciente: ${await resSolicitacao.text()}`);
         }
-    });
+
+        solicitacao = await resSolicitacao.json();
+        especialidades = solicitacao.especialidades || [];
+        
+        // Popula a lista de todos os CIDs para usar no dropdown
+        if (resTodosOsCids.ok) {
+            todosOsCids = await resTodosOsCids.json();
+        } else {
+            console.warn('Não foi possível carregar a lista de CIDs.');
+        }
+
+        if (resAgendamentos.ok) {
+            agendamentos = await resAgendamentos.json();
+        } else {
+            console.warn('Não foi possível carregar os agendamentos.');
+        }
+
+        // Preenche os campos do formulário (código existente)
+        nomePaciente = solicitacao.nomePaciente;
+        cpfPaciente = solicitacao.cpfPaciente;
+        cns = solicitacao.cns;
+        datanascimento = solicitacao.datanascimento;
+        usfOrigem = solicitacao.usfOrigem;
+        dataMalote = solicitacao.dataMalote;
+        observacoes = solicitacao.observacoes;
+        telefone = solicitacao.telefone || '';
+
+    } catch (e: any) {
+        error = e.message;
+    } finally {
+        isLoading = false;
+    }
+});
 
     // --- Funções de Ação ---
 
     async function salvarPaciente() {
-        if (!solicitacao) return;
-        const payload = { nomePaciente, cpfPaciente, cns, telefone, datanascimento, usfOrigem, dataMalote, observacoes };
-        const res = await putApi(`solicitacoes/${solicitacao.id}`, payload);
-        if (res.ok) {
-            alert('Paciente atualizado com sucesso');
-        } else {
-            alert('Erro ao atualizar paciente');
-        }
+    if (!solicitacao) return;
+
+    // Mapeia os CIDs associados para enviar apenas a lista de IDs
+    const idsDosCids = solicitacao.cids?.map((c: CID) => c.id) || [];
+
+    const payload = { 
+        nomePaciente, 
+        cpfPaciente, 
+        cns, 
+        telefone, 
+        datanascimento, 
+        usfOrigem, 
+        dataMalote, 
+        observacoes,
+        cids: idsDosCids // Envia a lista de IDs de CIDs para o backend
+    };
+    
+    const res = await putApi(`solicitacoes/${solicitacao.id}`, payload);
+    if (res.ok) {
+        alert('Paciente e CIDs atualizados com sucesso!');
+    } else {
+        alert('Erro ao atualizar paciente.');
     }
+}
 
     async function adicionarEspecialidade() {
         if (!novaEspecialidadeObj.especialidadeSolicitada) {
@@ -143,6 +178,8 @@
         }
     }
 
+   
+
     async function handlePrioridadeChange(especialidadeId: number, event: Event) {
         const novaPrioridade = (event.currentTarget as HTMLSelectElement).value;
         if (!confirm(`Tem certeza que deseja alterar a prioridade para ${novaPrioridade}?`)) {
@@ -167,6 +204,67 @@
             location.reload();
         }
     }
+
+    async function salvarCids() {
+    if (!solicitacao) return;
+
+    // Pega a lista mais recente de IDs de CIDs do estado local
+    const idsDosCids = solicitacao.cids.map((c: CID) => c.id);
+
+    // O payload precisa de todos os campos que o DTO espera,
+    // então usamos os valores já existentes no estado.
+    const payload = { 
+        nomePaciente, cpfPaciente, cns, telefone, 
+        datanascimento, usfOrigem, dataMalote, observacoes,
+        cids: idsDosCids // A lista atualizada de IDs
+    };
+    
+    try {
+        const res = await putApi(`solicitacoes/${solicitacao.id}`, payload);
+        if (!res.ok) {
+            // Se a API falhar, recarrega a página para reverter a alteração visual
+            alert('Erro ao salvar o CID. A página será atualizada.');
+            location.reload();
+        } else {
+            console.log("CID salvo com sucesso!");
+        }
+    } catch (err) {
+        alert('Erro de conexão ao salvar o CID. A página será atualizada.');
+        location.reload();
+    }
+    }
+
+    // Agora, a função `adicionarCid` atualiza a tela e chama `salvarCids`
+    async function adicionarCid() {
+        if (cidParaAdicionar === null) {
+            alert('Selecione um CID para adicionar.');
+            return;
+        }
+        const cidJaExiste = solicitacao.cids.some((c: CID) => c.id === cidParaAdicionar);
+        if (cidJaExiste) {
+            alert('Este CID já está associado ao paciente.');
+            return;
+        }
+        const cidObj = todosOsCids.find((c) => c.id === cidParaAdicionar);
+        if (cidObj) {
+            // 1. Atualiza a tela (otimista)
+            solicitacao.cids.push(cidObj); 
+            cidParaAdicionar = null;
+
+            // 2. Persiste a alteração no banco de dados
+            await salvarCids();
+        }
+    }
+
+    // A função `removerCid` também atualiza a tela e chama `salvarCids`
+    async function removerCid(idParaRemover: number) {
+        // 1. Atualiza a tela (otimista)
+        solicitacao.cids = solicitacao.cids.filter((c: CID) => c.id !== idParaRemover);
+
+        // 2. Persiste a alteração no banco de dados
+        await salvarCids();
+    }
+
 
     // Valores derivados para exibir na tela de forma reativa
     let historico = $derived(especialidades);
@@ -203,37 +301,73 @@
                 <!-- Seção Editar Paciente -->
                 <section class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Editar Paciente</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                            <input type="text" bind:value={nomePaciente} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                    <input type="text" bind:value={nomePaciente} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cartão do SUS</label>
+                    <input type="text" bind:value={cns} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                    <input type="text" bind:value={telefone} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+                    <input type="date" bind:value={datanascimento} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Recebimento</label>
+                    <input type="date" bind:value={dataMalote} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                </div>
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">USF Origem</label>
+                    <input type="text" bind:value={usfOrigem} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+                </div>
+            </div>
+                       <div class="mt-6 pt-4 border-t">
+                        <h3 class="text-md font-bold text-gray-800 mb-3">CIDs Associados</h3>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {#if solicitacao.cids && solicitacao.cids.length > 0}
+                                {#each solicitacao.cids as cid (cid.id)}
+                                    <div class="flex items-center bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1 rounded-full">
+                                        <span>{cid.codigo} - {cid.descricao}</span>
+                                        <button on:click={() => removerCid(cid.id)} class="ml-2 text-emerald-600 hover:text-emerald-900 font-bold">&times;</button>
+                                    </div>
+                                {/each}
+                            {:else}
+                                <p class="text-sm text-gray-500">Nenhum CID associado.</p>
+                            {/if}
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cartão do SUS</label>
-                            <input type="text" bind:value={cns} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">USF Origem</label>
-                            <input type="text" bind:value={usfOrigem} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-                            <input type="date" bind:value={datanascimento} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Recebimento</label>
-                            <input type="date" bind:value={dataMalote} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                            <input type="text" bind:value={telefone} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
+
+                        <div class="flex items-end gap-3">
+                            <div class="flex-grow">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Adicionar novo CID</label>
+                                <select bind:value={cidParaAdicionar} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <option value={null} disabled>Selecione...</option>
+                                    {#each todosOsCids as cid (cid.id)}
+                                        <option value={cid.id}>{cid.codigo} - {cid.descricao}</option>
+                                    {/each}
+                                </select>
+                            </div>
+                            <button on:click={adicionarCid} type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm">Adicionar</button>
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-                        <textarea bind:value={observacoes} rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>
-                    </div>
-                    <button on:click={salvarPaciente} class="mt-4 bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">Salvar Alterações</button>
+                  <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+                    <textarea bind:value={observacoes} rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button on:click={salvarPaciente} class="bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">
+                        Salvar Alterações
+                    </button>
+                </div>
+
                 </section>
 
            

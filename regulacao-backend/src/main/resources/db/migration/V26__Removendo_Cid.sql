@@ -1,0 +1,1 @@
+ALTER TABLE solicitacao DROP COLUMN IF EXISTS cid;

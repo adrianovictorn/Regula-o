@@ -51,7 +51,7 @@ public class SolicitacaoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // Apenas ADMIN pode atualizar
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")     
     public ResponseEntity<SolicitacaoViewDTO> atualizarSolicitacao (@PathVariable Long id, @RequestBody SolicitacaoUpdateDTO dto){
         SolicitacaoViewDTO view = service.updateSolicitacao(id, dto);
         return ResponseEntity.ok(view);

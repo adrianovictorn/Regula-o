@@ -1,0 +1,1 @@
+ALTER TABLE solicitacao ADD COLUMN cid VARCHAR(255) NULL;

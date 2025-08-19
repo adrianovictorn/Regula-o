@@ -15,6 +15,7 @@ public record SolicitacaoUpdateDTO(
     String telefone,
     LocalDate datanascimento,
     LocalDate dataMalote,
+    List<Long> cids,
     List<AgendamentoSolicitacao> agendamentoSolicitacaos,
     List<SolicitacaoEspecialidade> solicitacoesEspecialidade
 ) { }

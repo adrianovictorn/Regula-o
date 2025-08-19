@@ -7,6 +7,7 @@
   // Controle para o submenu de Solicitação
   let isSolicitacaoOpen = false;
   let isPainelAdminOpen = false;
+  let isPainelDeGestao = false
 
   function toggleSolicitacao() {
     isSolicitacaoOpen = !isSolicitacaoOpen;
@@ -16,6 +17,10 @@
     isPainelAdminOpen = !isPainelAdminOpen;
   }
 
+   function togglePainelGestao(){
+    isPainelDeGestao = !isPainelDeGestao;
+  }
+
   // Lógica para manter o submenu aberto se a página ativa for uma de suas filhas
   onMount(() => {
     if (activePage === '/cadastrar' || activePage === '/exames') {
@@ -23,6 +28,9 @@
     }
     if(activePage ==='/admin/cadastrar-usuario' || activePage === '/admin/listar-usuarios'){
       isPainelAdminOpen = true;
+    }
+     if(activePage ==='/cadastrar/cid' || activePage === '/listar/cid'){
+      isPainelDeGestao = true;
     }
   });
 </script>
@@ -49,6 +57,19 @@
     <a href="/dashboard/procedimentos/data" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/dashboard/procedimentos'}>Agenda do Dia</a>
     <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/paciente'}>Paciente</a>
     <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/exportar'}>Relatórios</a>
+
+     <div>
+      <button on:click={togglePainelGestao} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
+        <span>Painel Gerencional</span>
+        <span class="transform transition-transform duration-200" class:rotate-180={isSolicitacaoOpen}>▼</span>
+        </button>
+      {#if isPainelDeGestao}
+        <div class="pl-4 mt-2 space-y-2">
+            <a href="/cadastrar/cid" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/cadastrar/cid'}>Cadastrar CID</a>
+            <a href="/listar/cid" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/listar/cid'}>Listar CID</a>
+        </div>
+      {/if}
+    </div>
   
     <div>
       <button on:click={togglePainelAdmin} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
@@ -62,6 +83,8 @@
       </div>
     {/if}
     </div>
+
+   
   </nav>
   <div class="px-6 mt-4 text-sm text-emerald-200">v1.1 • Adriano Victor, Filipe Ribeiro © 2025</div>
 </aside>

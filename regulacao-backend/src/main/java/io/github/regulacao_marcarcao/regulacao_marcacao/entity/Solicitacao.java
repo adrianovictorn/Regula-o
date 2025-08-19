@@ -12,6 +12,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -40,6 +43,13 @@ public class Solicitacao {
 
     @Column(name = "cpfPaciente", nullable = false, unique = true,length = 15)
     private String cpfPaciente;
+
+    @ManyToMany
+    @JoinTable(name = "solicitacao_cid", 
+            joinColumns = @JoinColumn(name = "solicitacao_id"),
+            inverseJoinColumns = @JoinColumn(name = "cid_id")
+    )
+    private List<CID> cids;
 
     @Column(name = "cns", nullable = false, length = 15)
     private String cns;

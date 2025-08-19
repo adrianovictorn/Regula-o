@@ -19,11 +19,13 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.Soli
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.AgendamentoSolicitacao;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.CID;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.CidRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoSpecification;
@@ -39,6 +41,7 @@ public class SolicitacaoService {
     private final SolicitacaoRepository solicitacaoRepository;
     private final AgendamentoSolicitacaoRepository agendamentoRepository;
     private final SolicitacaoEspecialidadeRepository especialidadeRepository;
+    private final CidRepository cidRepository;
 
 
     @Transactional
@@ -66,6 +69,12 @@ public class SolicitacaoService {
             .collect(Collectors.toList());
 
         solicitacao.setEspecialidades(especialidades);
+
+        if (dto.cids() != null && !dto.cids().isEmpty()) {
+        List<CID> cidsDoBanco = cidRepository.findAllById(dto.cids());
+        solicitacao.setCids(cidsDoBanco);
+        }
+
         var saved = solicitacaoRepository.save(solicitacao);
         return SolicitacaoViewDTO.fromSolicitacao(saved);
     }
@@ -75,6 +84,9 @@ public class SolicitacaoService {
         Solicitacao solicitacao = solicitacaoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Solicitação não encontrada."));
 
+
+            
+
         solicitacao.setNomePaciente(dto.nomePaciente());
         solicitacao.setCns(dto.cns());
         solicitacao.setTelefone(dto.telefone());
@@ -82,6 +94,11 @@ public class SolicitacaoService {
         solicitacao.setObservacoes(dto.observacoes());
         solicitacao.setDataMalote(dto.dataMalote());
         solicitacao.setUsfOrigem(dto.usfOrigem());
+
+        if (dto.cids() != null) {
+        List<CID> cidsDoBanco = cidRepository.findAllById(dto.cids());
+        solicitacao.setCids(cidsDoBanco); 
+    }
 
         var updated = solicitacaoRepository.save(solicitacao);
         return SolicitacaoViewDTO.fromSolicitacao(updated);
