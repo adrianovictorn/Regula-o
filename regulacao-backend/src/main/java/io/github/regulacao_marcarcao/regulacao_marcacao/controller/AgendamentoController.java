@@ -198,7 +198,8 @@ public class AgendamentoController {
         "Eletrocardiograma", List.of(EspecialidadesEnum.ELETROCARDIOGRAMA_ECG),
         "Pediatra", List.of(EspecialidadesEnum.PEDIATRIA),
         "Ortopedista", List.of(EspecialidadesEnum.ORTOPEDISTA),
-        "Cardiologista", List.of(EspecialidadesEnum.CARDIOLOGISTA)
+        "Cardiologista", List.of(EspecialidadesEnum.CARDIOLOGISTA),
+        "Ecocardiograma", List.of(EspecialidadesEnum.ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER)
     );
 
     @GetMapping("/contagem-por-data")
@@ -251,4 +252,6 @@ public class AgendamentoController {
             .distinct() // Garante que a mesma solicitação não apareça duplicada se tiver mais de um exame na mesma categoria
             .toList();
     }
+
+   
 }

@@ -73,4 +73,17 @@ public class SolicitacaoEspecialidadeController {
     public ResponseEntity<List<SolicitacaoEspecialidadeViewDTO>> listarStatusCancelado(){
         return ResponseEntity.ok(service.listarStatusCancelado());
     }
+
+     @PutMapping("{id}/realizado")
+     public ResponseEntity<Void> confirmarEspecialidade (@PathVariable Long id){
+        service.confirmarProcedimento(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("{id}/faltou")
+    public ResponseEntity<Void> faltouEspecialidade (@PathVariable Long id){
+        service.faltouProcedimento(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -115,7 +115,10 @@ public class AgendamentoService {
                         // --- CORREÇÃO APLICADA AQUI ---
                         // Compara o nome do enum (String) com a String recebida, ignorando maiúsculas/minúsculas.
                         return e.getEspecialidadeSolicitada().name().equalsIgnoreCase(nomeExame)
-                                && e.getStatus() == StatusDaMarcacao.AGUARDANDO;
+                                && (
+                                    e.getStatus() == StatusDaMarcacao.AGUARDANDO
+                                    || e.getStatus() == StatusDaMarcacao.RETORNO 
+                                    || e.getStatus() == StatusDaMarcacao.RETORNO_POLICLINICA);
                     })
                     .findFirst()
                     .orElseThrow(() -> new EntityNotFoundException("Exame pendente '" + nomeExame + "' não encontrado na solicitação."));

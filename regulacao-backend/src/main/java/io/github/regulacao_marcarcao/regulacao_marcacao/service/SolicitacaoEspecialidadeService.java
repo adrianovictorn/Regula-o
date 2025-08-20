@@ -107,4 +107,22 @@ public class SolicitacaoEspecialidadeService {
 
         return viewDTOs;
     }
+
+
+    @Transactional  
+    public void confirmarProcedimento(Long id){
+      SolicitacaoEspecialidade especialidadeExistente =  especialidadeRepository.findById(id).orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
+
+      especialidadeExistente.setStatus(StatusDaMarcacao.REALIZADO);
+      especialidadeRepository.save(especialidadeExistente);
+    }
+
+
+    @Transactional
+     public void faltouProcedimento(Long id){
+      SolicitacaoEspecialidade especialidadeExistente =  especialidadeRepository.findById(id).orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
+
+      especialidadeExistente.setStatus(StatusDaMarcacao.CANCELADO);
+      especialidadeRepository.save(especialidadeExistente);
+    }
 }

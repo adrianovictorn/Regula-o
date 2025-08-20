@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { getApi } from "$lib/api";
+  import { getApi, putApi } from "$lib/api";
   import { opcoesEspecialidades } from "$lib/Especialidades.js";
     import Menu from "$lib/Menu.svelte";
+    import { toast } from 'svelte-sonner';
     import UserMenu from "$lib/UserMenu.svelte";
 
   // --- Estado do Componente (Svelte 5 Runes) ---
@@ -55,6 +56,52 @@
       isLoading = false;
     }
   });
+
+  async function confirmarPresenca(idEspecialidade: number) {
+    try {
+      // CORREÇÃO: A URL correta, conforme seu Controller
+      const res = await putApi(`especialidades/${idEspecialidade}/realizado`);
+
+      if (!res.ok) {
+        throw new Error('Falha ao confirmar a presença.');
+      }
+      
+      // Atualiza a UI para remover o item da lista
+      solicitacoesPendentes = solicitacoesPendentes.map(s => ({
+          ...s,
+          especialidades: s.especialidades.filter(e => e.id !== idEspecialidade)
+      })).filter(s => s.especialidades.some(e => e.status === 'AGENDADO'));
+
+      toast.success('Presença confirmada!'); // (Opcional)
+
+    } catch (err: any) {
+        error = err.message;
+        toast.error(err.message); // (Opcional)
+    }
+  }
+
+  async function faltouPresenca(idEspecialidade: number) {
+    try {
+      // CORREÇÃO: A URL correta, conforme seu Controller
+      const res = await putApi(`especialidades/${idEspecialidade}/faltou`);
+
+      if (!res.ok) {
+        throw new Error('Falha ao registrar a falta.');
+      }
+      
+      // Atualiza a UI para remover o item da lista
+       solicitacoesPendentes = solicitacoesPendentes.map(s => ({
+          ...s,
+          especialidades: s.especialidades.filter(e => e.id !== idEspecialidade)
+      })).filter(s => s.especialidades.some(e => e.status === 'AGENDADO'));
+      
+      toast.success('Falta registrada com sucesso!'); // (Opcional)
+
+    } catch (err: any) {
+        error = err.message;
+        toast.error(err.message); // (Opcional)
+    }
+  }
 
   // --- Lógica Reativa com Runes ---
   // 3. Converte a sintaxe de reatividade de `$` para `$derived`
@@ -153,21 +200,43 @@
                       <div class="col-span-full mt-2">
                      <span class="font-semibold text-gray-700">Procedimentos Agendados:</span>
   
-                          <ul class="list-disc list-inside pl-4 mt-1 space-y-1">
-                            {#each s.especialidades.filter(e => e.status === 'AGENDADO') as esp}
-                              <li class="text-gray-600 ">
-                                {getNomeEspecialidade(esp.especialidadeSolicitada)} -
+                      <ul class="list-disc list-inside pl-4 mt-1 space-y-1">
+                        {#each s.especialidades.filter(e => e.status === 'AGENDADO') as esp}
+                          <li class="text-gray-600 flex justify-between items-center">
+                            
+                            <div>
+                              {getNomeEspecialidade(esp.especialidadeSolicitada)} -
 
-                                
-                                {#if esp.agendamentoId}
-                                    {@const agendamento = s.agendamentos.find(ag => ag.id === esp.agendamentoId)}
-                                    {#if agendamento}
-                                      <span class="text-xs py-0.5  bg-emerald-200 w-max rounded"> Agendado para: {formatarData(agendamento.dataAgendada)}  </span>
-                                    {/if}
-                                  {/if}
-                              </li>
-                            {/each}
-                          </ul>
+                              {#if esp.agendamentoId}
+                                {@const agendamento = s.agendamentos.find(ag => ag.id === esp.agendamentoId)}
+                                {#if agendamento}
+                                  <span class="text-xs py-0.5 bg-emerald-200 w-max rounded">
+                                    Agendado para: {formatarData(agendamento.dataAgendada)}
+                                  </span>
+                                {/if}
+                              {/if}
+                            </div>
+
+                            <div class="flex items-center space-x-2">
+                              <button 
+                                onclick={() => confirmarPresenca(esp.id)}
+                                class="px-2 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                                title="Confirmar Presença"
+                              >
+                                ✓ Realizado
+                              </button>
+                              <button 
+                                onclick={() => faltouPresenca(esp.id)}
+                                class="px-2 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                title="Registrar Falta"
+                              >
+                                ✗ Faltou
+                              </button>
+                            </div>
+
+                          </li>
+                        {/each}
+                      </ul>
                         </div>
                         <div class="col-span-full"><span class="font-semibold">Observações:</span> {s.observacoes}</div>
                       </div>
