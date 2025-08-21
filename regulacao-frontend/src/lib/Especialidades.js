@@ -70,7 +70,6 @@ export const opcoesEspecialidades = {
     { label: 'Cintilografia Tireoide com Captação', value: 'CINTILOGRAFIA_TIREOIDE_CAPTACAO' },
     { label: 'Clearance de Creatinina', value: 'CLEARANCE_CREATININA' },
     { label: 'Coagulograma', value: 'COAGULOGRAMA' },
-    { label: 'Colesterol Total', value: 'COLESTEROL_TOTAL' },
     { label: 'Colesterol Total e Frações', value: 'COLESTEROL_TOTAL_E_FRACOES'},
     { label: 'Colonoscopia', value: 'COLONOSCOPIA' },
     { label: 'Colonoscopia com Biópsia', value: 'COLONOSCOPIA_COM_BIOPSIA' },
@@ -78,7 +77,6 @@ export const opcoesEspecialidades = {
     { label: 'Contagem de Plaquetas', value: 'CONTAGEM_PLAQUETAS' },
     { label: 'Contagem de Reticulócitos', value: 'CONTAGEM_RETICULOCITOS' },
     { label: 'Creatinina', value: 'CREATININA' },
-    { label: 'Cultura de Bactérias p/ Identificação (Urocultura)', value: 'CULTURA_BACTERIAS_IDENTIFICACAO_UROCULTURA' },
     { label: 'Cultura de Escarro', value: 'CULTURA_DE_ESCARRO' },
     { label: 'Densitometria Óssea', value: 'DENSITOMETRIA_OSSEA_COLUNA_E_FEMUR' },
     { label: 'Determinação de Capacidade de Fixação do Ferro', value: 'DETERMINACAO_CAPACIDADE_FIXACAO_FERRO' },
@@ -165,7 +163,6 @@ export const opcoesEspecialidades = {
     { label: 'Glicemia de Jejum', value: 'GLICEMIA_JEJUM' },
     { label: 'Glicose', value: 'GLICOSE'},
     { label: 'HBsAg', value: 'HBSAG' },
-    { label: 'HDL Colesterol', value: 'HDL_COLESTEROL' },
     { label: 'Hematócrito', value: 'HEMATOCRITO' },
     { label: 'Hemocultura', value: 'HEMOCULTURA' },
     { label: 'Hemoglobina Glicada (HbA1c)', value: 'HEMOGLOBINA_GLICADA_HBA1C' },
@@ -183,6 +180,9 @@ export const opcoesEspecialidades = {
     { label: 'PSA Livre', value: 'PSA_LIVRE' },
     { label: 'PSA Total', value: 'PSA_TOTAL' },
     { label: 'Parasitológico de Fezes', value: 'PARASITOLOGICO_DE_FEZES' },
+    { label: 'Parasitológico de Fezes Baermann', value: 'PARASITOLOGICO_DE_FEZES_BAERMANN'},
+
+    
     { label: 'Pesquisa de Anticorpo IGG Anticardiolipina', value: 'PESQUISA_ANTICORPO_IGG_ANTICARDIOLIPINA' },
     { label: 'Pesquisa de Anticorpo IGM de Anticardiolipina', value: 'PESQUISA_ANTICORPO_IGM_DE_ANTICARDIOLIPINA' },
     { label: 'Pesquisa de Anticorpos Anti-Helicobacter Pylori', value: 'PESQUISA_ANTICORPOS_ANTI_HELICOBACTER_PYLORI' },
@@ -243,6 +243,7 @@ export const opcoesEspecialidades = {
     { label: 'Raio-X Ombro', value: 'RAIO_X_OMBRO'},
     { label: 'Raio-X Mão/Quirodáctilos', value: 'RAIO_X_MAO_OU_QUIRODACTILOS' },
     { label: 'Raio-X Pé/Pododáctilos', value: 'RAIO_X_PE_OU_PODODACTILOS' },
+    { label: 'Raio-X Punho', value: 'RAIO_X_PUNHO' },
     { label: 'Raio-X Seios da Face', value: 'RAIO_X_SEIOS_DA_FACE' },
     { label: 'Raio-X Região Cervical', value: 'RAIO_X_REGIAO_CERVICAL'},
     { label: 'Raio-X Tórax PA', value: 'RAIO_X_TORAX_PA' },
@@ -309,6 +310,7 @@ export const opcoesEspecialidades = {
     { label: 'USG Doppler Venoso MI Bilateral', value: 'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL' },
     { label: 'USG Doppler Venoso MI Unilateral', value: 'ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL' },
     { label: 'USG Obstétrica', value: 'ULTRASSONOGRAFIA_OBSTETRICA' },
+    { label: 'USG Mamária', value: 'ULTRASSONOGRAFIA_MAMARIA'},
     { label: 'USG Partes Mole', value: 'ULTRASSONOGRAFIA_PARTES_MOLES' },
     { label: 'USG Pélvica (Abdominal)', value: 'ULTRASSONOGRAFIA_PELVICA_VIA_ABDOMINAL' },
     { label: 'USG Pélvica (Transvaginal)', value: 'ULTRASSONOGRAFIA_PELVICA_TRANSVAGINAL' },
@@ -316,9 +318,9 @@ export const opcoesEspecialidades = {
     { label: 'USG Tireoide', value: 'ULTRASSONOGRAFIA_TIREOIDE' },
     { label: 'USG Vias Urinárias', value: 'ULTRASSONOGRAFIA_VIAS_URINARIAS' },
     { label: 'Ureia', value: 'UREIA' },
+    { label: 'Urocultura', value: 'CULTURA_BACTERIAS_IDENTIFICACAO_UROCULTURA' },
     { label: 'Urocultura com Antibiograma', value: 'UROCULTURA_COM_ANTIBIOGRAMA' },
     { label: 'VDRL', value: 'VDRL' },
-    { label: 'VDRL p/ Detecção de Sífilis em Gestante', value: 'VDRL_DETECCAO_SIFILIS_EM_GESTANTE' },
-    { label: 'VLDL Colesterol', value: 'VLDL_COLESTEROL' },
+    { label: 'VDRL p/ Detecção de Sífilis em Gestante', value: 'VDRL_DETECCAO_SIFILIS_EM_GESTANTE' }
   ]
 };

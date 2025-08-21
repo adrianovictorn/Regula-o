@@ -119,7 +119,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <Card2 title="Pendentes" value={pendentes} href="/usf" color="emerald-dark"/>
               <Card2 title="Agendados" value={agendado} href="/paciente/agendados" color="emerald-dark"/>
-              <Card title="Concluídas" value={concluida} color="emerald-dark"/>
+              <Card2 title="Concluídas" value={concluida} href="/paciente/concluido" color="emerald-dark"/>
               <Card title="Total" value={totalDeSolicitacoes} color="emerald-dark"/>
             </div>
           </section>

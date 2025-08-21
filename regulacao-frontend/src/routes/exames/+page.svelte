@@ -6,11 +6,13 @@
   import { opcoesEspecialidades } from '$lib/Especialidades.js';
     import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
 
-  const todosOsExamesDoEnum = opcoesEspecialidades.examesEProcedimentos.map(ex => ({ 
-  ...ex, 
-  selecionado: false 
-}));
+    const todosOsExamesDoEnum = opcoesEspecialidades.examesEProcedimentos.map(ex => ({ 
+    ...ex, 
+    selecionado: false 
+  }));
 
+ 
+  let termoBusca = $state('');
   let examesDisponiveisParaCheckbox = $state(todosOsExamesDoEnum);
   let listaDeSolicitacoesParaDropdown = $state<any[]>([]);
   let erroAoCarregar = $state<string | null>(null);
@@ -19,6 +21,10 @@
   // Lógica do Combobox
   let valorBusca = $state('');
   let comboboxAberto = $state(false);
+
+     const examesParaConsulta = $derived (examesDisponiveisParaCheckbox.filter(exame => {
+      return exame.label.toLowerCase().includes(termoBusca.toLowerCase());
+    }))
 
   const solicitacoesFiltradas = $derived(() => {
     if (!valorBusca) {
@@ -187,6 +193,8 @@
     value = value.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3}\.\d{3})(\d)/, '$1.$2').replace(/(\d{3}\.\d{3}\.\d{3})(\d)/, '$1-$2');
     cpfPaciente = value;
   }
+
+
 </script>
 
 <svelte:head>
@@ -302,9 +310,10 @@
             <legend class="text-xl font-semibold text-gray-700 px-2">
               {#if idSolicitacao}Adicionar Novos Exames à Solicitação{:else}Selecionar Exames para Nova Solicitação{/if}
             </legend>
+            <input type="text" class="rounded  w-full border-gray-300 p-2" placeholder="Digite o exame aqui para agilizar a seleção..." bind:value={termoBusca}>
             <p class="text-xs text-gray-500 mb-3">Marque os exames desejados. Eles serão adicionados com status "AGUARDANDO" e prioridade "NORMAL".</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3 mt-4 max-h-96 overflow-y-auto pr-2">
-              {#each examesDisponiveisParaCheckbox as exameLab, i (exameLab.value)}
+              {#each examesParaConsulta as exameLab, i (exameLab.value)}
                 <label for="exameChk-{i}" class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 transition cursor-pointer">
                   <input type="checkbox" id="exameChk-{i}" bind:checked={exameLab.selecionado} class="form-checkbox h-4 w-4 text-emerald-600 rounded focus:ring-emerald-500">
                   <span class="text-sm text-gray-700 select-none">{exameLab.label}</span>

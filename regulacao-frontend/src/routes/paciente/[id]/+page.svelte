@@ -15,7 +15,18 @@
     let todosOsCids = $state<CID[]>([]); // Guarda a lista completa de CIDs para o dropdown
     let cidParaAdicionar = $state<number | null>(null); // Guarda o ID do CID selecionado no dropdown
 
+    let termoBuscaCid = $state('');
+    let comboboxCidAberto = $state(false);
 
+    const cidsFiltrados = $derived (todosOsCids.filter(cidsExistentes => {
+        return cidsExistentes.codigo.toLowerCase().includes(termoBuscaCid.toLocaleLowerCase()) || cidsExistentes.descricao.toLowerCase().includes(termoBuscaCid.toLowerCase())
+    }))
+
+    function selecionarCid(cid: CID) {
+        termoBuscaCid = `${cid.codigo} - ${cid.descricao}`; // Preenche o input com o texto do CID
+        cidParaAdicionar = cid.id; // Salva o ID do CID selecionado na sua variável original
+        comboboxCidAberto = false; // Fecha a lista de opções
+    }
 
     let cidsAssociados: CID [] = [];
     // --- Estado do Componente com Svelte 5 Runes ---
@@ -330,7 +341,6 @@
             </div>
                        <div class="mt-6 pt-4 border-t">
                         <h3 class="text-md font-bold text-gray-800 mb-3">CIDs Associados</h3>
-                        
                         <div class="flex flex-wrap gap-2 mb-4">
                             {#if solicitacao.cids && solicitacao.cids.length > 0}
                                 {#each solicitacao.cids as cid (cid.id)}
@@ -344,19 +354,34 @@
                             {/if}
                         </div>
 
-                        <div class="flex items-end gap-3">
-                            <div class="flex-grow">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Adicionar novo CID</label>
-                                <select bind:value={cidParaAdicionar} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                    <option value={null} disabled>Selecione...</option>
-                                    {#each todosOsCids as cid (cid.id)}
-                                        <option value={cid.id}>{cid.codigo} - {cid.descricao}</option>
-                                    {/each}
-                                </select>
+                       <div class="flex items-end gap-3">
+                        <div class="flex-grow relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Adicionar novo CID</label>
+                            <input 
+                                type="text"
+                                placeholder="Digite o código ou a descrição..."
+                                bind:value={termoBuscaCid}
+                                on:focus={() => comboboxCidAberto = true}
+                                on:blur={() => setTimeout(() => { comboboxCidAberto = false; }, 150)}
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            />
+
+                                    {#if comboboxCidAberto && cidsFiltrados.length > 0}
+                                        <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
+                                            {#each cidsFiltrados as cid (cid.id)}
+                                                <li
+                                                    on:mousedown={() => selecionarCid(cid)}
+                                                    class="p-2 hover:bg-emerald-100 cursor-pointer text-sm"
+                                                >
+                                                    <strong>{cid.codigo}</strong> - {cid.descricao}
+                                                </li>
+                                            {/each}
+                                        </ul>
+                                    {/if}
+                                </div>
+
+                                <button on:click={adicionarCid} type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm">Adicionar</button>
                             </div>
-                            <button on:click={adicionarCid} type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm">Adicionar</button>
-                        </div>
-                    </div>
                   <div class="mt-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
                     <textarea bind:value={observacoes} rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>

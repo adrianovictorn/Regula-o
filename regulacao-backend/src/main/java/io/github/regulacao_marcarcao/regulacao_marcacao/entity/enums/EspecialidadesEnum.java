@@ -68,6 +68,8 @@ public enum EspecialidadesEnum {
     SUMARIO_DE_URINA_EAS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Sumário de Urina (EAS)"),
     UROCULTURA_COM_ANTIBIOGRAMA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Urocultura com Antibiograma"),
     PARASITOLOGICO_DE_FEZES(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Parasitológico de Fezes"),
+    PARASITOLOGICO_DE_FEZES_BAERMANN(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Parasitológico de Fezes C/ Baermann"),
+
     PESQUISA_SANGUE_OCULTO_FEZES(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Pesquisa de Sangue Oculto nas Fezes"),
     TESTE_RAPIDO_GRAVIDEZ_TIG(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Teste Rápido de Gravidez (TIG)"),
     TESTE_RAPIDO_HIV(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Teste Rápido para HIV"),
@@ -104,6 +106,8 @@ public enum EspecialidadesEnum {
     ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Doppler Venoso MI Unilateral"),
     ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Doppler Venoso MI Bilateral"),
     ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Doppler Carótidas e Vertebrais"),
+    ULTRASSONOGRAFIA_MAMARIA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "USG Mamária"),
+
 
     //RAIO X
     RAIO_X_TORAX_PA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Tórax PA"),
@@ -125,6 +129,7 @@ public enum EspecialidadesEnum {
     RAIO_X_COLUNA_TORACICA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Coluna Toracica"),
     RAIO_X_ESCAPULA(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Escapula"),
     RAIO_X_REGIAO_CERVICAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X Região Cervical"),
+    RAIO_X_PUNHO(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Raio-X de Punho"),
 
     TESTE_ERGOMETRICO_CONVENCIONAL(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Teste Ergométrico Convencional"),
     HOLTER_24_HORAS_3_CANAIS(ItemCategoria.EXAME_OU_PROCEDIMENTO, "Holter 24 Horas (3 Canais)"),
