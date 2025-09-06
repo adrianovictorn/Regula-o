@@ -7,7 +7,8 @@
   // Controle para o submenu de Solicitação
   let isSolicitacaoOpen = false;
   let isPainelAdminOpen = false;
-  let isPainelDeGestao = false
+  let isPainelDeGestao = false;
+  let isFilaCompartilhada = false;
 
   function toggleSolicitacao() {
     isSolicitacaoOpen = !isSolicitacaoOpen;
@@ -21,16 +22,22 @@
     isPainelDeGestao = !isPainelDeGestao;
   }
 
+    function toggleFilaCompartilhada(){
+    isFilaCompartilhada = !isFilaCompartilhada;
+  }
   // Lógica para manter o submenu aberto se a página ativa for uma de suas filhas
   onMount(() => {
     if (activePage === '/cadastrar' || activePage === '/exames') {
       isSolicitacaoOpen = true;
     }
-    if(activePage ==='/admin/cadastrar-usuario' || activePage === '/admin/listar-usuarios'){
+    if(activePage ==='/admin/cadastrar-usuario' || activePage === '/admin/listar-usuarios' || activePage === '/admin/pactos'){
       isPainelAdminOpen = true;
     }
      if(activePage ==='/cadastrar/cid' || activePage === '/listar/cid'){
       isPainelDeGestao = true;
+    }
+      if(activePage ==='/filas/minhas' || activePage === '/filas/compartilhadas'){
+      isFilaCompartilhada = true;
     }
   });
 </script>
@@ -80,9 +87,25 @@
       <div class="pl-4 mt-2 space-y-2">
           <a href="/admin/cadastrar-usuario" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/cadastrar-usuario'}>Cadastrar Usuário</a>
           <a href="/admin/listar-usuarios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/listar-usuarios'}>Listar Usuário</a>
+          <a href="/admin/pactos" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/pactos'}>Pactos</a>
+      </div>
+    {/if}
+   
+    </div>
+
+    <div>
+      <button on:click={toggleFilaCompartilhada} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
+        <span>Filas Compartilhadas</span>
+        <span class="transform transition-transform duration-200" class:rotate-180={isFilaCompartilhada}>▼</span>
+      </button>
+     {#if isFilaCompartilhada}
+      <div class="pl-4 mt-2 space-y-2">
+          <a href="/filas/minhas" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/filas/minhas'}>Minhas Solicitações</a>
+          <a href="/filas/compartilhadas" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/filas/compartilhadas'}>Solicitações Compartilhadas</a>
       </div>
     {/if}
     </div>
+
 
    
   </nav>

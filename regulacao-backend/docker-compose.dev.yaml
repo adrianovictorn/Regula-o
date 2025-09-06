@@ -39,6 +39,21 @@ services:
         target: /pgadmin4/servers.json
       - source: pg_admin_pass
         target: /pgpass
+        
+  rabbitmq_container:
+    image: rabbitmq:3.13-management # Usamos a imagem com a interface de gerenciamento
+    container_name: rabbitmq_container
+    restart: always
+    ports:
+      - "5672:5672"   # Porta para a aplicação se conectar (protocolo AMQP)
+      - "15672:15672" # Porta para a interface web de gerenciamento
+    environment:
+      # Usuário e senha padrão do RabbitMQ
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - recepciona
+
 
 configs:
   pg_admin_pass:
@@ -56,5 +71,6 @@ configs:
         "SSLMode": "prefer"
       }}}
 
+    
 volumes:
   marcacao_dev_postgres_data:

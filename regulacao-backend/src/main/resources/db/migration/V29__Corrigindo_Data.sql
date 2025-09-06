@@ -1,0 +1,1 @@
+ALTER TABLE solicitacao ADD COLUMN datanascimento DATE;

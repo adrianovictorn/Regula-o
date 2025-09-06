@@ -30,10 +30,9 @@ async function send({ method, path, data }) {
 
   const response = await fetch(`${BASE_URL}/${path}`, opts);
   
-  // Lógica de segurança: se o token for inválido/expirado (erro 403),
-  // desloga o usuário limpando o token da store.
-  if (response.status === 403) {
-      token.set(null); 
+  // Se o token estiver inválido/expirado (401), desloga o usuário.
+  if (response.status === 401) {
+    token.set(null);
   }
 
   return response;

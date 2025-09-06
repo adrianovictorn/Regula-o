@@ -1,18 +1,21 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	server: {
-		proxy: {
-		  // tudo que bater em /api vai para o Spring Boot
-		  '/api': {
-			target: 'http://localhost:8080',
-			changeOrigin: true,
-			secure: false
-		  }
-		}
-	  }
-	}
-);
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const BACKEND_URL = env.BACKEND_URL || `http://localhost:${env.BACKEND_PORT || 8080}`;
+
+  return {
+    plugins: [tailwindcss(), sveltekit()],
+    server: {
+      proxy: {
+        '/api': {
+          target: BACKEND_URL,
+          changeOrigin: true,
+          secure: false
+        }
+      }
+    }
+  };
+});

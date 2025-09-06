@@ -5,6 +5,7 @@
     import { getApi, postApi, putApi, deleteApi } from '$lib/api';
     import { opcoesEspecialidades } from '$lib/Especialidades.js';
     import RoleBasedMenu from "$lib/RoleBasedMenu.svelte";
+    import { listarPactos, publicarSolicitacao } from '$lib/pactosApi.js';
 
     interface CID{
         id: number
@@ -35,6 +36,40 @@
     let especialidades = $state<any[]>([]); // Estado unificado para especialidades
     let isLoading = $state(true);
     let error = $state<string | null>(null);
+
+    // Encaminhamento para Pacto (UI estado)
+    let mostrarModalEncaminhar = $state(false);
+    let pactosDisponiveis = $state<any[]>([]);
+    let pactoSelecionadoId = $state<number | null>(null);
+    let especialidadeSelecionada = $state<any | null>(null);
+
+    async function abrirEncaminhar(espec: any) {
+        especialidadeSelecionada = espec;
+        try {
+            const lista = await listarPactos();
+            pactosDisponiveis = lista;
+            if (lista.length > 0) pactoSelecionadoId = lista[0].id;
+            mostrarModalEncaminhar = true;
+        } catch (e:any) {
+            alert(e.message || 'Falha ao carregar pactos');
+        }
+    }
+
+    async function confirmarEncaminhamento() {
+        if (!solicitacao || !especialidadeSelecionada || !pactoSelecionadoId) return;
+        const label = getNomeEspecialidade(especialidadeSelecionada.especialidadeSolicitada);
+        try {
+            await publicarSolicitacao(pactoSelecionadoId, {
+                solicitacaoLocalId: solicitacao.id,
+                label
+            });
+            alert('Solicitação encaminhada às filas compartilhadas do pacto selecionado.');
+            mostrarModalEncaminhar = false;
+        } catch (e:any) {
+            alert(e.message || 'Falha ao encaminhar solicitação');
+        }
+    }
+    function cancelarEncaminhamento() { mostrarModalEncaminhar = false; }
 
     function getNomeEspecialidade(valorEnum: string): string {
         const todasAsOpcoes = [
@@ -535,6 +570,11 @@
                                                 <option value="URGENTE">Urgente</option>
                                                 <option value="EMERGENCIA">Emergência</option>
                                             </select>
+                                            <button on:click={() => abrirEncaminhar(e)}
+                                                class="px-3 py-1 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                                                title="Encaminhar para filas compartilhadas">
+                                                Encaminhar
+                                            </button>
                                             <button on:click={() => removerEspecialidade(e.id)} 
                                                 class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors"
                                                 title="Remover Especialidade">
@@ -547,12 +587,33 @@
                                 {/each}
                             </ul>
                         </div>
-                     {:else}
-                        <div class="text-center py-6 px-4 bg-gray-50 rounded-md border border-dashed">
-                            <p class="text-gray-500">Nenhuma especialidade pendente.</p>
-                        </div>
-                     {/if}
+                 {:else}
+                    <div class="text-center py-6 px-4 bg-gray-50 rounded-md border border-dashed">
+                        <p class="text-gray-500">Nenhuma especialidade pendente.</p>
+                    </div>
+                 {/if}
                 </section>
+
+                {#if mostrarModalEncaminhar}
+                <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                  <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Encaminhar para Filas Compartilhadas</h3>
+                    <p class="text-sm text-gray-700">Deseja encaminhar a solicitação desta especialidade para filas compartilhadas?</p>
+                    <div class="space-y-2">
+                      <label class="block text-sm text-gray-600">Pacto</label>
+                      <select class="w-full border rounded p-2" bind:value={pactoSelecionadoId}>
+                        {#each pactosDisponiveis as p}
+                          <option value={p.id}>{p.nome}</option>
+                        {/each}
+                      </select>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                      <button class="px-4 py-2 rounded border" on:click={cancelarEncaminhamento}>Cancelar</button>
+                      <button class="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700" on:click={confirmarEncaminhamento}>Confirmar</button>
+                    </div>
+                  </div>
+                </div>
+                {/if}
 
     <section class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Histórico de Procedimentos Cancelados</h2>
