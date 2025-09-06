@@ -50,6 +50,39 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(muncipioQueue).to(regionalExchange).with(routingKey);
     }
 
+    @Bean
+    public Binding bindingJoin(Queue muncipioQueue, TopicExchange regionalExchange, @Value("${app.municipio.nome-identificador}") String nomeMunicipio) {
+        String routingKey = String.format("ingresso.%s.#", nomeMunicipio.toUpperCase());
+        return BindingBuilder.bind(muncipioQueue).to(regionalExchange).with(routingKey);
+    }
+
+    @Bean
+    public Binding bindingJoinAceite(Queue muncipioQueue, TopicExchange regionalExchange, @Value("${app.municipio.nome-identificador}") String nomeMunicipio) {
+        String routingKey = String.format("ingresso-aceite.%s.#", nomeMunicipio.toUpperCase());
+        return BindingBuilder.bind(muncipioQueue).to(regionalExchange).with(routingKey);
+    }
+
+    // Notificação ao município de origem quando um evento do pacto é consumido (claim aceito)
+    @Bean
+    public Binding bindingEventoClaimAceite(Queue muncipioQueue, TopicExchange regionalExchange, @Value("${app.municipio.nome-identificador}") String nomeMunicipio) {
+        String routingKey = String.format("evento-claim-aceite.%s.#", nomeMunicipio.toUpperCase());
+        return BindingBuilder.bind(muncipioQueue).to(regionalExchange).with(routingKey);
+    }
+
+    // Notificação de agendamento externo para o município de origem
+    @Bean
+    public Binding bindingAgendamentoExterno(Queue muncipioQueue, TopicExchange regionalExchange, @Value("${app.municipio.nome-identificador}") String nomeMunicipio) {
+        String routingKey = String.format("agendamento-externo.%s.#", nomeMunicipio.toUpperCase());
+        return BindingBuilder.bind(muncipioQueue).to(regionalExchange).with(routingKey);
+    }
+
+    // Fallback para broadcast de agendamentos externos (origem desconhecida)
+    @Bean
+    public Binding bindingAgendamentoExternoBroadcast(Queue muncipioQueue, TopicExchange regionalExchange) {
+        String routingKey = "agendamento-externo.BROADCAST.#";
+        return BindingBuilder.bind(muncipioQueue).to(regionalExchange).with(routingKey);
+    }
+
     /**
      * Define o conversor de mensagens para JSON.
      * Essencial para que o Spring consiga serializar/desserializar os DTOs.

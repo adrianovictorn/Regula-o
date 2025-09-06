@@ -88,6 +88,7 @@
           <a href="/admin/cadastrar-usuario" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/cadastrar-usuario'}>Cadastrar Usuário</a>
           <a href="/admin/listar-usuarios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/listar-usuarios'}>Listar Usuário</a>
           <a href="/admin/pactos" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/pactos'}>Pactos</a>
+          <a href="/admin/municipios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/municipios'}>Registrar Município</a>
       </div>
     {/if}
    
@@ -100,7 +101,7 @@
       </button>
      {#if isFilaCompartilhada}
       <div class="pl-4 mt-2 space-y-2">
-          <a href="/filas/minhas" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/filas/minhas'}>Minhas Solicitações</a>
+          
           <a href="/filas/compartilhadas" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/filas/compartilhadas'}>Solicitações Compartilhadas</a>
       </div>
     {/if}

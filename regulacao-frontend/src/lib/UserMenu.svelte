@@ -5,6 +5,11 @@
   import { fadeScale } from '$lib/transitions.js'; // 1. Importe a nova transição
 
   let isOpen = false;
+  let notifOpen = false;
+  let notifications = [];
+  let notifLoading = false;
+  let unreadCount = 0;
+  import { listarNaoLidas, marcarComoLida, marcarTodasComoLidas } from '$lib/notificationsApi.js';
   let node;
 
   function logout() {
@@ -16,20 +21,85 @@
   const handleClickOutside = (event) => {
     if (node && !node.contains(event.target)) {
       isOpen = false;
+      notifOpen = false;
     }
   };
 
+  let intervalId;
   onMount(() => {
     document.addEventListener('click', handleClickOutside, true);
+    // carrega notificações na montagem
+    carregarNotificacoes();
+    // polling leve a cada 15s para atualizar badge
+    intervalId = setInterval(async () => {
+      try {
+        const list = await listarNaoLidas();
+        unreadCount = Array.isArray(list) ? list.length : 0;
+        // Só atualiza a lista completa se o dropdown estiver aberto
+        if (notifOpen) notifications = list;
+      } catch {}
+    }, 15000);
+    // também atualiza ao focar a janela
+    const onFocus = () => carregarNotificacoes();
+    window.addEventListener('focus', onFocus);
     return () => {
       document.removeEventListener('click', handleClickOutside, true);
+      window.removeEventListener('focus', onFocus);
+      if (intervalId) clearInterval(intervalId);
     };
   });
+
+  async function carregarNotificacoes() {
+    try {
+      notifLoading = true;
+      const list = await listarNaoLidas();
+      notifications = list;
+      unreadCount = Array.isArray(list) ? list.length : 0;
+    } catch (e) { console.error(e); }
+    finally { notifLoading = false; }
+  }
 </script>
 
 {#if $user}
   <div class="relative" bind:this={node}>
-    <button
+    <div class="flex items-center gap-2">
+      <!-- Notification bell -->
+      <div class="relative">
+        <button on:click={() => { notifOpen = !notifOpen; if (notifOpen) carregarNotificacoes(); }} class="p-2 rounded-full hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-emerald-700 focus:ring-white">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </button>
+        {#if unreadCount > 0}
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">{unreadCount}</span>
+        {/if}
+        {#if notifOpen}
+          <div in:fadeScale={{ duration: 150, start: 0.95 }} class="absolute right-0 mt-2 w-80 origin-top-right bg-white rounded-md shadow-lg z-10 ring-1 ring-black ring-opacity-5 focus:outline-none">
+            <div class="py-2">
+              <div class="px-4 pb-2 flex items-center justify-between border-b">
+                <span class="text-sm font-medium text-gray-800">Notificações</span>
+                <button class="text-xs text-emerald-700 hover:underline" on:click={async()=>{ await marcarTodasComoLidas(); await carregarNotificacoes(); }}>Marcar todas como lidas</button>
+              </div>
+              {#if notifLoading}
+                <div class="p-4 text-sm text-gray-500">Carregando...</div>
+              {:else if notifications.length === 0}
+                <div class="p-4 text-sm text-gray-500">Sem novas notificações</div>
+              {:else}
+                <ul class="max-h-80 overflow-auto">
+                  {#each notifications as n (n.id)}
+                    <li class="px-4 py-3 text-sm border-b">
+                      <div class="text-gray-800">{n.resumo}</div>
+                      <div class="mt-1">
+                        <a href={n.linkPath || '#'} class="text-emerald-700 hover:underline text-xs" on:click={async()=>{ await marcarComoLida(n.id); }}>Ver mais detalhes</a>
+                      </div>
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <button
       on:click={() => (isOpen = !isOpen)}
       class="flex items-center space-x-3 p-1.5 rounded-full hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-emerald-700 focus:ring-white transition-all duration-200"
       aria-haspopup="true"
@@ -43,6 +113,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
     </button>
+    </div>
 
     {#if isOpen}
       <div

@@ -14,6 +14,22 @@ export default defineConfig(({ mode }) => {
           target: BACKEND_URL,
           changeOrigin: true,
           secure: false
+        },
+        // Proxies extras para alternar rapidamente entre múltiplos backends no dev
+        '/api-8080': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api-8080/, '/api')
+        },
+        '/api-8081': {
+          target: 'http://localhost:8081',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api-8081/, '/api')
+        },
+        '/api-8083': {
+          target: 'http://localhost:8083',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api-8083/, '/api')
         }
       }
     }

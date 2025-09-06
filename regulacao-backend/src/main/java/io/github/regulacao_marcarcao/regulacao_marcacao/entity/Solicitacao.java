@@ -72,4 +72,10 @@ public class Solicitacao {
 
     @OneToMany(mappedBy = "solicitacao")
     private List<AgendamentoSolicitacao> agendamentos;
+
+    @Column(name = "origem_municipio_id")
+    private java.util.UUID origemMunicipioId;
+
+    @Column(name = "origem_municipio_nome")
+    private String origemMunicipioNome;
 }

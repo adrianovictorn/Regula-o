@@ -65,6 +65,12 @@ public class PactoController {
         return ResponseEntity.ok(pactoEventoService.listarFeed(pactoId));
     }
 
+    @GetMapping("/{pactoId}/feed/enviadas")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    public ResponseEntity<List<io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.PactoEventoEnviadaViewDTO>> feedEnviadas(@PathVariable Long pactoId) {
+        return ResponseEntity.ok(pactoEventoService.listarEnviadas(pactoId));
+    }
+
     @PostMapping("/{pactoId}/solicitacoes/{eventoUuid}/claim")
     @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
     public ResponseEntity<ClaimResultDTO> claim(

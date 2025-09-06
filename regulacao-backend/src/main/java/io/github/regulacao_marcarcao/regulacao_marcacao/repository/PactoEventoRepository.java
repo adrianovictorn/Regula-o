@@ -18,6 +18,10 @@ public interface PactoEventoRepository extends JpaRepository<PactoEvento, Long> 
 
     List<PactoEvento> findByPactoIdAndStatusOrderByPublishedAtDesc(Long pactoId, PactoEventoStatus status);
 
+    // Enviadas pelo município local
+    List<PactoEvento> findByPactoIdAndMunicipioOrigemIdOrderByPublishedAtDesc(Long pactoId, java.util.UUID municipioOrigemId);
+    List<PactoEvento> findByPactoIdAndMunicipioOrigemOrderByPublishedAtDesc(Long pactoId, String municipioOrigem);
+
     @Modifying
     @Query("UPDATE PactoEvento e SET e.status = 'CONSUMIDO', e.consumidoPorMunicipio = :municipio, e.consumidoAt = :agora " +
             "WHERE e.uuid = :uuid AND e.status = 'PUBLICADO'")
@@ -25,4 +29,3 @@ public interface PactoEventoRepository extends JpaRepository<PactoEvento, Long> 
                  @Param("municipio") String municipio,
                  @Param("agora") LocalDateTime agora);
 }
-

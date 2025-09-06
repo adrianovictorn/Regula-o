@@ -35,6 +35,15 @@ public class PactoConviteService {
     private final ObjectMapper objectMapper;
 
     @Transactional
+    public List<ConviteViewDTO> listarMeusConvites(io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.PactoConviteStatus status) {
+        var local = instanceContext.getMunicipioLocal();
+        var list = (status != null)
+                ? conviteRepository.findByConvidadoMunicipioIdAndStatus(local.getId(), status)
+                : conviteRepository.findByConvidadoMunicipioId(local.getId());
+        return list.stream().map(ConviteViewDTO::from).collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional
     public List<ConviteViewDTO> criarConvites(Long pactoId, List<UUID> convidados, String mensagem) {
         Pacto pacto = pactoRepository.findById(pactoId).orElseThrow(() -> new IllegalArgumentException("Pacto não encontrado"));
         var remetente = instanceContext.getMunicipioLocal();
@@ -98,19 +107,22 @@ public class PactoConviteService {
             var msg = new PactoConviteAceiteMensagemDTO(c.getToken(), c.getPactoIdRemoto(), c.getConvidadoMunicipioId(),
                     municipioRepository.findById(c.getConvidadoMunicipioId()).map(Municipio::getNome).orElse(""));
             rabbitTemplate.convertAndSend(EXCHANGE_NAME, routingKey, msg);
+
+            // Garante espelho local do pacto e vínculo com este município
+            pactoService.espelharPactoRemoto(c.getPactoIdRemoto(), c.getPactoNome(), c.getRemetenteMunicipioId(), c.getConvidadoMunicipioId());
         }
         return ConviteViewDTO.from(c);
     }
 
     @Transactional
     public void processarAceite(PactoConviteAceiteMensagemDTO msg) {
-        // adiciona membro ao pacto local (origem)
-        pactoService.adicionarMembros(msg.pactoId(), List.of(msg.convidadoMunicipioId()));
-        // marca convite como ACEITO
+        // marca convite como ACEITO antes para cumprir a regra de adicionar após aceite
         conviteRepository.findByToken(msg.token()).ifPresent(c -> {
             c.setStatus(PactoConviteStatus.ACEITO);
             c.setRespondedAt(LocalDateTime.now());
             conviteRepository.save(c);
         });
+        // adiciona membro ao pacto local (origem)
+        pactoService.adicionarMembros(msg.pactoId(), List.of(msg.convidadoMunicipioId()));
     }
 }

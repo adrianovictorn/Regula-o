@@ -35,10 +35,16 @@ public class PactoConviteController {
         return ResponseEntity.ok(conviteService.listarPorPacto(pactoId));
     }
 
+    // Lista convites endereçados ao município local (minhas pendências)
+    @GetMapping("/convites/meus")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    public ResponseEntity<List<ConviteViewDTO>> listarMeus(@RequestParam(value = "status", required = false) io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.PactoConviteStatus status) {
+        return ResponseEntity.ok(conviteService.listarMeusConvites(status));
+    }
+
     // público por token
     @PostMapping("/convites/{token}/responder")
     public ResponseEntity<ConviteViewDTO> responder(@PathVariable UUID token, @RequestBody ResponderConviteDTO dto) {
         return ResponseEntity.ok(conviteService.responder(token, dto.aceitar()));
     }
 }
-

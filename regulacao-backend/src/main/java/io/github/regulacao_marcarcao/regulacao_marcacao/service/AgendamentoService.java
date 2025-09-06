@@ -27,6 +27,8 @@ public class AgendamentoService {
     private final SolicitacaoRepository solicitacaoRepository;
     private final AgendamentoSolicitacaoRepository agendamentoRepository;
     private final SolicitacaoEspecialidadeRepository especialidadeRepository;
+    private final io.github.regulacao_marcarcao.regulacao_marcacao.config.InstanceContext instanceContext;
+    private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     /**
      * Retorna todas as solicitações com ao menos uma especialidade com status AGUARDANDO
@@ -69,6 +71,7 @@ public class AgendamentoService {
         especialidade.setAgendamentoSolicitacao(ag);
         solicitacaoRepository.save(solicitacao);
 
+        notificarAgendamentoExternoSeAplicavel(solicitacao, ag);
         return AgendamentoSolicitacaoSimpleViewDTO.fromAgendamentoSolicitacao(ag);
     }
 
@@ -131,6 +134,7 @@ public class AgendamentoService {
         // 4. Salva a solicitação para persistir as alterações nas especialidades.
         solicitacaoRepository.save(solicitacao);
 
+        notificarAgendamentoExternoSeAplicavel(solicitacao, agendamentoSalvo);
         return AgendamentoSolicitacaoSimpleViewDTO.fromAgendamentoSolicitacao(agendamentoSalvo);
     }
 
@@ -149,6 +153,41 @@ public class AgendamentoService {
         agendamentoRepository.delete(agendamento);
     }
 
-  
+    
+
+    private void notificarAgendamentoExternoSeAplicavel(Solicitacao solicitacao, AgendamentoSolicitacao ag) {
+        try {
+            var local = instanceContext.getMunicipioLocal();
+            // Só notifica se a solicitação tiver origem externa (campos preenchidos) e a origem for diferente do local
+            if (solicitacao.getOrigemMunicipioId() != null && !solicitacao.getOrigemMunicipioId().equals(local.getId())) {
+                String cpf = solicitacao.getCpfPaciente();
+                String cpfMask = cpf != null && cpf.length() >= 4 ?
+                        ("***.***.***-" + cpf.substring(cpf.length()-2)) : "***";
+
+                var msg = new io.github.regulacao_marcarcao.regulacao_marcacao.dto.notificacao.AgendamentoExternoMensagemDTO(
+                        solicitacao.getId(),
+                        cpfMask,
+                        solicitacao.getNomePaciente(),
+                        local.getNome(),
+                        ag.getDataAgendada()
+                );
+
+                String destinoNome = (solicitacao.getOrigemMunicipioNome() != null ? solicitacao.getOrigemMunicipioNome() : solicitacao.getOrigemMunicipioId().toString()).toUpperCase();
+                String routingKey = String.format("agendamento-externo.%s", destinoNome);
+                rabbitTemplate.convertAndSend(io.github.regulacao_marcarcao.regulacao_marcacao.config.RabbitMQConfig.EXCHANGE_NAME, routingKey, msg);
+            } else {
+                // Fallback: origem desconhecida → broadcast para assinantes de broadcast
+                String routingKey = "agendamento-externo.BROADCAST";
+                var msg = new io.github.regulacao_marcarcao.regulacao_marcacao.dto.notificacao.AgendamentoExternoMensagemDTO(
+                        solicitacao.getId(),
+                        "***",
+                        solicitacao.getNomePaciente(),
+                        local.getNome(),
+                        ag.getDataAgendada()
+                );
+                rabbitTemplate.convertAndSend(io.github.regulacao_marcarcao.regulacao_marcacao.config.RabbitMQConfig.EXCHANGE_NAME, routingKey, msg);
+            }
+        } catch (Exception ignore) {}
+    }
 }
 

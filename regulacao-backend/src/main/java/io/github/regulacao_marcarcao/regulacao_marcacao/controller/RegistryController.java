@@ -30,7 +30,6 @@ public class RegistryController {
             return ResponseEntity.badRequest().build();
         }
         Municipio m = municipioRepository.findByNome(nome).orElse(new Municipio());
-        if (m.getId() == null) m.setId(UUID.randomUUID());
         m.setNome(nome);
         m.setCnes(cnes);
         m.setRabbitQueueName(queue);
@@ -52,4 +51,3 @@ public class RegistryController {
         return ResponseEntity.ok(filtered);
     }
 }
-

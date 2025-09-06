@@ -12,5 +12,5 @@ public interface PactoConviteRepository extends JpaRepository<PactoConvite, Long
     Optional<PactoConvite> findByToken(UUID token);
     List<PactoConvite> findByPactoIdRemoto(Long pactoIdRemoto);
     List<PactoConvite> findByConvidadoMunicipioIdAndStatus(UUID convidadoMunicipioId, PactoConviteStatus status);
+    List<PactoConvite> findByConvidadoMunicipioId(UUID convidadoMunicipioId);
 }
-

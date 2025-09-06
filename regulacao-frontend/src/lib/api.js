@@ -1,6 +1,27 @@
 import { token } from '$lib/stores/auth.js';
 import { get } from 'svelte/store';
 
+// Seleção dinâmica do backend (dev helper):
+// - Define ?api=8080|8081|8083 na URL para trocar o alvo
+// - Ou defina window.localStorage.API_PREFIX = '/api-8083'
+function resolveApiPrefix() {
+  if (typeof window === 'undefined') return '/api';
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const apiParam = params.get('api');
+    if (apiParam && /^\d{4,5}$/.test(apiParam)) {
+      const p = `/api-${apiParam}`;
+      window.localStorage.setItem('API_PREFIX', p);
+      return p;
+    }
+    return window.localStorage.getItem('API_PREFIX') || '/api';
+  } catch {
+    return '/api';
+  }
+}
+
+const API_PREFIX = resolveApiPrefix();
+
 // Define a URL base para todas as chamadas à sua API backend.
 const BASE_URL = '/api';
 /**
@@ -28,7 +49,9 @@ async function send({ method, path, data }) {
     opts.headers['Authorization'] = `Bearer ${currentToken}`;
   }
 
-  const response = await fetch(`${BASE_URL}/${path}`, opts);
+  const base = API_PREFIX.replace(/\/$/, '');
+  const url = `${base}/${path}`;
+  const response = await fetch(url, opts);
   
   // Se o token estiver inválido/expirado (401), desloga o usuário.
   if (response.status === 401) {

@@ -9,6 +9,7 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Municipio;
 
 public interface MunicipioRepository extends JpaRepository<Municipio, UUID> {
         Optional<Municipio> findByNome(String nome); 
+        Optional<Municipio> findByRabbitQueueName(String rabbitQueueName);
         
 
 }

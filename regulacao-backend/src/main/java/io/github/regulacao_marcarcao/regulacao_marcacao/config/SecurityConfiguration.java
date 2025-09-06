@@ -41,6 +41,7 @@ public class SecurityConfiguration {
                 auth.requestMatchers(HttpMethod.GET, "/api/solicitacoes/public/**").permitAll();
                 auth.requestMatchers(HttpMethod.POST, "/api/pactos/convites/*/responder").permitAll();
                 auth.requestMatchers("/api/registry/**").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/api/registry/pactos/*/join-requests").permitAll();
                 // 3. Todas as outras requisições exigem autenticação
                 auth.anyRequest().authenticated();
             })

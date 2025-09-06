@@ -12,5 +12,5 @@ public interface PactoJoinRequestRepository extends JpaRepository<PactoJoinReque
     Optional<PactoJoinRequest> findByToken(UUID token);
     List<PactoJoinRequest> findByPactoIdRemoto(Long pactoIdRemoto);
     List<PactoJoinRequest> findBySolicitanteMunicipioIdAndStatus(UUID solicitanteMunicipioId, PactoConviteStatus status);
+    List<PactoJoinRequest> findBySolicitanteMunicipioId(UUID solicitanteMunicipioId);
 }
-

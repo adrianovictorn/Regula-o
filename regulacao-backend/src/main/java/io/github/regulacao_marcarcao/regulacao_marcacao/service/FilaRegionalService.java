@@ -7,8 +7,12 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Municipio;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.regional.NotificacaoRegionalDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.convite.PactoConviteMensagemDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.convite.PactoConviteAceiteMensagemDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.PactoEventoClaimAceiteMensagemDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.MunicipioRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.join.PactoJoinRequestMensagemDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.join.PactoJoinAceiteMensagemDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.notificacao.AgendamentoExternoMensagemDTO;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -28,6 +32,8 @@ public class FilaRegionalService {
     private final InstanceContext instanceContext;
     private final PactoEventoService pactoEventoService;
     private final PactoConviteService pactoConviteService;
+    private final PactoJoinService pactoJoinService;
+    private final NotificacaoService notificacaoService;
 
     private static final String EXCHANGE_NAME = "regional_topic_exchange";
 
@@ -39,7 +45,9 @@ public class FilaRegionalService {
                                @Value("${app.municipio.nome-identificador}") String nomeMunicipioLocal,
                                PactoEventoService pactoEventoService,
                                InstanceContext instanceContext,
-                               PactoConviteService pactoConviteService) {
+                               PactoConviteService pactoConviteService,
+                               PactoJoinService pactoJoinService,
+                               NotificacaoService notificacaoService) {
         this.rabbitTemplate = rabbitTemplate;
         this.especialidadeRepository = especialidadeRepository;
         this.municipioRepository = municipioRepository;
@@ -48,6 +56,8 @@ public class FilaRegionalService {
         this.pactoEventoService = pactoEventoService;
         this.instanceContext = instanceContext;
         this.pactoConviteService = pactoConviteService;
+        this.pactoJoinService = pactoJoinService;
+        this.notificacaoService = notificacaoService;
     }
 
     public void enviarParaFilaRegional(String municipioDestino, EncaminhamentoRegionalDTO dto) {
@@ -103,6 +113,45 @@ public class FilaRegionalService {
                 return;
             }
 
+            // Solicitações de ingresso
+            if (routingKey.startsWith("ingresso-aceite.")) {
+                PactoJoinAceiteMensagemDTO aceite = convertPayload(payload, PactoJoinAceiteMensagemDTO.class);
+                pactoJoinService.processarAceite(aceite);
+                return;
+            }
+            if (routingKey.startsWith("ingresso.")) {
+                PactoJoinRequestMensagemDTO req = convertPayload(payload, PactoJoinRequestMensagemDTO.class);
+                pactoJoinService.registrarRecebido(req);
+                return;
+            }
+
+            // Evento de pacto consumido (claim aceito) → atualiza origem
+            if (routingKey.startsWith("evento-claim-aceite.")) {
+                PactoEventoClaimAceiteMensagemDTO msg = convertPayload(payload, PactoEventoClaimAceiteMensagemDTO.class);
+                pactoEventoService.registrarClaimRemoto(msg);
+                return;
+            }
+
+            // Notificação de agendamento externo
+            if (routingKey.startsWith("agendamento-externo.")) {
+                AgendamentoExternoMensagemDTO dto = convertPayload(payload, AgendamentoExternoMensagemDTO.class);
+                // Ignora se o executante for o próprio município
+                if (dto.municipioExecutor() != null && dto.municipioExecutor().equalsIgnoreCase(nomeMunicipioLocal)) {
+                    return;
+                }
+                String resumo = String.format(
+                        "Solicitação agendada: CPF %s, %s; executor: %s; data: %s",
+                        dto.cpfMascarado(), dto.nomePaciente(), dto.municipioExecutor(), String.valueOf(dto.dataAgendada())
+                );
+                notificacaoService.criar("AGENDAMENTO_EXTERNO", resumo, "/filas/compartilhadas", java.util.Map.of(
+                        "cpf", dto.cpfMascarado(),
+                        "nome", dto.nomePaciente(),
+                        "data", String.valueOf(dto.dataAgendada()),
+                        "executor", dto.municipioExecutor()
+                ));
+                return;
+            }
+
             // Outros tipos de mensagens poderão ser tratados aqui
             System.err.println("Mensagem com routingKey não tratada: " + routingKey + ", payloadType=" + payload.getClass());
         } catch (Exception e) {
@@ -112,16 +161,31 @@ public class FilaRegionalService {
     }
 
     private <T> T convertPayload(Object payload, Class<T> type) throws Exception {
+        // Já é do tipo esperado
         if (type.isInstance(payload)) {
             return type.cast(payload);
+        }
+
+        // Mensagem Spring Messaging: extrai o payload interno e reconverte
+        if (payload instanceof org.springframework.messaging.Message<?> springMsg) {
+            return convertPayload(springMsg.getPayload(), type);
+        }
+
+        // Mensagem AMQP: extrai o corpo (byte[]) e parseia como JSON
+        if (payload instanceof org.springframework.amqp.core.Message amqpMsg) {
+            byte[] body = amqpMsg.getBody();
+            return objectMapper.readValue(body, type);
+        }
+
+        // Casos comuns
+        if (payload instanceof byte[] b) {
+            return objectMapper.readValue(b, type);
         }
         if (payload instanceof String s) {
             return objectMapper.readValue(s, type);
         }
-        if (payload instanceof byte[] b) {
-            return objectMapper.readValue(b, type);
-        }
-        // Tenta converter via mapeamento genérico (LinkedHashMap -> DTO)
+
+        // Fallback: tenta converter estruturas simples (Map -> DTO)
         return objectMapper.convertValue(payload, type);
     }
 
