@@ -15,6 +15,7 @@
 	}
 
 	let cids: CID[] = [];
+	let termoBusca = '';
 	let isLoading = true;
 	let isUpdating = false;
 	let errorMessage: string | null = null; // Para mostrar mensagens de erro na tela
@@ -112,6 +113,21 @@
 	}
 
 	onMount(buscarCIDs);
+
+	function normalize(s: string) {
+		return (s || '')
+			.toString()
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.toLowerCase();
+	}
+
+	$: cidsFiltrados = !termoBusca
+		? cids
+		: cids.filter((cid) => {
+			const q = normalize(termoBusca);
+			return normalize(cid.codigo).includes(q) || normalize(cid.descricao).includes(q);
+		});
 </script>
 
 <div class="flex h-screen bg-gray-100">
@@ -134,6 +150,15 @@
 				<h1 class="text-2xl font-semibold text-gray-700 mb-6">Lista de CIDs Cadastrados</h1>
 
 				<div class="bg-white rounded-lg shadow-md overflow-x-auto">
+					<div class="p-4 border-b bg-gray-50 flex items-center gap-3">
+						<input
+							type="text"
+							class="border border-gray-300 rounded-lg p-2 w-full md:w-96"
+							placeholder="Buscar CID por código ou descrição..."
+							bind:value={termoBusca}
+						/>
+						<button type="button" on:click={() => (termoBusca = '')} class="px-3 py-2 text-sm bg-gray-100 rounded border border-gray-300 hover:bg-gray-200">Limpar</button>
+					</div>
 					{#if isLoading}
 						<p class="p-6 text-center text-gray-500">Carregando dados...</p>
 					{:else if errorMessage}
@@ -155,7 +180,7 @@
 								</tr>
 							</thead>
 							<tbody class="bg-white divide-y divide-gray-200">
-                                {#each cids as cid (cid.id)}
+                                {#each cidsFiltrados as cid (cid.id)}
 									<tr class="hover:bg-gray-50 transition-colors duration-200">
 										{#if cidEmEdicao?.id === cid.id}
 											<td class="px-6 py-4">

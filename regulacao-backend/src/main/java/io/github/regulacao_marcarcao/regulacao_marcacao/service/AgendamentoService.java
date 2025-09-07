@@ -52,8 +52,16 @@ public class AgendamentoService {
 
         // encontra especialidade pendente
         SolicitacaoEspecialidade especialidade = solicitacao.getEspecialidades().stream()
-            .filter(e -> e.getEspecialidadeSolicitada() == dto.especialidadeSolicitada()
-                && e.getStatus() == StatusDaMarcacao.AGUARDANDO)
+            .filter(e -> {
+                if (dto.especialidadeId() != null) {
+                    return e.getEspecialidadeSolicitada() != null && dto.especialidadeId().equals(e.getEspecialidadeSolicitada().getId())
+                        && (e.getStatus() == StatusDaMarcacao.AGUARDANDO || e.getStatus() == StatusDaMarcacao.RETORNO || e.getStatus() == StatusDaMarcacao.RETORNO_POLICLINICA);
+                }
+                String codigo = dto.especialidadeSolicitada() != null ? dto.especialidadeSolicitada().name() : null;
+                String atual = e.getEspecialidadeSolicitada() != null ? e.getEspecialidadeSolicitada().getCodigo() : e.getEspecialidadeCodigoLegacy();
+                return (codigo != null && codigo.equalsIgnoreCase(atual))
+                    && (e.getStatus() == StatusDaMarcacao.AGUARDANDO || e.getStatus() == StatusDaMarcacao.RETORNO || e.getStatus() == StatusDaMarcacao.RETORNO_POLICLINICA);
+            })
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException("Especialidade não disponível para agendamento."));
 
@@ -115,9 +123,9 @@ public class AgendamentoService {
         for (String nomeExame : dto.examesSelecionados()) {
             SolicitacaoEspecialidade especialidadeParaAgendar = solicitacao.getEspecialidades().stream()
                     .filter(e -> {
-                        // --- CORREÇÃO APLICADA AQUI ---
-                        // Compara o nome do enum (String) com a String recebida, ignorando maiúsculas/minúsculas.
-                        return e.getEspecialidadeSolicitada().name().equalsIgnoreCase(nomeExame)
+                        // Compara o código (enum name) ou legado com a String recebida, ignorando maiúsculas/minúsculas.
+                        String atual = e.getEspecialidadeSolicitada() != null ? e.getEspecialidadeSolicitada().getCodigo() : e.getEspecialidadeCodigoLegacy();
+                        return atual != null && atual.equalsIgnoreCase(nomeExame)
                                 && (
                                     e.getStatus() == StatusDaMarcacao.AGUARDANDO
                                     || e.getStatus() == StatusDaMarcacao.RETORNO 

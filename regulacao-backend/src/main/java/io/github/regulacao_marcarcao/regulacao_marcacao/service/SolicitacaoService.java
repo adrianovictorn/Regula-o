@@ -26,6 +26,7 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.Especialida
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.CidRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.EspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoSpecification;
@@ -42,6 +43,7 @@ public class SolicitacaoService {
     private final AgendamentoSolicitacaoRepository agendamentoRepository;
     private final SolicitacaoEspecialidadeRepository especialidadeRepository;
     private final CidRepository cidRepository;
+    private final EspecialidadeRepository especialidadeRepo;
 
 
     @Transactional
@@ -58,14 +60,29 @@ public class SolicitacaoService {
         solicitacao.setDataMalote(dto.dataMalote());
 
         var especialidades = dto.especialidades().stream()
-            .map(e -> new SolicitacaoEspecialidade(
-                null,
-                solicitacao,
-                null,
-                e.especialidadeSolicitada(),
-                e.status(),
-                e.prioridade()
-            ))
+            .map(e -> {
+                var se = new SolicitacaoEspecialidade();
+                se.setSolicitacao(solicitacao);
+                se.setAgendamentoSolicitacao(null);
+                // Preferência por ID explícito; fallback para código (enum legacy)
+                if (e.especialidadeId() != null) {
+                    var esp = especialidadeRepo.findById(e.especialidadeId())
+                            .orElseThrow(() -> new IllegalArgumentException("Especialidade não encontrada: id=" + e.especialidadeId()));
+                    se.setEspecialidadeSolicitada(esp);
+                    se.setEspecialidadeCodigoLegacy(esp.getCodigo());
+                } else {
+                    var codigo = e.especialidadeSolicitada() != null ? e.especialidadeSolicitada().name() : null;
+                    if (codigo != null) {
+                        var esp = especialidadeRepo.findByCodigo(codigo)
+                                .orElseThrow(() -> new IllegalArgumentException("Especialidade não cadastrada: " + codigo));
+                        se.setEspecialidadeSolicitada(esp);
+                        se.setEspecialidadeCodigoLegacy(codigo);
+                    }
+                }
+                se.setStatus(e.status());
+                se.setPrioridade(e.prioridade());
+                return se;
+            })
             .collect(Collectors.toList());
 
         solicitacao.setEspecialidades(especialidades);
@@ -145,7 +162,14 @@ public class SolicitacaoService {
         ag = agendamentoRepository.save(ag);
 
         SolicitacaoEspecialidade se = solicitacao.getEspecialidades().stream()
-            .filter(e -> e.getEspecialidadeSolicitada() == dto.especialidadeSolicitada())
+            .filter(e -> {
+                if (dto.especialidadeId() != null) {
+                    return e.getEspecialidadeSolicitada() != null && dto.especialidadeId().equals(e.getEspecialidadeSolicitada().getId());
+                }
+                String codigo = dto.especialidadeSolicitada() != null ? dto.especialidadeSolicitada().name() : null;
+                String atual = e.getEspecialidadeSolicitada() != null ? e.getEspecialidadeSolicitada().getCodigo() : e.getEspecialidadeCodigoLegacy();
+                return codigo != null && codigo.equalsIgnoreCase(atual);
+            })
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException("Especialidade não encontrada para agendamento."));
 
@@ -170,14 +194,26 @@ public class SolicitacaoService {
             .orElseThrow(() -> new EntityNotFoundException("Solicitação não encontrada."));
 
         // Cria a nova especialidade usando os dados do DTO (status e prioridade vêm do frontend)
-        SolicitacaoEspecialidade novaEspecialidade = new SolicitacaoEspecialidade(
-            null, // ID será gerado automaticamente
-            solicitacao,
-            null, // agendamentoSolicitacao é nulo inicialmente
-            dto.especialidadeSolicitada(),
-            dto.status(),   // Usando o status do DTO
-            dto.prioridade() // Usando a prioridade do DTO
-        );
+        SolicitacaoEspecialidade novaEspecialidade = new SolicitacaoEspecialidade();
+        novaEspecialidade.setSolicitacao(solicitacao);
+        novaEspecialidade.setAgendamentoSolicitacao(null);
+
+        if (dto.especialidadeId() != null) {
+            var esp = especialidadeRepo.findById(dto.especialidadeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Especialidade não encontrada: id=" + dto.especialidadeId()));
+            novaEspecialidade.setEspecialidadeSolicitada(esp);
+            novaEspecialidade.setEspecialidadeCodigoLegacy(esp.getCodigo());
+        } else {
+            String codigo = dto.especialidadeSolicitada() != null ? dto.especialidadeSolicitada().name() : null;
+            if (codigo != null) {
+                var esp = especialidadeRepo.findByCodigo(codigo)
+                        .orElseThrow(() -> new IllegalArgumentException("Especialidade não cadastrada: " + codigo));
+                novaEspecialidade.setEspecialidadeSolicitada(esp);
+                novaEspecialidade.setEspecialidadeCodigoLegacy(codigo);
+            }
+        }
+        novaEspecialidade.setStatus(dto.status());
+        novaEspecialidade.setPrioridade(dto.prioridade());
 
         solicitacao.getEspecialidades().add(novaEspecialidade);
 

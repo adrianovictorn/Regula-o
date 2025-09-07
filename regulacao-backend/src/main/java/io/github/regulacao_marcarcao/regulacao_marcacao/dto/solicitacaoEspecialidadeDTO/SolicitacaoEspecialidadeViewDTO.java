@@ -17,7 +17,7 @@ public record SolicitacaoEspecialidadeViewDTO (
             solicitacaoEspecialidade.getSolicitacao() != null ? solicitacaoEspecialidade.getSolicitacao().getId() : null,
             // Verifica se o agendamento está nulo antes de acessar seu id
             solicitacaoEspecialidade.getAgendamentoSolicitacao() != null ? solicitacaoEspecialidade.getAgendamentoSolicitacao().getId() : null,
-            solicitacaoEspecialidade.getEspecialidadeSolicitada() != null ? solicitacaoEspecialidade.getEspecialidadeSolicitada().name() : null,
+            solicitacaoEspecialidade.getEspecialidadeSolicitada() != null ? solicitacaoEspecialidade.getEspecialidadeSolicitada().getCodigo() : solicitacaoEspecialidade.getEspecialidadeCodigoLegacy(),
             solicitacaoEspecialidade.getStatus() != null ? solicitacaoEspecialidade.getStatus().name() : null,
             solicitacaoEspecialidade.getPrioridade() != null ? solicitacaoEspecialidade.getPrioridade().name() : null
         );

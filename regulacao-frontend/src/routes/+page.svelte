@@ -1,5 +1,5 @@
 <svelte:head>
-    <title>SIRG</title>
+  <title>SIRG</title>
 </svelte:head>
 
 <header class="bg-gray-800 shadow-lg flex items-center justify-between h-20 px-6 md:px-10">
@@ -11,6 +11,9 @@
     <ul class="list-none flex flex-wrap gap-4 md:gap-6">
       <li class="bg-emerald-600 text-white px-4 py-2 rounded-full cursor-pointer hover:bg-emerald-700 transition text-sm md:text-lg shadow">
         <a href="/paciente/consultar">Consultar Solicitação</a>
+      </li>
+      <li class="text-white px-4 py-2 rounded-full cursor-pointer hover:bg-gray-700 transition text-sm md:text-lg">
+        <a href="/integracao">Integração</a>
       </li>
       <li class="text-white px-4 py-2 rounded-full cursor-pointer hover:bg-gray-700 transition text-sm md:text-lg">
         <a href="/login">Área Restrita</a>
@@ -29,14 +32,14 @@
       </h1>
       <p class="text-base md:text-lg text-gray-700 leading-relaxed text-justify">
         O <strong>Sistema Integrado de Regulação e Gestão</strong> foi desenvolvido para facilitar o gerenciamento e o acompanhamento de solicitações e agendamentos na área da saúde. 
-        Profissionais podem cadastrar serviços, e pacientes acompanham o status de suas consultas e exames com total transparência.
+        Pacientes podem consultar o status de suas solicitações com total transparência.
       </p>
       <div class="flex flex-col md:flex-row justify-center md:justify-start gap-4 mt-6">
         <a href="/paciente/consultar" class="bg-emerald-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold shadow hover:bg-emerald-700 transition">
           Consultar Solicitação
         </a>
-        <a href="#" class="text-emerald-600 px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold border border-emerald-600 hover:bg-emerald-50 transition">
-          Saiba Mais
+        <a href="/integracao" class="text-emerald-600 px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold border border-emerald-600 hover:bg-emerald-50 transition">
+          Saiba Mais (Integração)
         </a>
       </div>
     </div>
@@ -50,5 +53,4 @@
 
 <footer class="bg-gray-900 text-gray-400 text-center py-6 mt-8 px-4">
   <p class="mb-2">Desenvolvido por: Adriano Victor N. Ribeiro & Filipe da Silva Ribeiro</p>
-
-  </footer>
+</footer>

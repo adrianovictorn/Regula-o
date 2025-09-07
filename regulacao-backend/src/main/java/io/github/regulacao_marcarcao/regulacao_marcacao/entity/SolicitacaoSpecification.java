@@ -25,12 +25,13 @@ public class SolicitacaoSpecification {
 
     public static Specification<Solicitacao> filtrarPorEspecialidade(
             List<EspecialidadesEnum> especialidades) {
-        return (root, query, criteriaBuilder) -> {
+        return (root, query, cb) -> {
             if (especialidades == null || especialidades.isEmpty()) {
                 return null;
             }
+            List<String> codigos = especialidades.stream().map(Enum::name).toList();
             Join<Object, Object> especialidadesJoin = root.join("especialidades");
-            return especialidadesJoin.get("especialidade").in(especialidades);
+            return especialidadesJoin.get("especialidadeSolicitada").get("codigo").in(codigos);
         };
     }
 

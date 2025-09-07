@@ -3,13 +3,22 @@
     import UserMenu from '$lib/UserMenu.svelte';
     import { Label } from 'bits-ui';
   import { onMount } from 'svelte';
-  import { opcoesEspecialidades } from '$lib/Especialidades.js';
+  import { listarExamesProcedimentos } from '$lib/especialidadesApi.js';
     import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
 
-    const todosOsExamesDoEnum = opcoesEspecialidades.examesEProcedimentos.map(ex => ({ 
-    ...ex, 
-    selecionado: false 
-  }));
+    let labelMap = new Map<string,string>();
+    let todosOsExamesDoEnum: { label:string, value:string, selecionado:boolean }[] = [];
+
+    async function carregarExamesDoCatalogo() {
+      try {
+        const lista = await listarExamesProcedimentos();
+        labelMap = new Map(lista.map((e:any) => [e.codigo, e.nome]));
+        todosOsExamesDoEnum = lista.map((e:any) => ({ label: e.nome, value: e.codigo, id: e.id, selecionado: false }));
+        examesDisponiveisParaCheckbox = todosOsExamesDoEnum;
+      } catch (e) {
+        console.warn('Falha ao carregar catálogo de exames', e);
+      }
+    }
 
  
   let termoBusca = $state('');
@@ -71,7 +80,7 @@
     }
   }
 
-  onMount(carregarListaSolicitacoes);
+  onMount(async () => { await Promise.all([carregarExamesDoCatalogo(), carregarListaSolicitacoes()]); });
 
   async function carregarDadosSolicitacao(solicitacaoIdParam: string | null) {
     if (!solicitacaoIdParam) {
@@ -95,7 +104,7 @@
 
       examesDaSolicitacaoAtual = s.especialidades?.map((esp: any) => ({
         ...esp,
-        label: todosOsExamesDoEnum.find(o => o.value === esp.especialidadeSolicitada)?.label || esp.especialidadeSolicitada
+        label: labelMap.get(esp.especialidadeSolicitada) || (esp.especialidadeSolicitada || '').replaceAll('_',' ')
       })) || [];
 
     } catch (e: any) {
@@ -117,7 +126,7 @@
       const paraAdicionar = examesSelecionados
         // A linha de filtro foi removida daqui
         .map(sel => ({
-            especialidadeSolicitada: sel.value,
+            especialidadeId: sel.id,
             status: 'AGUARDANDO',
             prioridade: prioridadeDaSolicitacao
         }));
@@ -152,7 +161,7 @@
       const payloadNovaSolicitacao = {
         nomePaciente, cpfPaciente, cns, datanascimento, usfOrigem, dataMalote, observacoes,
         especialidades: examesSelecionados.map(sel => ({
-            especialidadeSolicitada: sel.value,
+            especialidadeId: sel.id,
             status: 'AGUARDANDO',
             prioridade: prioridadeDaSolicitacao
         }))

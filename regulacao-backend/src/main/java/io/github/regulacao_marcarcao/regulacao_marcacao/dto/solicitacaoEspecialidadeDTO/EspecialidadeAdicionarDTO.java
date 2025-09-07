@@ -5,10 +5,13 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.PrioridadeD
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import jakarta.validation.constraints.NotNull; // Importe para validação
 
+// Compatível com a nova entidade Especialidade: pode enviar o ID do catálogo
+// ou manter o envio do Enum antigo (mapeado por código). Se ambos vierem, o ID tem prioridade.
 public record EspecialidadeAdicionarDTO(
-    @NotNull // Garante que a especialidade não seja nula
+    Long especialidadeId,
+    @NotNull // mantém compatibilidade por enquanto
     EspecialidadesEnum especialidadeSolicitada,
-     @NotNull StatusDaMarcacao status,   // Adicionado
-    @NotNull PrioridadeDaMarcacaoEnum  prioridade
+    @NotNull StatusDaMarcacao status,
+    @NotNull PrioridadeDaMarcacaoEnum prioridade
 ) {
 }

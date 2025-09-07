@@ -11,44 +11,44 @@ import org.springframework.data.repository.query.Param;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.ContagemPainelPorDataLocalDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
-import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
+import java.util.Collection;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 
 
 public interface SolicitacaoEspecialidadeRepository extends JpaRepository<SolicitacaoEspecialidade, Long> {
   @Query("SELECT se FROM SolicitacaoEspecialidade se " +
            "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
-           "AND se.especialidadeSolicitada IN :enums")
-    List<SolicitacaoEspecialidade> findAgendadasPorDataEEnums(
-            @Param("data") LocalDate data, 
-            @Param("enums") List<EspecialidadesEnum> enums
+           "AND se.especialidadeSolicitada.codigo IN :codigos")
+    List<SolicitacaoEspecialidade> findAgendadasPorDataECodigos(
+            @Param("data") LocalDate data,
+            @Param("codigos") Collection<String> codigos
     );
 
 
      @Query("SELECT COUNT(DISTINCT se.solicitacao.id) FROM SolicitacaoEspecialidade se " +
            "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
-           "AND se.especialidadeSolicitada IN :enums")
-    long countDistinctSolicitacoesPorDataEEnums(@Param("data") LocalDate data, @Param("enums") List<EspecialidadesEnum> enums);
+           "AND se.especialidadeSolicitada.codigo IN :codigos")
+    long countDistinctSolicitacoesPorDataECodigos(@Param("data") LocalDate data, @Param("codigos") Collection<String> codigos);
 
     @Query("SELECT COUNT(se) FROM SolicitacaoEspecialidade se " +
        "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
-       "AND se.especialidadeSolicitada IN :enums")
-    long countAgendadasPorDataEEnums(@Param("data") LocalDate data, @Param("enums") List<EspecialidadesEnum> enums);
+       "AND se.especialidadeSolicitada.codigo IN :codigos")
+    long countAgendadasPorDataECodigos(@Param("data") LocalDate data, @Param("codigos") Collection<String> codigos);
 
     @Query("SELECT se FROM SolicitacaoEspecialidade se " +
            "WHERE se.status = :status " +
-           "AND se.especialidadeSolicitada IN :enums")
-    List<SolicitacaoEspecialidade> findByStatusAndEspecialidadeIn(
+           "AND se.especialidadeSolicitada.codigo IN :codigos")
+    List<SolicitacaoEspecialidade> findByStatusAndEspecialidadeCodigos(
             @Param("status") StatusDaMarcacao status,
-            @Param("enums") List<EspecialidadesEnum> enums
+            @Param("codigos") Collection<String> codigos
     );
 
     @Query("SELECT COUNT(se) FROM SolicitacaoEspecialidade se " +
        "WHERE se.status = :status " +
-       "AND se.especialidadeSolicitada IN :enums")
-    long countByStatusAndEspecialidadeIn(
+       "AND se.especialidadeSolicitada.codigo IN :codigos")
+    long countByStatusAndEspecialidadeCodigos(
             @Param("status") StatusDaMarcacao status,
-            @Param("enums") List<EspecialidadesEnum> enums
+            @Param("codigos") Collection<String> codigos
     );
 
 
@@ -60,26 +60,26 @@ public interface SolicitacaoEspecialidadeRepository extends JpaRepository<Solici
 
 
         @Query("SELECT se FROM SolicitacaoEspecialidade se " +
-        "JOIN FETCH se.solicitacao s " + // Apenas o join com a solicitação é necessário
+        "JOIN FETCH se.solicitacao s " +
         "WHERE se.agendamentoSolicitacao.dataAgendada = :data " +
-        "AND se.especialidadeSolicitada IN :enums " +
-        "ORDER BY s.nomePaciente, se.agendamentoSolicitacao.turno") // Ordenando por s.nomePaciente
-        List<SolicitacaoEspecialidade> findAgendadasCompletasPorDataEEnums(
+        "AND se.especialidadeSolicitada.codigo IN :codigos " +
+        "ORDER BY s.nomePaciente, se.agendamentoSolicitacao.turno")
+        List<SolicitacaoEspecialidade> findAgendadasCompletasPorDataECodigos(
         @Param("data") LocalDate data,
-        @Param("enums") List<EspecialidadesEnum> enums
+        @Param("codigos") Collection<String> codigos
         );
 
         List<SolicitacaoEspecialidade> findByStatus(StatusDaMarcacao status);
 
         @Query("SELECT new io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.ContagemPainelPorDataLocalDTO(" +
-       "se.especialidadeSolicitada, " +
+       "se.especialidadeSolicitada.nome, " +
        "ag.localAgendado, " +
        "ag.dataAgendada, " +
        "COUNT(se)) " +
        "FROM SolicitacaoEspecialidade se " +
        "JOIN se.agendamentoSolicitacao ag " +
        "WHERE se.status = 'AGENDADO' " +
-       "GROUP BY se.especialidadeSolicitada, ag.localAgendado, ag.dataAgendada")
+       "GROUP BY se.especialidadeSolicitada.nome, ag.localAgendado, ag.dataAgendada")
         List<ContagemPainelPorDataLocalDTO> contarAgendamentosAgrupados();
 }
 

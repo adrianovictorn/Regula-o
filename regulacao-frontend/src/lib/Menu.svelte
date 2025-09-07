@@ -33,7 +33,7 @@
     if(activePage ==='/admin/cadastrar-usuario' || activePage === '/admin/listar-usuarios' || activePage === '/admin/pactos'){
       isPainelAdminOpen = true;
     }
-     if(activePage ==='/cadastrar/cid' || activePage === '/listar/cid'){
+     if(activePage ==='/cadastrar/cid' || activePage === '/listar/cid' || activePage === '/cadastrar/especialidade'){
       isPainelDeGestao = true;
     }
       if(activePage ==='/filas/minhas' || activePage === '/filas/compartilhadas'){
@@ -67,13 +67,14 @@
 
      <div>
       <button on:click={togglePainelGestao} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
-        <span>Painel Gerencional</span>
+        <span>Painel Gerencial</span>
         <span class="transform transition-transform duration-200" class:rotate-180={isSolicitacaoOpen}>▼</span>
         </button>
       {#if isPainelDeGestao}
         <div class="pl-4 mt-2 space-y-2">
             <a href="/cadastrar/cid" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/cadastrar/cid'}>Cadastrar CID</a>
             <a href="/listar/cid" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/listar/cid'}>Listar CID</a>
+            <a href="/cadastrar/especialidade" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/cadastrar/especialidade'}>Cadastrar Especialidade</a>
         </div>
       {/if}
     </div>

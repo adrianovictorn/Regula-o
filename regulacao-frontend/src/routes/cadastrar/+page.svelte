@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getApi, postApi } from '$lib/api.js';
-	import { opcoesEspecialidades } from '$lib/Especialidades.js';
+	import { listarEspecialidadesMedicas } from '$lib/especialidadesApi.js';
 	import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
 	import UserMenu from '$lib/UserMenu.svelte';
 	import { onMount } from 'svelte';
@@ -17,6 +17,7 @@
 	// **AJUSTE 1: Unificar a lista de CIDs**
 	// A lista de CIDs carregada da API. O #each usará esta variável.
 	let cids: CID[] = [];
+	let termoBuscaCid = '';
 
 	// Array para guardar os IDs dos CIDs que o usuário seleciona. Começa com um campo.
 	let cidsSelecionados: (number | null)[] = [null];
@@ -31,14 +32,15 @@
 	let dataMalote = '';
 	let observacoes = '';
 
-	let especialidades = [{ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }];
+	let especialidadesCatalogo: { id: number; codigo: string; nome: string }[] = [];
+	let especialidades = [{ especialidadeId: null as number | null, status: 'AGUARDANDO', prioridade: 'NORMAL' }];
 
 	// --- FUNÇÕES DO FORMULÁRIO ---
 
 	function addEspecialidade() {
 		especialidades = [
 			...especialidades,
-			{ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }
+			{ especialidadeId: null, status: 'AGUARDANDO', prioridade: 'NORMAL' }
 		];
 	}
 
@@ -89,7 +91,13 @@
 			usfOrigem,
 			dataMalote,
 			observacoes,
-			especialidades: especialidades.filter((e) => e.especialidadeSolicitada),
+			especialidades: especialidades
+				.filter((e) => e.especialidadeId)
+				.map((e) => ({
+					especialidadeId: Number(e.especialidadeId),
+					status: e.status,
+					prioridade: e.prioridade
+				})),
 			cids: idsDeCidsValidos // Envia o array de IDs
 		};
 
@@ -122,7 +130,7 @@
 		usfOrigem = '';
 		dataMalote = '';
 		observacoes = '';
-		especialidades = [{ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' }];
+		especialidades = [{ especialidadeId: null, status: 'AGUARDANDO', prioridade: 'NORMAL' }];
 		cidsSelecionados = [null];
 	}
 
@@ -133,7 +141,29 @@
 		cpfPaciente = d;
 	}
 
-	onMount(carregarCIDs);
+	onMount(async () => {
+		await Promise.all([
+			carregarCIDs(),
+			listarEspecialidadesMedicas()
+				.then((lista) => (especialidadesCatalogo = lista))
+				.catch((e) => console.warn('Falha ao listar especialidades (catálogo):', e))
+		]);
+	});
+
+	function normalize(s: string) {
+		return (s || '')
+			.toString()
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.toLowerCase();
+	}
+
+	$: cidsFiltrados = !termoBuscaCid
+		? cids
+		: cids.filter((c) => {
+			const q = normalize(termoBuscaCid);
+			return normalize(c.codigo).includes(q) || normalize(c.descricao).includes(q);
+		});
 </script>
 
 <svelte:head>
@@ -193,13 +223,17 @@
 
 						<div class="flex flex-col lg:col-span-5">
 							<label class="text-sm font-medium text-gray-700 mb-1">CIDs</label>
+							<div class="flex items-center gap-2 mb-2">
+								<input type="text" class="border border-gray-300 rounded-lg p-2 w-full md:w-96" placeholder="Buscar CID por código ou descrição..." bind:value={termoBuscaCid} />
+								<button type="button" class="px-3 py-2 text-sm bg-gray-100 rounded border border-gray-300 hover:bg-gray-200" on:click={() => (termoBuscaCid = '')}>Limpar</button>
+							</div>
 							<div class="space-y-2">
 								{#each cidsSelecionados as selectedCid, i (i)}
 									<div class="flex items-center gap-4">
 										<div class="flex-grow">
 											<select bind:value={cidsSelecionados[i]} class="w-full border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required>
 												<option value={null} disabled>Selecione um CID...</option>
-												{#each cids as c (c.id)}
+												{#each cidsFiltrados as c (c.id)}
 													<option value={c.id}>{c.codigo} - {c.descricao}</option>
 												{/each}
 											</select>
@@ -224,10 +258,10 @@
 						<div class="space-y-4">
 							{#each especialidades as esp, i}
 								<div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 border border-gray-200 rounded-lg">
-									<select bind:value={esp.especialidadeSolicitada} class="border-gray-300 rounded-lg p-2" required>
-										<option value="" disabled>Procedimento</option>
-										{#each opcoesEspecialidades.especialidadesMedicas as e}
-											<option value={e.value}>{e.label}</option>
+									<select bind:value={esp.especialidadeId} class="border-gray-300 rounded-lg p-2" required>
+										<option value={null} disabled>Especialidade</option>
+										{#each especialidadesCatalogo as e (e.id)}
+											<option value={e.id}>{e.nome}</option>
 										{/each}
 									</select>
 									<select bind:value={esp.status} class="border-gray-300 rounded-lg p-2">

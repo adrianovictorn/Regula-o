@@ -78,7 +78,7 @@ public class AgendamentoController {
         return ResponseEntity.noContent().build();
     }
 
-     private static final Map<String, List<EspecialidadesEnum>> PAINEIS_ENUMS = Map.of(
+    private static final Map<String, List<EspecialidadesEnum>> PAINEIS_ENUMS = Map.of(
 "Laboratório", List.of(
             EspecialidadesEnum.ASLO, EspecialidadesEnum.ACIDO_URICO, EspecialidadesEnum.ANALISE_CARACTERES_FISICOS_ELEMENTOS_SEDIMENTO_URINA,
             EspecialidadesEnum.ANTI_HBS, EspecialidadesEnum.ANTI_HCV, EspecialidadesEnum.ANTIBIOGRAMA, EspecialidadesEnum.BACILOSCOPIA_DE_ESCARRO_BAAR,
@@ -212,9 +212,10 @@ public class AgendamentoController {
         for (Map.Entry<String, List<EspecialidadesEnum>> painel : PAINEIS_ENUMS.entrySet()) {
             String label = painel.getKey();
             List<EspecialidadesEnum> enums = painel.getValue();
+            List<String> codigos = enums.stream().map(Enum::name).toList();
             
             // Aqui está a chamada à sua query, exatamente como você queria!
-            long count = solicitacaoRepo.countDistinctSolicitacoesPorDataEEnums(data, enums);
+            long count = solicitacaoRepo.countDistinctSolicitacoesPorDataECodigos(data, codigos);
             
             // Adiciona o resultado (apenas dados) à lista
             resultados.add(new ContagemPainelDTO(label, count));
@@ -239,13 +240,14 @@ public class AgendamentoController {
         }
 
         // Busca as solicitações no banco
-        List<SolicitacaoEspecialidade> agendamentos = solicitacaoRepo.findAgendadasCompletasPorDataEEnums(data, enums);
+        List<String> codigos = enums.stream().map(Enum::name).toList();
+        List<SolicitacaoEspecialidade> agendamentos = solicitacaoRepo.findAgendadasCompletasPorDataECodigos(data, codigos);
 
         // Converte a lista de entidades para uma lista de DTOs
         return agendamentos.stream()
             .map(se -> new PacienteAgendadoDTO(
                 se.getSolicitacao().getNomePaciente(),
-                se.getEspecialidadeSolicitada().toString(), // Ou um nome mais amigável
+                se.getEspecialidadeSolicitada() != null ? se.getEspecialidadeSolicitada().getNome() : se.getEspecialidadeCodigoLegacy(),
                 se.getStatus().toString(),
                 se.getSolicitacao().getId()
             ))

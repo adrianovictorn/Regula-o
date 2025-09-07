@@ -35,7 +35,8 @@ public class ExcelService {
             return new ByteArrayInputStream(new ByteArrayOutputStream().toByteArray());
         }
 
-        List<SolicitacaoEspecialidade> especialidades = especialidadeRepository.findByStatusAndEspecialidadeIn(StatusDaMarcacao.AGUARDANDO, tipos);
+        List<String> codigos = tipos.stream().map(Enum::name).toList();
+        List<SolicitacaoEspecialidade> especialidades = especialidadeRepository.findByStatusAndEspecialidadeCodigos(StatusDaMarcacao.AGUARDANDO, codigos);
 
         Map<Solicitacao, List<SolicitacaoEspecialidade>> pendentesPorPaciente = especialidades.stream()
                 .collect(Collectors.groupingBy(SolicitacaoEspecialidade::getSolicitacao));
@@ -155,7 +156,7 @@ public class ExcelService {
             Cell c4 = row.createCell(4); c4.setCellValue(sol.getUsfOrigem().name()); c4.setCellStyle(centerStyle);
 
             String especialidadesAgrupadas = listaDeEspecialidades.stream()
-                    .map(esp -> esp.getEspecialidadeSolicitada().getDescricao())
+                    .map(esp -> esp.getEspecialidadeSolicitada() != null ? esp.getEspecialidadeSolicitada().getNome() : esp.getEspecialidadeCodigoLegacy())
                     .collect(Collectors.joining(", "));
             
             Cell c5 = row.createCell(5); c5.setCellValue(especialidadesAgrupadas); c5.setCellStyle(dataStyle);
@@ -198,15 +199,16 @@ public class ExcelService {
     }
 
     public boolean haDadosParaRelatorioAguardando(List<EspecialidadesEnum> tipos) {
-        return tipos != null && !tipos.isEmpty() && especialidadeRepository.countByStatusAndEspecialidadeIn(StatusDaMarcacao.AGUARDANDO, tipos) > 0;
+        List<String> codigos = tipos != null ? tipos.stream().map(Enum::name).toList() : List.of();
+        return tipos != null && !tipos.isEmpty() && especialidadeRepository.countByStatusAndEspecialidadeCodigos(StatusDaMarcacao.AGUARDANDO, codigos) > 0;
     }
 
     public ByteArrayInputStream gerarPlanilhaAgendamentos(List<EspecialidadesEnum> tipos, LocalDate data) throws IOException {
         if (tipos == null || tipos.isEmpty()) {
             return new ByteArrayInputStream(new ByteArrayOutputStream().toByteArray());
         }
-
-        List<SolicitacaoEspecialidade> especialidades = especialidadeRepository.findAgendadasPorDataEEnums(data, tipos);
+        List<String> codigos = tipos.stream().map(Enum::name).toList();
+        List<SolicitacaoEspecialidade> especialidades = especialidadeRepository.findAgendadasPorDataECodigos(data, codigos);
         
         Map<Solicitacao, List<SolicitacaoEspecialidade>> agendamentosPorPaciente = especialidades.stream()
                 .collect(Collectors.groupingBy(SolicitacaoEspecialidade::getSolicitacao));
@@ -328,7 +330,7 @@ public class ExcelService {
             Cell c4 = row.createCell(4); c4.setCellValue(sol.getUsfOrigem().name()); c4.setCellStyle(centerStyle);
 
             String especialidadesAgrupadas = listaDeEspecialidades.stream()
-                    .map(esp -> esp.getEspecialidadeSolicitada().getDescricao())
+                    .map(esp -> esp.getEspecialidadeSolicitada() != null ? esp.getEspecialidadeSolicitada().getNome() : esp.getEspecialidadeCodigoLegacy())
                     .collect(Collectors.joining(", "));
             
             Cell c5 = row.createCell(5); c5.setCellValue(especialidadesAgrupadas); c5.setCellStyle(dataStyle);
@@ -368,6 +370,7 @@ public class ExcelService {
     }
 
     public boolean haDadosParaRelatorio(List<EspecialidadesEnum> tipos, LocalDate data) {
-        return tipos != null && !tipos.isEmpty() && especialidadeRepository.countAgendadasPorDataEEnums(data, tipos) > 0;
+        List<String> codigos = tipos != null ? tipos.stream().map(Enum::name).toList() : List.of();
+        return tipos != null && !tipos.isEmpty() && especialidadeRepository.countAgendadasPorDataECodigos(data, codigos) > 0;
     }
 }

@@ -3,7 +3,7 @@
   import { jsPDF } from 'jspdf';
   import autoTable from 'jspdf-autotable';
   import { getApi, postApi } from '$lib/api';
-  import { opcoesEspecialidades } from '$lib/Especialidades.js';
+  import { listarEspecialidadesCatalogo } from '$lib/especialidadesApi.js';
     import Menu from '$lib/Menu.svelte';
     import UserMenu from '$lib/UserMenu.svelte';
 
@@ -24,12 +24,16 @@
 
   // <<< NOVO: Dicionário e função para traduzir nomes de exames >>>
   // 1. Criamos um mapa para busca rápida dos nomes amigáveis.
-  const especialidadeLabelMap = new Map(
-    [
-      ...opcoesEspecialidades.especialidadesMedicas,
-      ...opcoesEspecialidades.examesEProcedimentos
-    ].map(opt => [opt.value, opt.label])
-  );
+  let especialidadeLabelMap = new Map<string, string>();
+  async function carregarCatalogoEspecialidades() {
+    try {
+      const lista = await listarEspecialidadesCatalogo();
+      especialidadeLabelMap = new Map(lista.map((e:any) => [e.codigo, e.nome]));
+    } catch (e) {
+      // mantém vazio; fallback usa replace('_',' ')
+      console.warn('Falha ao carregar catálogo de especialidades', e);
+    }
+  }
 
   // 2. Função auxiliar para obter o nome amigável.
   function getEspecialidadeLabel(valor: string): string {
@@ -55,7 +59,12 @@
     }
   }
 
-  onMount(carregarSolicitacoesPendentes);
+  onMount(async () => {
+    await Promise.all([
+      carregarCatalogoEspecialidades(),
+      carregarSolicitacoesPendentes()
+    ]);
+  });
 
   let solicitacaoSelecionada = $derived(
     solicitacoes.find((s) => String(s.solicitacaoId) === String(solicitacaoId)) || null

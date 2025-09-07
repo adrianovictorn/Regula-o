@@ -16,7 +16,7 @@ public record SolicitacaoEspecialidadePublicViewDTO(
         String data = se.getAgendamentoSolicitacao() != null ? se.getAgendamentoSolicitacao().getDataAgendada().toString() : null;
 
         return new SolicitacaoEspecialidadePublicViewDTO(
-            se.getEspecialidadeSolicitada() != null ? se.getEspecialidadeSolicitada().getDescricao() : null,
+            se.getEspecialidadeSolicitada() != null ? se.getEspecialidadeSolicitada().getNome() : se.getEspecialidadeCodigoLegacy(),
             se.getStatus() != null ? se.getStatus().name() : null,
             se.getPrioridade() != null ? se.getPrioridade().name() : null,
             local,
