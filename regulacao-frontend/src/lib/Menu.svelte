@@ -89,6 +89,7 @@
           <a href="/admin/listar-usuarios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/listar-usuarios'}>Listar Usuário</a>
           <a href="/admin/pactos" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/pactos'}>Pactos</a>
           <a href="/admin/municipios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/municipios'}>Registrar Município</a>
+          <a href="/admin/notificacoes" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/notificacoes'}>Notificações</a>
       </div>
     {/if}
    

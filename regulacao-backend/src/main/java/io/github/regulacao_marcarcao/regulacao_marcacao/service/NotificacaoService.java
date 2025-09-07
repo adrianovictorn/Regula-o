@@ -49,7 +49,8 @@ public class NotificacaoService {
                     m.put("tipo", n.getTipo());
                     m.put("resumo", n.getResumo());
                     m.put("linkPath", n.getLinkPath());
-                    m.put("createdAt", n.getCreatedAt());
+                    // Serializa data como ISO-8601 para evitar problemas de conversão de LocalDateTime
+                    m.put("createdAt", n.getCreatedAt() != null ? n.getCreatedAt().toString() : null);
                     return m;
                 }).collect(Collectors.toList());
     }
@@ -64,4 +65,3 @@ public class NotificacaoService {
         listarNaoLidas().forEach(m -> marcarComoLida(((Number)m.get("id")).longValue()));
     }
 }
-

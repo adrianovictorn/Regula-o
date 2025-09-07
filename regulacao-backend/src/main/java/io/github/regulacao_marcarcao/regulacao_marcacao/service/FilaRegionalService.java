@@ -34,6 +34,7 @@ public class FilaRegionalService {
     private final PactoConviteService pactoConviteService;
     private final PactoJoinService pactoJoinService;
     private final NotificacaoService notificacaoService;
+    private final boolean ignoreSelfExecutor;
 
     private static final String EXCHANGE_NAME = "regional_topic_exchange";
 
@@ -47,7 +48,8 @@ public class FilaRegionalService {
                                InstanceContext instanceContext,
                                PactoConviteService pactoConviteService,
                                PactoJoinService pactoJoinService,
-                               NotificacaoService notificacaoService) {
+                               NotificacaoService notificacaoService,
+                               @Value("${app.notifications.ignore-self-executor:true}") boolean ignoreSelfExecutor) {
         this.rabbitTemplate = rabbitTemplate;
         this.especialidadeRepository = especialidadeRepository;
         this.municipioRepository = municipioRepository;
@@ -58,6 +60,7 @@ public class FilaRegionalService {
         this.pactoConviteService = pactoConviteService;
         this.pactoJoinService = pactoJoinService;
         this.notificacaoService = notificacaoService;
+        this.ignoreSelfExecutor = ignoreSelfExecutor;
     }
 
     public void enviarParaFilaRegional(String municipioDestino, EncaminhamentoRegionalDTO dto) {
@@ -137,7 +140,10 @@ public class FilaRegionalService {
                 AgendamentoExternoMensagemDTO dto = convertPayload(payload, AgendamentoExternoMensagemDTO.class);
                 // Ignora se o executante for o próprio município
                 if (dto.municipioExecutor() != null && dto.municipioExecutor().equalsIgnoreCase(nomeMunicipioLocal)) {
-                    return;
+                    if (ignoreSelfExecutor) {
+                        return;
+                    }
+                    // Caso de desenvolvimento: aceita self-broadcast para validar UI
                 }
                 String resumo = String.format(
                         "Solicitação agendada: CPF %s, %s; executor: %s; data: %s",

@@ -1,6 +1,8 @@
 package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,6 +33,7 @@ public class Notificacao {
     private String linkPath;
 
     @Column(name = "payload", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String payload;
 
     @Column(name = "lida", nullable = false)
@@ -44,4 +47,3 @@ public class Notificacao {
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 }
-

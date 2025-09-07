@@ -54,7 +54,7 @@ async function send({ method, path, data }) {
   const response = await fetch(url, opts);
   
   // Se o token estiver inválido/expirado (401), desloga o usuário.
-  if (response.status === 401) {
+  if (response.status === 401 || response.status === 403) {
     token.set(null);
   }
 
