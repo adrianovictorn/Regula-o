@@ -3,7 +3,7 @@
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
     import { getApi, postApi, putApi, deleteApi } from '$lib/api';
-    import { opcoesEspecialidades } from '$lib/Especialidades.js';
+    import { listarEspecialidadesCatalogo } from '$lib/especialidadesApi.js';
     import RoleBasedMenu from "$lib/RoleBasedMenu.svelte";
     import { listarPactos, publicarSolicitacao } from '$lib/pactosApi.js';
 
@@ -12,6 +12,15 @@
         codigo: string
         descricao: string
     }
+
+    // Tipagem básica para itens de especialidade exibidos no paciente
+    type EspecialidadeItem = {
+        id: number;
+        especialidadeSolicitada: string;
+        status: string;
+        prioridade: string;
+        agendamentoId?: number | null;
+    };
 
     let todosOsCids = $state<CID[]>([]); // Guarda a lista completa de CIDs para o dropdown
     let cidParaAdicionar = $state<number | null>(null); // Guarda o ID do CID selecionado no dropdown
@@ -71,13 +80,15 @@
     }
     function cancelarEncaminhamento() { mostrarModalEncaminhar = false; }
 
-    function getNomeEspecialidade(valorEnum: string): string {
-        const todasAsOpcoes = [
-            ...opcoesEspecialidades.especialidadesMedicas,
-            ...opcoesEspecialidades.examesEProcedimentos
-        ];
-        const opcao = todasAsOpcoes.find(opt => opt.value === valorEnum);
-        return opcao ? opcao.label : valorEnum.replace(/_/g, ' ');
+    let catalogoEspecialidades = $state<any[]>([]);
+    let labelMap = $state<Map<string,string>>(new Map()); // codigo -> nome
+    let medicasCatalogo = $state<any[]>([]);
+    let examesCatalogo = $state<any[]>([]);
+
+    function getNomeEspecialidade(codigoOuEnum: string): string {
+        if (!codigoOuEnum) return '';
+        const nome = labelMap.get(codigoOuEnum);
+        return nome || codigoOuEnum.replace(/_/g, ' ');
     }
     
     function formatarData(dataString: string | null): string {
@@ -98,17 +109,34 @@
     let status = $state('');
 
     // Objeto reativo para a nova especialidade a ser adicionada
-    let novaEspecialidadeObj = $state({ especialidadeSolicitada: '', status: 'AGUARDANDO', prioridade: 'NORMAL' });
+    let novaEspecialidadeObj = $state({ especialidadeId: null as number | null, status: 'AGUARDANDO', prioridade: 'NORMAL' });
+    let termoBuscaNovaEsp = $state('');
+    let comboboxEspAberto = $state(false);
+    function normalizeEsp(s: string) {
+        return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+    function filtrarEspecialidadesPac(t: string) {
+        const q = normalizeEsp(t);
+        const base = q
+            ? catalogoEspecialidades.filter((e:any) => normalizeEsp(e.nome).includes(q) || normalizeEsp(e.codigo).includes(q))
+            : catalogoEspecialidades;
+        return base.slice(0, 50);
+    }
+
+    function prettyCategoria(cat: string) {
+        return cat === 'ESPECIALIDADE_MEDICA' ? 'Consulta' : 'Exame/Procedimento';
+    }
     
     // --- Lógica de Carregamento de Dados ---
     onMount(async () => {
         const id = $page.params.id;
       try {
-        // Carrega dados da solicitação, agendamentos e a lista completa de CIDs em paralelo
-        const [resSolicitacao, resAgendamentos, resTodosOsCids] = await Promise.all([
+        // Carrega dados da solicitação, agendamentos, CIDs e catálogo de especialidades em paralelo
+        const [resSolicitacao, resAgendamentos, resTodosOsCids, listaCatalogo] = await Promise.all([
             getApi(`solicitacoes/${id}`),
             getApi(`agendamentos/solicitacao/${id}`),
-            getApi('cid') // Busca todos os CIDs para o dropdown
+            getApi('cid'), // Busca todos os CIDs para o dropdown
+            listarEspecialidadesCatalogo().catch(() => [])
         ]);
 
         if (!resSolicitacao.ok) {
@@ -129,6 +157,14 @@
             agendamentos = await resAgendamentos.json();
         } else {
             console.warn('Não foi possível carregar os agendamentos.');
+        }
+
+        // Monta catálogo e mapas de rótulos
+        if (Array.isArray(listaCatalogo)) {
+            catalogoEspecialidades = listaCatalogo;
+            labelMap = new Map(listaCatalogo.map((e:any) => [e.codigo, e.nome]));
+            medicasCatalogo = listaCatalogo.filter((e:any) => e.categoria === 'ESPECIALIDADE_MEDICA');
+            examesCatalogo = listaCatalogo.filter((e:any) => e.categoria === 'EXAME_OU_PROCEDIMENTO');
         }
 
         // Preenche os campos do formulário (código existente)
@@ -177,13 +213,19 @@
 }
 
     async function adicionarEspecialidade() {
-        if (!novaEspecialidadeObj.especialidadeSolicitada) {
+        if (!novaEspecialidadeObj.especialidadeId) {
             alert('Selecione uma especialidade para adicionar.');
             return;
         }
         if (!solicitacao) return;
 
-        const res = await postApi(`solicitacoes/${solicitacao.id}/especialidades`, novaEspecialidadeObj);
+        const payload = {
+            especialidadeId: Number(novaEspecialidadeObj.especialidadeId),
+            status: novaEspecialidadeObj.status,
+            prioridade: novaEspecialidadeObj.prioridade
+        };
+
+        const res = await postApi(`solicitacoes/${solicitacao.id}/especialidades`, payload);
         if (res.ok) {
             alert('Especialidade adicionada com sucesso!');
             location.reload();
@@ -312,9 +354,16 @@
     }
 
 
-    // Valores derivados para exibir na tela de forma reativa
-    let historico = $derived(especialidades);
-    let especPendentes = $derived(historico.filter((e: any) => e.status === 'AGUARDANDO' || e.status === 'RETORNO' || e.status === 'RETORNO_POLICLINICA'));
+    let historico: EspecialidadeItem[] = $derived(especialidades as unknown as EspecialidadeItem[]);
+    let especPendentes: EspecialidadeItem[] = $derived(
+        ((((historico as unknown as EspecialidadeItem[]) || []).filter((e: EspecialidadeItem) => {
+            const st = ((e.status ?? '') as string).toString().trim().toUpperCase();
+            const semAgendamento = e.agendamentoId == null;
+            const ehPendentePorStatus = (st === 'AGUARDANDO' || st === 'RETORNO' || st === 'RETORNO_POLICLINICA');
+            const naoFinalizado = (st !== 'CANCELADO' && st !== 'REALIZADO');
+            return ehPendentePorStatus || (semAgendamento && naoFinalizado);
+        })) as EspecialidadeItem[])
+    );
 
 </script>
 
@@ -344,6 +393,7 @@
                     <p>{error}</p>
                 </div>
             {:else if solicitacao}
+                
                 <!-- Seção Editar Paciente -->
                 <section class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Editar Paciente</h2>
@@ -381,7 +431,7 @@
                                 {#each solicitacao.cids as cid (cid.id)}
                                     <div class="flex items-center bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1 rounded-full">
                                         <span>{cid.codigo} - {cid.descricao}</span>
-                                        <button on:click={() => removerCid(cid.id)} class="ml-2 text-emerald-600 hover:text-emerald-900 font-bold">&times;</button>
+                                        <button onclick={() => removerCid(cid.id)} aria-label="Remover CID" class="ml-2 text-emerald-600 hover:text-emerald-900 font-bold">&times;</button>
                                     </div>
                                 {/each}
                             {:else}
@@ -391,31 +441,31 @@
 
                        <div class="flex items-end gap-3">
                         <div class="flex-grow relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Adicionar novo CID</label>
+                            <label for="cid-combobox" class="block text-sm font-medium text-gray-700 mb-1">Adicionar novo CID</label>
                             <input 
                                 type="text"
                                 placeholder="Digite o código ou a descrição..."
                                 bind:value={termoBuscaCid}
-                                on:focus={() => comboboxCidAberto = true}
-                                on:blur={() => setTimeout(() => { comboboxCidAberto = false; }, 150)}
+                                id="cid-combobox"
+                                onfocus={() => comboboxCidAberto = true}
+                                onblur={() => setTimeout(() => { comboboxCidAberto = false; }, 150)}
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                             />
 
                                     {#if comboboxCidAberto && cidsFiltrados.length > 0}
                                         <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
                                             {#each cidsFiltrados as cid (cid.id)}
-                                                <li
-                                                    on:mousedown={() => selecionarCid(cid)}
-                                                    class="p-2 hover:bg-emerald-100 cursor-pointer text-sm"
-                                                >
-                                                    <strong>{cid.codigo}</strong> - {cid.descricao}
+                                                <li class="p-0">
+                                                    <button type="button" class="w-full text-left p-2 hover:bg-emerald-100 cursor-pointer text-sm" onclick={() => selecionarCid(cid)}>
+                                                        <strong>{cid.codigo}</strong> - {cid.descricao}
+                                                    </button>
                                                 </li>
                                             {/each}
                                         </ul>
                                     {/if}
                                 </div>
 
-                                <button on:click={adicionarCid} type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm">Adicionar</button>
+                                <button onclick={adicionarCid} type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm">Adicionar</button>
                             </div>
                   <div class="mt-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
@@ -423,7 +473,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button on:click={salvarPaciente} class="bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">
+                    <button onclick={salvarPaciente} class="bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">
                         Salvar Alterações
                     </button>
                 </div>
@@ -512,7 +562,7 @@
                                                     <p class="text-base font-medium text-gray-900">{formatarData(ag.dataAgendada)}</p>
                                                 </div>
                                             </div>
-                                            <button on:click={() => removerAgendamento(ag.id)}
+                                            <button onclick={() => removerAgendamento(ag.id)} aria-label="Remover agendamento"
                                                     class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors flex-shrink-0"
                                                     title="Remover Agendamento e Itens Associados">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -528,7 +578,7 @@
                                                         <span class="text-gray-800">{getNomeEspecialidade(h.especialidadeSolicitada)}</span>
                                                         <div class="flex items-center space-x-3">
                                                             <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">AGENDADO</span>
-                                                            <button on:click={() => removerEspecialidade(h.id)} 
+                                                            <button onclick={() => removerEspecialidade(h.id)} aria-label="Remover especialidade"
                                                                     class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors"
                                                                     title="Desvincular e Remover Especialidade">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -564,18 +614,18 @@
                                              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-200 text-blue-800">{e.status}</span>
                                            {/if}
                                             <select bind:value={e.prioridade} 
-                                                    on:change={(event) => handlePrioridadeChange(e.id, event)}
+                                                    onchange={(event) => handlePrioridadeChange(e.id, event)}
                                                     class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 ease-in-out py-1">
                                                 <option value="NORMAL">Normal</option>
                                                 <option value="URGENTE">Urgente</option>
                                                 <option value="EMERGENCIA">Emergência</option>
                                             </select>
-                                            <button on:click={() => abrirEncaminhar(e)}
+                                            <button onclick={() => abrirEncaminhar(e)}
                                                 class="px-3 py-1 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
                                                 title="Encaminhar para filas compartilhadas">
                                                 Encaminhar
                                             </button>
-                                            <button on:click={() => removerEspecialidade(e.id)} 
+                                            <button onclick={() => removerEspecialidade(e.id)} 
                                                 class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors"
                                                 title="Remover Especialidade">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -600,16 +650,16 @@
                     <h3 class="text-lg font-semibold text-gray-800">Encaminhar para Filas Compartilhadas</h3>
                     <p class="text-sm text-gray-700">Deseja encaminhar a solicitação desta especialidade para filas compartilhadas?</p>
                     <div class="space-y-2">
-                      <label class="block text-sm text-gray-600">Pacto</label>
-                      <select class="w-full border rounded p-2" bind:value={pactoSelecionadoId}>
+                      <label for="pacto-select" class="block text-sm text-gray-600">Pacto</label>
+                      <select id="pacto-select" class="w-full border rounded p-2" bind:value={pactoSelecionadoId}>
                         {#each pactosDisponiveis as p}
                           <option value={p.id}>{p.nome}</option>
                         {/each}
                       </select>
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
-                      <button class="px-4 py-2 rounded border" on:click={cancelarEncaminhamento}>Cancelar</button>
-                      <button class="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700" on:click={confirmarEncaminhamento}>Confirmar</button>
+                      <button class="px-4 py-2 rounded border" onclick={cancelarEncaminhamento}>Cancelar</button>
+                      <button class="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700" onclick={confirmarEncaminhamento}>Confirmar</button>
                     </div>
                   </div>
                 </div>
@@ -678,24 +728,62 @@
                      <h2 class="text-lg font-bold text-emerald-800 mb-4 border-b pb-2">Adicionar Nova Especialidade</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="lg:col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
-                            <select bind:value={novaEspecialidadeObj.especialidadeSolicitada} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
-                                <option value="" disabled>Selecione...</option>
-                                <optgroup label="Consultas">
-                                    {#each opcoesEspecialidades.especialidadesMedicas as opcoes}
-                                        <option value={opcoes.value}>{opcoes.label}</option>
-                                    {/each}
-                                </optgroup>
-                                <optgroup label="Exames e Procedimentos">
-                                    {#each opcoesEspecialidades.examesEProcedimentos as opcoes}
-                                        <option value={opcoes.value}>{opcoes.label}</option>
-                                    {/each}
-                                </optgroup>
-                            </select>
+                            <label for="nova-especialidade-input" class="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
+                            <div class="relative">
+                                <input 
+                                  type="text"
+                                  class="w-full border border-gray-300 rounded-md p-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                  placeholder="Digite para buscar..."
+                                  bind:value={termoBuscaNovaEsp}
+                                  id="nova-especialidade-input"
+                                  onfocus={() => comboboxEspAberto = true}
+                                  oninput={() => comboboxEspAberto = true}
+                                  onblur={() => setTimeout(() => comboboxEspAberto = false, 150)}
+                                />
+                                {#if comboboxEspAberto}
+                                  {@const sugestoes = filtrarEspecialidadesPac(termoBuscaNovaEsp)}
+                                  {@const consultas = sugestoes.filter((e:any) => e.categoria === 'ESPECIALIDADE_MEDICA')}
+                                  {@const exames = sugestoes.filter((e:any) => e.categoria === 'EXAME_OU_PROCEDIMENTO')}
+                                  <ul class="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-80 overflow-y-auto shadow-lg">
+                                    {#if sugestoes.length === 0}
+                                      <li class="p-2 text-sm text-gray-500 select-none">Nenhuma especialidade encontrada</li>
+                                    {:else}
+                                      {#if consultas.length > 0}
+                                        <li class="px-2 py-1 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Consultas</li>
+                                        {#each consultas as e (e.id)}
+                                          <li class="px-2 py-1">
+                                            <button type="button" class="w-full text-left px-2 py-2 hover:bg-emerald-50 cursor-pointer text-sm" onclick={() => { novaEspecialidadeObj.especialidadeId = e.id; termoBuscaNovaEsp = e.nome; comboboxEspAberto = false; }}>
+                                              <div class="flex items-center justify-between">
+                                                <span class="font-medium text-gray-900">{e.nome}</span>
+                                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{prettyCategoria(e.categoria)}</span>
+                                              </div>
+                                              <div class="text-[11px] text-gray-500">{e.codigo}</div>
+                                            </button>
+                                          </li>
+                                        {/each}
+                                      {/if}
+                                      {#if exames.length > 0}
+                                        <li class="px-2 py-1 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Exames e Procedimentos</li>
+                                        {#each exames as e (e.id)}
+                                          <li class="px-2 py-1">
+                                            <button type="button" class="w-full text-left px-2 py-2 hover:bg-emerald-50 cursor-pointer text-sm" onclick={() => { novaEspecialidadeObj.especialidadeId = e.id; termoBuscaNovaEsp = e.nome; comboboxEspAberto = false; }}>
+                                              <div class="flex items-center justify-between">
+                                                <span class="font-medium text-gray-900">{e.nome}</span>
+                                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{prettyCategoria(e.categoria)}</span>
+                                              </div>
+                                              <div class="text-[11px] text-gray-500">{e.codigo}</div>
+                                            </button>
+                                          </li>
+                                        {/each}
+                                      {/if}
+                                    {/if}
+                                  </ul>
+                                {/if}
+                              </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
-                            <select bind:value={novaEspecialidadeObj.prioridade} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <label for="prioridade-select" class="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
+                            <select id="prioridade-select" bind:value={novaEspecialidadeObj.prioridade} class="w-full border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                            
                                 <option value="NORMAL" disabled>Normal</option>
                                 <option value="URGENTE">Urgente</option>
@@ -703,15 +791,15 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Em caso de retorno... </label>
-                            <select bind:value={novaEspecialidadeObj.status} class="w-full border-gray-300 rounded-md shadow-sm">
+                            <label for="retorno-select" class="block text-sm font-medium text-gray-700 mb-1">Em caso de retorno... </label>
+                            <select id="retorno-select" bind:value={novaEspecialidadeObj.status} class="w-full border-gray-300 rounded-md shadow-sm">
                                 <option value="AGUARDANDO" disabled>Selecione...</option>
                                 <option value="RETORNO">Retorno</option>
                                 <option value="RETORNO_POLICLINICA">Retorno Policlínica</option>
                             </select>
                         </div>
                     </div>
-                    <button on:click={adicionarEspecialidade} class="mt-4 bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">Adicionar</button>
+                    <button onclick={adicionarEspecialidade} class="mt-4 bg-emerald-700 text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow">Adicionar</button>
                 </section>
             {/if}
         </main>

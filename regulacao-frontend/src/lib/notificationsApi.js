@@ -16,3 +16,15 @@ export async function marcarTodasComoLidas() {
   if (!res.ok) throw new Error('Falha ao marcar todas como lidas');
 }
 
+export async function listarLidas() {
+  const res = await getApi('notifications/read');
+  if (!res.ok) throw new Error('Falha ao listar notificações lidas');
+  return await res.json();
+}
+
+export async function criarNotificacaoLocal({ tipo = 'LOCAL', resumo, linkPath, payload } = {}) {
+  if (!resumo || !resumo.trim()) throw new Error('Resumo é obrigatório');
+  const body = { tipo, resumo: resumo.trim(), linkPath: linkPath || null, payload: payload || null };
+  const res = await postApi('notifications', body);
+  if (!res.ok) throw new Error('Falha ao criar notificação');
+}

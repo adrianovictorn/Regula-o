@@ -55,6 +55,21 @@ public class NotificacaoService {
                 }).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> listarLidas() {
+        Municipio local = instanceContext.getMunicipioLocal();
+        return repo.findTop50ByMunicipioDestinoIdAndLidaOrderByCreatedAtDesc(local.getId(), true)
+                .stream().map(n -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", n.getId());
+                    m.put("tipo", n.getTipo());
+                    m.put("resumo", n.getResumo());
+                    m.put("linkPath", n.getLinkPath());
+                    m.put("createdAt", n.getCreatedAt() != null ? n.getCreatedAt().toString() : null);
+                    return m;
+                }).collect(Collectors.toList());
+    }
+
     @Transactional
     public void marcarComoLida(Long id) {
         repo.findById(id).ifPresent(n -> { n.setLida(true); repo.save(n); });

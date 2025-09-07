@@ -41,4 +41,34 @@ public class NotificacaoController {
         notificacaoService.marcarTodasComoLidas();
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/read")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    public ResponseEntity<List<Map<String, Object>>> listarLidas() {
+        try {
+            return ResponseEntity.ok(notificacaoService.listarLidas());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(java.util.Collections.emptyList());
+        }
+    }
+
+    public record CriarNotificacaoRequest(
+            String tipo,
+            String resumo,
+            String linkPath,
+            Map<String, Object> payload
+    ) {}
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> criarLocal(@RequestBody CriarNotificacaoRequest req) {
+        notificacaoService.criar(
+                req.tipo() != null ? req.tipo() : "LOCAL",
+                req.resumo(),
+                req.linkPath(),
+                req.payload()
+        );
+        return ResponseEntity.ok().build();
+    }
 }

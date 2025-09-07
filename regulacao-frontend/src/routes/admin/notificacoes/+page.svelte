@@ -3,11 +3,18 @@
   import { user } from '$lib/stores/auth.js';
   import UserMenu from '$lib/UserMenu.svelte';
   import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
-  import { listarNaoLidas, marcarComoLida, marcarTodasComoLidas } from '$lib/notificationsApi.js';
+  import { listarNaoLidas, listarLidas, marcarComoLida, marcarTodasComoLidas, criarNotificacaoLocal } from '$lib/notificationsApi.js';
 
   let loading = false;
   let error = '';
   let notifications = [];
+  let tab = 'unread'; // 'unread' | 'read'
+  // form de criação
+  let tipo = 'LOCAL';
+  let resumo = '';
+  let linkPath = '';
+  let payloadText = '';
+  const placeholderJson = '{"chave":"valor"}';
 
   function formatDate(dt) {
     if (!dt) return '-';
@@ -31,7 +38,7 @@
   async function carregar() {
     loading = true; error = '';
     try {
-      notifications = await listarNaoLidas();
+      notifications = tab === 'read' ? await listarLidas() : await listarNaoLidas();
     } catch (e) {
       error = e.message || 'Falha ao carregar notificações';
     } finally { loading = false; }
@@ -55,6 +62,28 @@
     // carrega quando autenticar
     carregar();
   }
+
+  $: if (tab) {
+    // troca de aba recarrega
+    carregar();
+  }
+
+  async function enviarNotificacao(e) {
+    e?.preventDefault?.();
+    try {
+      let payloadObj = undefined;
+      if (payloadText && payloadText.trim()) {
+        try { payloadObj = JSON.parse(payloadText); }
+        catch { return alert('Payload deve ser JSON válido'); }
+      }
+      await criarNotificacaoLocal({ tipo, resumo, linkPath, payload: payloadObj });
+      alert('Notificação criada');
+      resumo = ''; linkPath = ''; payloadText = '';
+      if (tab === 'unread') await carregar();
+    } catch (e) {
+      alert(e.message || 'Falha ao criar notificação');
+    }
+  }
 </script>
 
 <svelte:head><title>Admin - Notificações</title></svelte:head>
@@ -74,17 +103,48 @@
           <a href="/login" class="inline-block mt-2 text-emerald-700 underline">Ir para login</a>
         {:else}
           <div class="flex items-center gap-2 mb-4">
+            <div class="inline-flex rounded border overflow-hidden mr-3">
+              <button class={`px-3 py-2 ${tab==='unread' ? 'bg-emerald-600 text-white' : 'bg-white'}`} on:click={() => tab = 'unread'}>Não lidas</button>
+              <button class={`px-3 py-2 ${tab==='read' ? 'bg-emerald-600 text-white' : 'bg-white'}`} on:click={() => tab = 'read'}>Lidas</button>
+            </div>
             <button class="px-3 py-2 bg-gray-100 rounded border" on:click={carregar} disabled={loading}>
               {loading ? 'Carregando...' : 'Recarregar'}
             </button>
+            {#if tab==='unread'}
             <button class="px-3 py-2 bg-emerald-600 text-white rounded" on:click={marcarTodas} disabled={loading || notifications.length===0}>
               Marcar todas como lidas
             </button>
-            <span class="text-sm text-gray-500">{notifications.length} não lida(s)</span>
+            {/if}
+            <span class="text-sm text-gray-500">{notifications.length} {tab==='unread' ? 'não lida(s)' : 'lida(s)'}</span>
           </div>
           {#if error}
             <div class="text-red-600 mb-3">{error}</div>
           {/if}
+
+          <div class="bg-gray-50 border rounded p-4 mb-6">
+            <h3 class="font-semibold mb-2">Enviar notificação local</h3>
+            <form on:submit|preventDefault={enviarNotificacao} class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+              <div class="flex flex-col">
+                <label class="text-sm text-gray-600">Tipo</label>
+                <input class="border rounded p-2" bind:value={tipo} />
+              </div>
+              <div class="flex flex-col md:col-span-2">
+                <label class="text-sm text-gray-600">Resumo</label>
+                <input class="border rounded p-2" bind:value={resumo} required />
+              </div>
+              <div class="flex flex-col">
+                <label class="text-sm text-gray-600">Link (opcional)</label>
+                <input class="border rounded p-2" bind:value={linkPath} placeholder="/alguma/rota" />
+              </div>
+              <div class="flex flex-col md:col-span-2">
+                <label class="text-sm text-gray-600">Payload JSON (opcional)</label>
+                <textarea class="border rounded p-2 h-24" bind:value={payloadText} placeholder={placeholderJson}></textarea>
+              </div>
+              <div class="flex items-end">
+                <button class="px-4 py-2 bg-emerald-600 text-white rounded" type="submit">Enviar</button>
+              </div>
+            </form>
+          </div>
 
           <div class="overflow-x-auto">
             <table class="min-w-full bg-white">
@@ -100,7 +160,7 @@
               <tbody class="text-gray-700">
                 {#if notifications.length === 0}
                   <tr>
-                    <td class="py-4 px-3 text-gray-500" colspan="5">Sem notificações não lidas.</td>
+                    <td class="py-4 px-3 text-gray-500" colspan="5">Sem notificações {tab==='unread' ? 'não lidas' : 'lidas'}.</td>
                   </tr>
                 {/if}
                 {#each notifications as n (n.id)}
@@ -114,7 +174,9 @@
                         {#if n.linkPath}
                           <a href={n.linkPath} class="text-emerald-700 hover:underline text-sm" target="_self">Abrir</a>
                         {/if}
-                        <button class="text-sm text-gray-700 underline" on:click={() => marcarLida(n.id)}>Marcar como lida</button>
+                        {#if tab==='unread'}
+                          <button class="text-sm text-gray-700 underline" on:click={() => marcarLida(n.id)}>Marcar como lida</button>
+                        {/if}
                       </div>
                     </td>
                   </tr>

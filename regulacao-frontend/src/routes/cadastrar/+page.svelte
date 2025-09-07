@@ -17,9 +17,11 @@
 	// **AJUSTE 1: Unificar a lista de CIDs**
 	// A lista de CIDs carregada da API. O #each usará esta variável.
 	let cids: CID[] = [];
-	let termoBuscaCid = '';
+	// Para combobox de CIDs por linha
+	let termosCid: string[] = [''];
+	let comboCidAberto: boolean[] = [false];
 
-	// Array para guardar os IDs dos CIDs que o usuário seleciona. Começa com um campo.
+	// Array para guardar os IDs dos CIDs selecionados (um por linha)
 	let cidsSelecionados: (number | null)[] = [null];
 
 	// Campos do formulário
@@ -33,23 +35,27 @@
 	let observacoes = '';
 
 	let especialidadesCatalogo: { id: number; codigo: string; nome: string }[] = [];
-	let especialidades = [{ especialidadeId: null as number | null, status: 'AGUARDANDO', prioridade: 'NORMAL' }];
+	let especialidades = [{ especialidadeId: null as number | null, status: 'AGUARDANDO', prioridade: 'NORMAL', termo: '', aberto: false }];
 
 	// --- FUNÇÕES DO FORMULÁRIO ---
 
 	function addEspecialidade() {
 		especialidades = [
 			...especialidades,
-			{ especialidadeId: null, status: 'AGUARDANDO', prioridade: 'NORMAL' }
+			{ especialidadeId: null, status: 'AGUARDANDO', prioridade: 'NORMAL', termo: '', aberto: false }
 		];
 	}
 
 	function addCid() {
 		cidsSelecionados = [...cidsSelecionados, null];
+		termosCid = [...termosCid, ''];
+		comboCidAberto = [...comboCidAberto, false];
 	}
 
 	function removerCid(index: number) {
 		cidsSelecionados = cidsSelecionados.filter((_, i) => i !== index);
+		termosCid = termosCid.filter((_, i) => i !== index);
+		comboCidAberto = comboCidAberto.filter((_, i) => i !== index);
 	}
 
 	function removerEspecialidade(i: number) {
@@ -121,18 +127,20 @@
 		}
 	}
 
-	function limparCampos() {
-		nomePaciente = '';
-		cpfPaciente = '';
-		cns = '';
-		telefone = '';
-		datanascimento = '';
-		usfOrigem = '';
-		dataMalote = '';
-		observacoes = '';
-		especialidades = [{ especialidadeId: null, status: 'AGUARDANDO', prioridade: 'NORMAL' }];
-		cidsSelecionados = [null];
-	}
+		function limparCampos() {
+			nomePaciente = '';
+			cpfPaciente = '';
+			cns = '';
+			telefone = '';
+			datanascimento = '';
+			usfOrigem = '';
+			dataMalote = '';
+			observacoes = '';
+			especialidades = [{ especialidadeId: null, status: 'AGUARDANDO', prioridade: 'NORMAL', termo: '', aberto: false }];
+			cidsSelecionados = [null];
+			termosCid = [''];
+			comboCidAberto = [false];
+		}
 
 	function formatarCPF(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -154,16 +162,21 @@
 		return (s || '')
 			.toString()
 			.normalize('NFD')
-			.replace(/\p{Diacritic}/gu, '')
+			.replace(/[\u0300-\u036f]/g, '')
 			.toLowerCase();
 	}
 
-	$: cidsFiltrados = !termoBuscaCid
-		? cids
-		: cids.filter((c) => {
-			const q = normalize(termoBuscaCid);
-			return normalize(c.codigo).includes(q) || normalize(c.descricao).includes(q);
-		});
+	function filtrarCidsTermo(t: string) {
+		const q = normalize(t);
+		const base = q ? cids.filter(c => normalize(c.codigo).includes(q) || normalize(c.descricao).includes(q)) : cids;
+		return base.slice(0, 50);
+	}
+
+	function filtrarEspecialidadesTermo(t: string) {
+		const q = normalize(t);
+		const base = q ? especialidadesCatalogo.filter(e => normalize(e.nome).includes(q) || normalize(e.codigo).includes(q)) : especialidadesCatalogo;
+		return base.slice(0, 50);
+	}
 </script>
 
 <svelte:head>
@@ -223,27 +236,36 @@
 
 						<div class="flex flex-col lg:col-span-5">
 							<label class="text-sm font-medium text-gray-700 mb-1">CIDs</label>
-							<div class="flex items-center gap-2 mb-2">
-								<input type="text" class="border border-gray-300 rounded-lg p-2 w-full md:w-96" placeholder="Buscar CID por código ou descrição..." bind:value={termoBuscaCid} />
-								<button type="button" class="px-3 py-2 text-sm bg-gray-100 rounded border border-gray-300 hover:bg-gray-200" on:click={() => (termoBuscaCid = '')}>Limpar</button>
-							</div>
-							<div class="space-y-2">
-								{#each cidsSelecionados as selectedCid, i (i)}
-									<div class="flex items-center gap-4">
-										<div class="flex-grow">
-											<select bind:value={cidsSelecionados[i]} class="w-full border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500" required>
-												<option value={null} disabled>Selecione um CID...</option>
-												{#each cidsFiltrados as c (c.id)}
-													<option value={c.id}>{c.codigo} - {c.descricao}</option>
-												{/each}
-											</select>
+								<div class="space-y-2">
+									{#each cidsSelecionados as selectedCid, i (i)}
+										<div class="flex items-center gap-4">
+											<div class="flex-grow relative">
+												<label class="sr-only">CID</label>
+												<input
+													type="text"
+													class="w-full border border-gray-300 rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500"
+													placeholder="Digite o código ou descrição..."
+													bind:value={termosCid[i]}
+													on:focus={() => comboCidAberto[i] = true}
+													on:input={() => comboCidAberto[i] = true}
+													on:blur={() => setTimeout(() => comboCidAberto[i] = false, 150)}
+												/>
+												{#if comboCidAberto[i] && filtrarCidsTermo(termosCid[i]).length > 0}
+													<ul class="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
+														{#each filtrarCidsTermo(termosCid[i]) as c (c.id)}
+															<li class="p-2 hover:bg-emerald-100 cursor-pointer text-sm" on:mousedown={() => { cidsSelecionados[i] = c.id; termosCid[i] = `${c.codigo} - ${c.descricao}`; comboCidAberto[i] = false; }}>
+																<strong>{c.codigo}</strong> - {c.descricao}
+															</li>
+														{/each}
+													</ul>
+												{/if}
+											</div>
+											{#if cidsSelecionados.length > 1}
+												<button type="button" on:click={() => removerCid(i)} class="text-red-500 hover:text-red-700 font-medium">✕</button>
+											{/if}
 										</div>
-										{#if cidsSelecionados.length > 1}
-											<button type="button" on:click={() => removerCid(i)} class="text-red-500 hover:text-red-700 font-medium">✕</button>
-										{/if}
-									</div>
-								{/each}
-							</div>
+									{/each}
+								</div>
 							<button type="button" on:click={addCid} class="mt-2 text-emerald-600 hover:text-emerald-800 font-medium self-start">+ Adicionar CID</button>
 						</div>
 					</div>
@@ -255,32 +277,46 @@
 
 					<div>
 						<h3 class="text-lg font-semibold text-gray-800 mb-4">Especialidades</h3>
-						<div class="space-y-4">
-							{#each especialidades as esp, i}
-								<div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 border border-gray-200 rounded-lg">
-									<select bind:value={esp.especialidadeId} class="border-gray-300 rounded-lg p-2" required>
-										<option value={null} disabled>Especialidade</option>
-										{#each especialidadesCatalogo as e (e.id)}
-											<option value={e.id}>{e.nome}</option>
-										{/each}
-									</select>
-									<select bind:value={esp.status} class="border-gray-300 rounded-lg p-2">
-										<option value="AGUARDANDO">Aguardando</option>
-										<option value="RETORNO">Retorno</option>
-										<option value="RETORNO_POLICLINICA">Retorno Policlinica</option>
-										<option value="AGENDADO">Agendado</option>
-										<option value="REALIZADO">Realizado</option>
-										<option value="CANCELADO">Cancelado</option>
-									</select>
-									<select bind:value={esp.prioridade} class="border-gray-300 rounded-lg p-2">
-										<option value="NORMAL">Normal</option>
-										<option value="URGENTE">Urgente</option>
-										<option value="EMERGENCIA">Emergência</option>
-									</select>
-									<button type="button" on:click={() => removerEspecialidade(i)} class="text-red-500 hover:text-red-700 font-medium">✕ Remover</button>
+								<div class="space-y-4">
+									{#each especialidades as esp, i}
+										<div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 border border-gray-200 rounded-lg">
+											<div class="relative">
+												<input
+													type="text"
+													class="border-gray-300 rounded-lg p-2 w-full"
+													placeholder="Digite para buscar a especialidade..."
+													bind:value={esp.termo}
+													on:focus={() => esp.aberto = true}
+													on:input={() => esp.aberto = true}
+													on:blur={() => setTimeout(() => esp.aberto = false, 150)}
+												/>
+												{#if esp.aberto && filtrarEspecialidadesTermo(esp.termo).length > 0}
+													<ul class="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
+														{#each filtrarEspecialidadesTermo(esp.termo) as e (e.id)}
+															<li class="p-2 hover:bg-emerald-100 cursor-pointer text-sm" on:mousedown={() => { esp.especialidadeId = e.id; esp.termo = e.nome; esp.aberto = false; }}>
+																{e.nome}
+															</li>
+														{/each}
+													</ul>
+												{/if}
+											</div>
+											<select bind:value={esp.status} class="border-gray-300 rounded-lg p-2">
+												<option value="AGUARDANDO">Aguardando</option>
+												<option value="RETORNO">Retorno</option>
+												<option value="RETORNO_POLICLINICA">Retorno Policlinica</option>
+												<option value="AGENDADO">Agendado</option>
+												<option value="REALIZADO">Realizado</option>
+												<option value="CANCELADO">Cancelado</option>
+											</select>
+											<select bind:value={esp.prioridade} class="border-gray-300 rounded-lg p-2">
+												<option value="NORMAL">Normal</option>
+												<option value="URGENTE">Urgente</option>
+												<option value="EMERGENCIA">Emergência</option>
+											</select>
+											<button type="button" on:click={() => removerEspecialidade(i)} class="text-red-500 hover:text-red-700 font-medium">✕ Remover</button>
+										</div>
+									{/each}
 								</div>
-							{/each}
-						</div>
 						<button type="button" on:click={addEspecialidade} class="mt-2 text-emerald-600 hover:text-emerald-800 font-medium">+ Adicionar Especialidade</button>
 					</div>
 
