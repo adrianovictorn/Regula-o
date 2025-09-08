@@ -1,6 +1,6 @@
 -- Tabela solicitacao
 CREATE TABLE solicitacao (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     usf_origem VARCHAR(20) NOT NULL,
     nome_paciente VARCHAR(150) NOT NULL,
     cpf_paciente VARCHAR(15) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE solicitacao (
 
 -- Tabela agendamento_solicitacao
 CREATE TABLE agendamento_solicitacao (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     local_agendado VARCHAR(50) NOT NULL,
     data_agendada DATE NOT NULL,
     observacoes VARCHAR(500),
@@ -23,7 +23,7 @@ CREATE TABLE agendamento_solicitacao (
 
 -- Tabela solicitacao_especialidade
 CREATE TABLE solicitacao_especialidade (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     solicitacao_id BIGINT NOT NULL,
     agendamento_id BIGINT,
     especialidade_solicitada VARCHAR(100) NOT NULL,
