@@ -1,4 +1,4 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspeci
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.AgendamentoService; // Mantido AgendamentoService
-import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoService; // Importar SolicitacaoService também
+import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoService; // Importar SolicitacaoService tambÃ©m
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,7 +34,7 @@ public class AgendamentoController {
 
 
     /**
-     * Lista todas as solicitações pendentes para agendamento.
+     * Lista todas as solicitaÃ§Ãµes pendentes para agendamento.
      */
     @GetMapping("/pendentes")
     public ResponseEntity<List<AgendamentoViewDto>> listarSolicitacoesPendentes() {
@@ -43,7 +43,7 @@ public class AgendamentoController {
     }
 
     /**
-     * Lista todos os agendamentos já criados.
+     * Lista todos os agendamentos jÃ¡ criados.
      */
     @GetMapping
     public ResponseEntity<List<AgendamentoSolicitacaoSimpleViewDTO>> listarTodosAgendamentos() {
@@ -52,19 +52,19 @@ public class AgendamentoController {
     }
 
     /**
-     * Cria um agendamento para uma solicitação específica.
+     * Cria um agendamento para uma solicitaÃ§Ã£o especÃ­fica.
      */
      @PostMapping("/{solicitacaoId}")
     public ResponseEntity<AgendamentoSolicitacaoSimpleViewDTO> criarAgendamento(
             @PathVariable Long solicitacaoId,
             @RequestBody MultiAgendamentoCreateDTO dto) { // Usa o novo DTO
-        // Chama o novo método criado no AgendamentoService
+        // Chama o novo mÃ©todo criado no AgendamentoService
         AgendamentoSolicitacaoSimpleViewDTO agendamentoCriado = agendamentoService.criarAgendamentoParaMultiplosExames(solicitacaoId, dto);
         return new ResponseEntity<>(agendamentoCriado, HttpStatus.CREATED);
     }
 
     /**
-     * Lista todos os agendamentos criados para uma solicitação específica.
+     * Lista todos os agendamentos criados para uma solicitaÃ§Ã£o especÃ­fica.
      */
     @GetMapping("/solicitacao/{solicitacaoId}")
     public ResponseEntity<List<AgendamentoSolicitacaoSimpleViewDTO>> listarAgendamentosPorSolicitacaoId(@PathVariable Long solicitacaoId) {
@@ -78,8 +78,8 @@ public class AgendamentoController {
         return ResponseEntity.noContent().build();
     }
 
-    private static final Map<String, List<EspecialidadesEnum>> PAINEIS_ENUMS = Map.of(
-"Laboratório", List.of(
+    private static final Map<String, List<EspecialidadesEnum>> PAINEIS_ENUMS = Map.ofEntries(
+        Map.entry("Laboratório", List.of(
             EspecialidadesEnum.ASLO, EspecialidadesEnum.ACIDO_URICO, EspecialidadesEnum.ANALISE_CARACTERES_FISICOS_ELEMENTOS_SEDIMENTO_URINA,
             EspecialidadesEnum.ANTI_HBS, EspecialidadesEnum.ANTI_HCV, EspecialidadesEnum.ANTIBIOGRAMA, EspecialidadesEnum.BACILOSCOPIA_DE_ESCARRO_BAAR,
             EspecialidadesEnum.BACILOSCOPIA_DIRETA_BAAR_TUBERCULOS_CONTROLE, EspecialidadesEnum.BACILOSCOPIA_DIRETA_BAAR_TUBERCULOSE_DIAGNOSTICA,
@@ -154,8 +154,8 @@ public class AgendamentoController {
             EspecialidadesEnum.TESTE_TUBERCULINICO_PPD, EspecialidadesEnum.TIPO_SANGUINEO, EspecialidadesEnum.TRIGLICERIDEOS,
             EspecialidadesEnum.UREIA, EspecialidadesEnum.UROCULTURA_COM_ANTIBIOGRAMA, EspecialidadesEnum.VDRL,
             EspecialidadesEnum.VDRL_DETECCAO_SIFILIS_EM_GESTANTE, EspecialidadesEnum.VLDL_COLESTEROL
-        ),       
-         "Raio X", List.of(
+        )),
+         Map.entry("Raio X", List.of(
             EspecialidadesEnum.RAIO_X_ABDOMEN_AGUDO,
             EspecialidadesEnum.RAIO_X_ABDOMEN_SIMPLES,
             EspecialidadesEnum.RAIO_X_ARTICULACAO_COXO_FEMURAL_BACIA,
@@ -174,8 +174,8 @@ public class AgendamentoController {
             EspecialidadesEnum.RAIO_X_REGIAO_CERVICAL,
             EspecialidadesEnum.RAIO_X_TORAX_PA,
             EspecialidadesEnum.RAIO_X_TORAX_PA_PERFIL
-        ),
-    "Ultrassonografia", List.of(
+        )),
+    Map.entry("Ultrassonografia", List.of(
             EspecialidadesEnum.ULTRASSONOGRAFIA_ABDOMEN_SUPERIOR,
             EspecialidadesEnum.ULTRASSONOGRAFIA_ABDOMINAL_TOTAL,
             EspecialidadesEnum.ULTRASSONOGRAFIA_ARTICULAR,
@@ -186,20 +186,22 @@ public class AgendamentoController {
             EspecialidadesEnum.ULTRASSONOGRAFIA_PROSTATA_VIA_ABDOMINAL,
             EspecialidadesEnum.ULTRASSONOGRAFIA_TIREOIDE,
             EspecialidadesEnum.ULTRASSONOGRAFIA_VIAS_URINARIAS
-        ),        
-        "Doppler", List.of(
+        )),
+        Map.entry("Doppler", List.of(
             EspecialidadesEnum.DOPPLER,
             EspecialidadesEnum.ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_BILATERAL,
             EspecialidadesEnum.ULTRASSONOGRAFIA_DOPPLER_ARTERIAL_MEMBRO_INFERIOR_UNILATERAL,
             EspecialidadesEnum.ULTRASSONOGRAFIA_DOPPLER_CAROTIDAS_E_VERTEBRAIS,
             EspecialidadesEnum.ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_BILATERAL,
             EspecialidadesEnum.ULTRASSONOGRAFIA_DOPPLER_VENOSO_MEMBRO_INFERIOR_UNILATERAL
-        ),
-        "Eletrocardiograma", List.of(EspecialidadesEnum.ELETROCARDIOGRAMA_ECG),
-        "Pediatra", List.of(EspecialidadesEnum.PEDIATRIA),
-        "Ortopedista", List.of(EspecialidadesEnum.ORTOPEDISTA),
-        "Cardiologista", List.of(EspecialidadesEnum.CARDIOLOGISTA),
-        "Ecocardiograma", List.of(EspecialidadesEnum.ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER)
+        )),
+        Map.entry("Eletrocardiograma", List.of(EspecialidadesEnum.ELETROCARDIOGRAMA_ECG)),
+        Map.entry("Pediatra", List.of(EspecialidadesEnum.PEDIATRIA)),
+        Map.entry("Ortopedista", List.of(EspecialidadesEnum.ORTOPEDISTA)),
+        Map.entry("Cardiologista", List.of(EspecialidadesEnum.CARDIOLOGISTA)),
+        Map.entry("Cirurgião Geral", List.of(EspecialidadesEnum.CIRURGIAO_GERAL)),
+        Map.entry("Dermatologista", List.of(EspecialidadesEnum.DERMATOLOGISTA)),
+        Map.entry("Ecocardiograma", List.of(EspecialidadesEnum.ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER))
     );
 
     @GetMapping("/contagem-por-data")
@@ -208,16 +210,16 @@ public class AgendamentoController {
         
         List<ContagemPainelDTO> resultados = new ArrayList<>();
 
-        // Itera sobre a definição dos painéis
+        // Itera sobre a definiÃ§Ã£o dos painÃ©is
         for (Map.Entry<String, List<EspecialidadesEnum>> painel : PAINEIS_ENUMS.entrySet()) {
             String label = painel.getKey();
             List<EspecialidadesEnum> enums = painel.getValue();
             List<String> codigos = enums.stream().map(Enum::name).toList();
             
-            // Aqui está a chamada à sua query, exatamente como você queria!
+            // Aqui estÃ¡ a chamada Ã  sua query, exatamente como vocÃª queria!
             long count = solicitacaoRepo.countDistinctSolicitacoesPorDataECodigos(data, codigos);
             
-            // Adiciona o resultado (apenas dados) à lista
+            // Adiciona o resultado (apenas dados) Ã  lista
             resultados.add(new ContagemPainelDTO(label, count));
         }
         
@@ -233,13 +235,13 @@ public class AgendamentoController {
             @RequestParam("data") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam("categoria") String categoria) {
         
-        // Pega a lista de enums correspondente à categoria
+        // Pega a lista de enums correspondente Ã  categoria
         List<EspecialidadesEnum> enums = PAINEIS_ENUMS.get(categoria);
         if (enums == null) {
-            return List.of(); // Retorna lista vazia se a categoria for inválida
+            return List.of(); // Retorna lista vazia se a categoria for invÃ¡lida
         }
 
-        // Busca as solicitações no banco
+        // Busca as solicitaÃ§Ãµes no banco
         List<String> codigos = enums.stream().map(Enum::name).toList();
         List<SolicitacaoEspecialidade> agendamentos = solicitacaoRepo.findAgendadasCompletasPorDataECodigos(data, codigos);
 
@@ -251,9 +253,14 @@ public class AgendamentoController {
                 se.getStatus().toString(),
                 se.getSolicitacao().getId()
             ))
-            .distinct() // Garante que a mesma solicitação não apareça duplicada se tiver mais de um exame na mesma categoria
+            .distinct() // Garante que a mesma solicitaÃ§Ã£o nÃ£o apareÃ§a duplicada se tiver mais de um exame na mesma categoria
             .toList();
     }
 
    
 }
+
+
+
+
+

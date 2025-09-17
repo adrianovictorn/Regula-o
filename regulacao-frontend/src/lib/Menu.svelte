@@ -1,117 +1,146 @@
-<script>
+﻿<script>
   import { onMount } from 'svelte';
 
-  // Props para o componente
-  export let activePage = ''; // Recebe a URL da página ativa
+  export let activePage = '';
 
-  // Controle para o submenu de Solicitação
-  let isSolicitacaoOpen = false;
-  let isPainelAdminOpen = false;
-  let isPainelDeGestao = false;
-  let isFilaCompartilhada = false;
+  // Uma única fonte de verdade
+  // valores possíveis: '', 'solicitacao', 'gestao', 'admin', 'filas'
+  let open = '';
 
-  function toggleSolicitacao() {
-    isSolicitacaoOpen = !isSolicitacaoOpen;
-  }
+  // Booleans derivados (reativos)
+  $: isSolicitacaoOpen   = open === 'solicitacao';
+  $: isPainelDeGestao    = open === 'gestao';
+  $: isPainelAdminOpen   = open === 'admin';
+  $: isFilaCompartilhada = open === 'filas';
 
-  function togglePainelAdmin(){
-    isPainelAdminOpen = !isPainelAdminOpen;
-  }
+  // Alterna abrindo UM e fechando os demais
+  const toggle = (key) => {
+    open = open === key ? '' : key;
+  };
 
-   function togglePainelGestao(){
-    isPainelDeGestao = !isPainelDeGestao;
-  }
+  // Classes dinâmicas dos links
+  const linkClasses = (path) =>
+    `py-2 px-4 rounded transition block ${
+      activePage === path ? 'bg-emerald-700' : 'hover:bg-emerald-800'
+    }`;
 
-    function toggleFilaCompartilhada(){
-    isFilaCompartilhada = !isFilaCompartilhada;
-  }
-  // Lógica para manter o submenu aberto se a página ativa for uma de suas filhas
+  // Decide qual seção deve estar aberta com base na rota ativa
   onMount(() => {
-    if (activePage === '/cadastrar' || activePage === '/exames') {
-      isSolicitacaoOpen = true;
-    }
-    if(activePage ==='/admin/cadastrar-usuario' || activePage === '/admin/listar-usuarios' || activePage === '/admin/pactos'){
-      isPainelAdminOpen = true;
-    }
-     if(activePage ==='/cadastrar/cid' || activePage === '/listar/cid' || activePage === '/cadastrar/especialidade'){
-      isPainelDeGestao = true;
-    }
-      if(activePage ==='/filas/minhas' || activePage === '/filas/compartilhadas'){
-      isFilaCompartilhada = true;
+    if (['/cadastrar', '/exames'].includes(activePage)) {
+      open = 'solicitacao';
+    } else if (
+      ['/cadastrar/cid', '/listar/cid', '/cadastrar/especialidade'].includes(activePage)
+    ) {
+      open = 'gestao';
+    } else if (
+      ['/admin/cadastrar-usuario', '/admin/listar-usuarios', '/admin/pactos',
+       '/admin/municipios', '/admin/notificacoes'].includes(activePage)
+    ) {
+      open = 'admin';
+    } else if (['/filas/minhas', '/filas/compartilhadas'].includes(activePage)) {
+      open = 'filas';
+    } else {
+      open = ''; // nenhum aberto
     }
   });
 </script>
 
 <aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
   <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
-  <nav class="flex-1 flex flex-col space-y-2 px-6">
-    <a href="/dashboard" class="py-2 px-4 rounded transition" class:bg-emerald-700={activePage === '/dashboard'} class:hover:bg-emerald-800={activePage !== '/dashboard'}>Dashboard</a>
 
+  <nav class="flex-1 flex flex-col space-y-2 px-6">
+    <a href="/dashboard" class={linkClasses('/dashboard')}>Dashboard</a>
+
+    <!-- Solicitação -->
     <div>
-      <button on:click={toggleSolicitacao} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
+      <button
+        on:click={() => toggle('solicitacao')}
+        class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center"
+      >
         <span>Solicitação</span>
-        <span class="transform transition-transform duration-200" class:rotate-180={isSolicitacaoOpen}>▼</span>
+        <svg class="w-4 h-4 transform transition-transform duration-200" class:rotate-180={isSolicitacaoOpen}
+          viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+        </svg>
       </button>
       {#if isSolicitacaoOpen}
         <div class="pl-4 mt-2 space-y-2">
-          <a href="/cadastrar" class="block py-2 px-4 rounded transition" class:bg-emerald-700={activePage === '/cadastrar'} class:hover:bg-emerald-800={activePage !== '/cadastrar'}>Cadastro de Consulta</a>
-          <a href="/exames" class="block py-2 px-4 rounded transition" class:bg-emerald-700={activePage === '/exames'} class:hover:bg-emerald-800={activePage !== '/exames'}>Exame/Procedimento</a>
+          <a href="/cadastrar" class={linkClasses('/cadastrar')}>Cadastro de Consulta</a>
+          <a href="/exames" class={linkClasses('/exames')}>Exame/Procedimento</a>
         </div>
       {/if}
     </div>
 
-    <a href="/agendar" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/agendar'}>Agendamento</a>
-    <a href="/dashboard/procedimentos/data" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/dashboard/procedimentos'}>Agenda do Dia</a>
-    <a href="/paciente" class="py-2 px-4 rounded hover:bg-emerald-800" class:bg-emerald-700={activePage === '/paciente'}>Paciente</a>
-    <a href="/exportar" class="py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/exportar'}>Relatórios</a>
+    <a href="/agendar" class={linkClasses('/agendar')}>Agendamento</a>
+    <a href="/dashboard/procedimentos/data" class={linkClasses('/dashboard/procedimentos/data')}>Agenda do Dia</a>
+    <a href="/paciente" class={linkClasses('/paciente')}>Paciente</a>
+    <a href="/exportar" class={linkClasses('/exportar')}>Relatórios</a>
 
-     <div>
-      <button on:click={togglePainelGestao} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
+    <!-- Painel Gerencial -->
+    <div>
+      <button
+        on:click={() => toggle('gestao')}
+        class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center"
+      >
         <span>Painel Gerencial</span>
-        <span class="transform transition-transform duration-200" class:rotate-180={isSolicitacaoOpen}>▼</span>
-        </button>
+        <svg class="w-4 h-4 transform transition-transform duration-200" class:rotate-180={isPainelDeGestao}
+          viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+        </svg>
+      </button>
       {#if isPainelDeGestao}
         <div class="pl-4 mt-2 space-y-2">
-            <a href="/cadastrar/cid" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/cadastrar/cid'}>Cadastrar CID</a>
-            <a href="/listar/cid" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/listar/cid'}>Listar CID</a>
-            <a href="/cadastrar/especialidade" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/cadastrar/especialidade'}>Cadastrar Especialidade</a>
+          <a href="/cadastrar/cid" class={linkClasses('/cadastrar/cid')}>Cadastrar CID</a>
+          <a href="/listar/cid" class={linkClasses('/listar/cid')}>Listar CID</a>
+          <a href="/cadastrar/especialidade" class={linkClasses('/cadastrar/especialidade')}>Cadastrar Especialidade</a>
         </div>
       {/if}
     </div>
-  
+
+    <!-- Painel Admin -->
     <div>
-      <button on:click={togglePainelAdmin} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
+      <button
+        on:click={() => toggle('admin')}
+        class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center"
+      >
         <span>Painel Admin</span>
-        <span class="transform transition-transform duration-200" class:rotate-180={isSolicitacaoOpen}>▼</span>
+        <svg class="w-4 h-4 transform transition-transform duration-200" class:rotate-180={isPainelAdminOpen}
+          viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+        </svg>
       </button>
-    {#if isPainelAdminOpen}
-      <div class="pl-4 mt-2 space-y-2">
-          <a href="/admin/cadastrar-usuario" class=" block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/cadastrar-usuario'}>Cadastrar Usuário</a>
-          <a href="/admin/listar-usuarios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/listar-usuarios'}>Listar Usuário</a>
-          <a href="/admin/pactos" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/pactos'}>Pactos</a>
-          <a href="/admin/municipios" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/municipios'}>Registrar Município</a>
-          <a href="/admin/notificacoes" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/admin/notificacoes'}>Notificações</a>
-      </div>
-    {/if}
-   
+      {#if isPainelAdminOpen}
+        <div class="pl-4 mt-2 space-y-2">
+          <a href="/admin/cadastrar-usuario" class={linkClasses('/admin/cadastrar-usuario')}>Cadastrar Usuário</a>
+          <a href="/admin/listar-usuarios" class={linkClasses('/admin/listar-usuarios')}>Listar Usuário</a>
+          <a href="/admin/pactos" class={linkClasses('/admin/pactos')}>Pactos</a>
+          <a href="/admin/municipios" class={linkClasses('/admin/municipios')}>Registrar Município</a>
+          <a href="/admin/notificacoes" class={linkClasses('/admin/notificacoes')}>Notificações</a>
+        </div>
+      {/if}
     </div>
 
+    <!-- Filas Compartilhadas -->
     <div>
-      <button on:click={toggleFilaCompartilhada} class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center">
+      <button
+        on:click={() => toggle('filas')}
+        class="w-full text-left py-2 px-4 rounded hover:bg-emerald-800 transition flex justify-between items-center"
+      >
         <span>Filas Compartilhadas</span>
-        <span class="transform transition-transform duration-200" class:rotate-180={isFilaCompartilhada}>▼</span>
+        <svg class="w-4 h-4 transform transition-transform duration-200" class:rotate-180={isFilaCompartilhada}
+          viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+        </svg>
       </button>
-     {#if isFilaCompartilhada}
-      <div class="pl-4 mt-2 space-y-2">
-          
-          <a href="/filas/compartilhadas" class="block py-2 px-4 rounded hover:bg-emerald-800 transition" class:bg-emerald-700={activePage === '/filas/compartilhadas'}>Solicitações Compartilhadas</a>
-      </div>
-    {/if}
+      {#if isFilaCompartilhada}
+        <div class="pl-4 mt-2 space-y-2">
+          <a href="/filas/compartilhadas" class={linkClasses('/filas/compartilhadas')}>Solicitações Compartilhadas</a>
+        </div>
+      {/if}
     </div>
-
-
-   
   </nav>
-  <div class="px-6 mt-4 text-sm text-emerald-200">v1.1 • Adriano Victor, Filipe Ribeiro © 2025</div>
-</aside>
 
+  <div class="px-6 mt-4 text-sm text-emerald-200">
+    v1.1 • Adriano Victor, Filipe Ribeiro © 2025
+  </div>
+</aside>
