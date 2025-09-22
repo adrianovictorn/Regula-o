@@ -1,4 +1,4 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.AgendamentoSolicitacao;
 
@@ -12,10 +12,20 @@ public record AgendamentoSolicitacaoSimpleViewDTO(
     public static AgendamentoSolicitacaoSimpleViewDTO fromAgendamentoSolicitacao(AgendamentoSolicitacao agendamento) {
         return new AgendamentoSolicitacaoSimpleViewDTO(
             agendamento.getId(),
-            agendamento.getLocalAgendado() != null ? agendamento.getLocalAgendado().name() : null,
+            resolveLocal(agendamento),
             agendamento.getDataAgendada() != null ? agendamento.getDataAgendada().toString() : null,
             agendamento.getObservacoes(),
             agendamento.getTurno() != null ? agendamento.getTurno().toString() : null
         );
+    }
+
+    private static String resolveLocal(AgendamentoSolicitacao agendamento) {
+        if (agendamento.getLocalAgendamento() != null) {
+            return agendamento.getLocalAgendamento().getNomeLocal();
+        }
+        if (agendamento.getLocalAgendado() != null) {
+            return agendamento.getLocalAgendado().name().replace('_', ' ');
+        }
+        return null;
     }
 }

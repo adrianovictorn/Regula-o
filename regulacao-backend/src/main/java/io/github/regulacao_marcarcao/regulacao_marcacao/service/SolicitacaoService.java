@@ -1,4 +1,4 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.service;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
 import java.util.List;
 import java.util.Map;
@@ -193,7 +193,6 @@ public class SolicitacaoService {
         Solicitacao solicitacao = solicitacaoRepository.findById(solicitacaoId)
             .orElseThrow(() -> new EntityNotFoundException("Solicitação não encontrada."));
 
-        // Cria a nova especialidade usando os dados do DTO (status e prioridade vêm do frontend)
         SolicitacaoEspecialidade novaEspecialidade = new SolicitacaoEspecialidade();
         novaEspecialidade.setSolicitacao(solicitacao);
         novaEspecialidade.setAgendamentoSolicitacao(null);
@@ -217,12 +216,10 @@ public class SolicitacaoService {
 
         solicitacao.getEspecialidades().add(novaEspecialidade);
 
-        // Salva a solicitação, o que também persistirá a nova especialidade devido ao CascadeType.ALL
         solicitacao = solicitacaoRepository.save(solicitacao);
         return SolicitacaoViewDTO.fromSolicitacao(solicitacao);
     }
 
-    // Exemplo de modificação em SolicitacaoService.java
     @Transactional(readOnly = true)
     public List<Map<String, String>> listarTodasEspecialidadesComDetalhes() {
         return Arrays.stream(EspecialidadesEnum.values())
@@ -250,3 +247,6 @@ public class SolicitacaoService {
         return solicitacaoRepository.findByCpfPacienteSemPonto(cpf).stream().map(SolicitacaoPublicViewDTO::fromSolicitacao).collect(Collectors.toList());
     }
 }
+
+
+

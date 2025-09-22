@@ -1,7 +1,9 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
 
 import java.time.LocalDate;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.LocalDeAgendamentoEnum;
+import jakarta.persistence.FetchType;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.LocalAgendamento;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.TurnoEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,9 +32,13 @@ public class AgendamentoSolicitacao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "local_agendado", nullable = false)
+        @Enumerated(EnumType.STRING)
+    @Column(name = "local_agendado")
     private LocalDeAgendamentoEnum localAgendado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "local_agendamento_id")
+    private LocalAgendamento localAgendamento;
     
     @Column(name = "data_agendada", nullable = false)
     private LocalDate dataAgendada;
@@ -50,3 +56,5 @@ public class AgendamentoSolicitacao {
     private TurnoEnum turno;
 
 }
+
+
