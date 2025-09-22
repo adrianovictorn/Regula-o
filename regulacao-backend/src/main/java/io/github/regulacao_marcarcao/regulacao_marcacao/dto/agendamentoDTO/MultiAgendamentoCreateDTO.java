@@ -1,4 +1,4 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
 
 import java.time.LocalDate;
 import java.util.List;

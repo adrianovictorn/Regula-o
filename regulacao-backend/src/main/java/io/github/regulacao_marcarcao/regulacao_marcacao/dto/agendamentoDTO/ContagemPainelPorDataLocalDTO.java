@@ -1,12 +1,10 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
 
 import java.time.LocalDate;
 
-import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.LocalDeAgendamentoEnum;
-
 public record ContagemPainelPorDataLocalDTO(
      String especialidades,
-     LocalDeAgendamentoEnum localAgendamento,
+     String localAgendamento,
      LocalDate data,
      long contagem
 ) {
