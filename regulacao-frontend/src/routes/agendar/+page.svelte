@@ -7,6 +7,24 @@
     import Menu from '$lib/Menu.svelte';
     import UserMenu from '$lib/UserMenu.svelte';
 
+  interface Cidade {
+        id: number
+        nomeCidade: string
+        codigoIBGE: string
+        cep: string
+    }
+
+  interface LocalAgendamento {
+    id: number
+    nomeLocal: string
+    endereco: string
+    numero: string
+    cidade?: Cidade | null
+    cidadeId?: number | null
+    cidadeNome?: string | null
+  }
+
+  let locaisAgendamento = $state<LocalAgendamento[]>([]);
   // --- Estado do Componente ---
   let solicitacoes = $state<any[]>([]);
   let isLoading = $state(true);
@@ -17,7 +35,7 @@
   let examesSelecionados = $state<string[]>([]);
   let dataAgendada = $state('');
   let turno = $state<'MANHA' | 'TARDE'>('MANHA');
-  let localAgendado = $state('');
+  let localAgendamentoId = $state('');
   let observacoes = $state('');
   let valorBusca = $state('');
   let comboboxAberto = $state(false);
@@ -25,10 +43,15 @@
   // <<< NOVO: Dicionário e função para traduzir nomes de exames >>>
   // 1. Criamos um mapa para busca rápida dos nomes amigáveis.
   let especialidadeLabelMap = new Map<string, string>();
+  let catalogoCarregado = false;
   async function carregarCatalogoEspecialidades() {
+    if (catalogoCarregado && especialidadeLabelMap.size > 0) {
+      return;
+    }
     try {
       const lista = await listarEspecialidadesCatalogo();
       especialidadeLabelMap = new Map(lista.map((e:any) => [e.codigo, e.nome]));
+      catalogoCarregado = true;
     } catch (e) {
       // mantém vazio; fallback usa replace('_',' ')
       console.warn('Falha ao carregar catálogo de especialidades', e);
@@ -59,10 +82,31 @@
     }
   }
 
+  async function carregarLocaisAgendamento() {
+    try {
+      const res = await getApi('local/agendamento');
+
+      if (!res.ok) {
+        throw new Error('Erro ao receber dados do servidor!');
+      }
+
+      const data: LocalAgendamento[] = await res.json();
+      locaisAgendamento = data;
+
+      if (localAgendamentoId && !data.some((loc) => String(loc.id) === String(localAgendamentoId))) {
+        localAgendamentoId = '';
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao se conectar ao servidor!');
+    }
+  }
+
   onMount(async () => {
     await Promise.all([
       carregarCatalogoEspecialidades(),
-      carregarSolicitacoesPendentes()
+      carregarSolicitacoesPendentes(),
+      carregarLocaisAgendamento()
     ]);
   });
 
@@ -70,42 +114,18 @@
     solicitacoes.find((s) => String(s.solicitacaoId) === String(solicitacaoId)) || null
   );
 
-  const locais = [
-    { value: 'POLICLINICA_RECONVALE', label: 'Policlínica Reconvale' },
-    { value: 'POLICLINICA_MUNICIPAL_DE_SANTO_ANTONIO_DE_JESUS', label: 'Policlínica Municipal de Santo Antônio de Jesus' },
-    { value: 'HOSPITAL_DE_CONCEICAO_DO_ALMEIDA', label: 'Hospital de Conceição do Almeida' },
-    { value: 'HOSPITAL_IRMA_DULCE', label: 'Hospital Irmã Dulce' },
-    { value: 'HOSPITAL_DA_MULHER', label: 'Hospital da Mulher' },
-    { value: 'LABCHECAP', label: 'Labchecap' },
-    { value: 'HOSPITAL_ROBERTO_SANTOS', label: 'Hospital Roberto Santos' },
-    { value: 'HOSPITAL_LUIS_ARGOLO', label: 'Hospital Luís Argolo' },
-    { value: 'HOSPITAL_DOS_OLHOS_BAHIA', label: 'Hospital dos Olhos Bahia' },
-    { value: 'CLINICA_A_MAIS_SAUDE', label: 'Clínica A Mais Saúde' },
-    { value: 'HOSPITAL_ARISTIDES', label: 'Hospital Aristides' },
-    { value: 'APAE', label: 'APAE' },
-    { value: 'CDI', label: 'CDI' },
-    { value: 'CEDAF', label: 'CEDAF' },
-    { value: 'CLINICA_ELIZ', label: 'Clínica Eliz' },
-    { value: 'MULTICENTRO_DA_CARLOS_GOMES', label: 'Multicentro da Carlos Gomes' },
-    { value: 'MULTIIMAGEM', label: 'Multi Imagem' },
-    { value: 'HOSPITAL_MUNICIPAL', label: 'Hospital Municipal' },
-    { value: 'HOSPITAL_ORTOPEDICO', label: 'Hospital Ortopédico' },
-    { value: 'HOSPITAL_DO_SUBURBIO', label: 'Hospital do Subúrbio' },
-    { value: 'PRIMAGEM', label: 'Primagem' },
-    { value: 'PONTO_ALTO_IMAGEM', label: 'Ponto Alto Imagem' },
-    { value: 'HOSPITAL_REGIONAL', label: 'Hospital Regional' },
-    { value: 'HOSPITAL_SANTA_IZABEL', label: 'Hospital Santa Izabel' },
-    { value: 'CLINICA_MURITIBA', label: 'Clínica Muritiba' },
-    { value: 'HOSPITAL_MARTAGAO_GESTEIRA', label: 'Hospital Martagão Gesteira' },
-    { value: 'ADAB', label: 'ADAB' },
-    { value: 'HOSPITAL_DA_CRIANCA', label: 'Hospital da Criança' }
-  ];
+ 
+
+  
   const brasaoUrl =
     'https://upload.wikimedia.org/wikipedia/commons/9/97/Bras%C3%A3o_de_Concei%C3%A7%C3%A3o_do_Almeida.png';
 
   function getLocalLabel(value: string) {
-    const found = locais.find((loc) => loc.value === value);
-    return found ? found.label : value.replace(/_/g, ' ');
+    const found = locaisAgendamento.find((loc) => String(loc.id) === String(value));
+    if (!found) {
+      return 'Local não informado';
+    }
+    return found.cidadeNome ? `${found.nomeLocal} - ${found.cidadeNome}` : found.nomeLocal;
   }
 
   async function loadImage(url: string): Promise<HTMLImageElement> {
@@ -148,7 +168,7 @@ function selecionarSolicitacao(solicitacao) {
     examesSelecionados: string[];
     dataAgendada: string;
     turno: 'MANHA' | 'TARDE';
-    localAgendado: string;
+    localAgendamentoId: string;
     observacoes: string;
   }) {
     const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
@@ -203,7 +223,7 @@ function selecionarSolicitacao(solicitacao) {
         { label: 'Exames Agendados', value: nomesAmigaveis.join(', '), color: corDestaque, style: 'bold' },
         { label: 'Data Agendada',  value: new Date(dadosPDF.dataAgendada + 'T00:00:00').toLocaleDateString('pt-BR'), color: corDestaque, style: 'bold' },
         { label: 'Turno',          value: dadosPDF.turno === 'MANHA' ? 'Manhã' : 'Tarde', color: corPadrao },
-        { label: 'Local',          value: getLocalLabel(dadosPDF.localAgendado), color: corDestaque, style: 'bold' },
+        { label: 'Local',          value: getLocalLabel(dadosPDF.localAgendamentoId), color: corDestaque, style: 'bold' },
         { label: 'Observações',    value: dadosPDF.observacoes || 'Nenhuma', color: corPadrao }
     ];
 
@@ -265,12 +285,26 @@ function selecionarSolicitacao(solicitacao) {
       alert('Selecione pelo menos um exame para agendar.');
       return;
     }
-    if (!dataAgendada || !localAgendado) {
+    if (!dataAgendada || !localAgendamentoId) {
       alert('Preencha a data e o local do agendamento.');
       return;
     }
 
-    const body = { examesSelecionados, dataAgendada, localAgendado, observacoes, turno };
+    const localIdNumber = localAgendamentoId ? Number(localAgendamentoId) : null;
+
+   const body: Record<string, unknown> = {
+     examesSelecionados,
+     dataAgendada,
+     observacoes,
+     turno,
+      localAgendado: null
+    };
+
+    if (localIdNumber !== null) {
+      body.localAgendamentoId = localIdNumber;
+    } else {
+      body.localAgendamentoId = null;
+    }
 
     try {
       postApi(`agendamentos/${solicitacaoId}`, body).then(async (resposta) => {
@@ -283,22 +317,40 @@ function selecionarSolicitacao(solicitacao) {
             cpfPaciente: solicitacaoSelecionada.cpfPaciente,
             usfOrigem: solicitacaoSelecionada.usfOrigem,
             cns: solicitacaoSelecionada.cns,
-            examesSelecionados, dataAgendada, turno, localAgendado, observacoes
+            examesSelecionados,
+            dataAgendada,
+            turno,
+            localAgendamentoId,
+            observacoes
           });
 
           // Resetar formulário
           solicitacaoId = '';
           examesSelecionados = [];
           dataAgendada = '';
-          localAgendado = '';
+          localAgendamentoId = '';
           observacoes = '';
           turno = 'MANHA';
           valorBusca = '';
 
           await carregarSolicitacoesPendentes();
+          await carregarLocaisAgendamento();
         } else {
-          const erroData = await resposta.json();
-          alert(`Erro ao agendar: ${erroData.message || 'Verifique os dados e tente novamente.'}`);
+          let mensagemErro = '';
+          try {
+            const texto = await resposta.text();
+            mensagemErro = texto ? JSON.parse(texto).message ?? texto : '';
+          } catch {
+            // mantém mensagemErro vazio caso parsing falhe
+          }
+
+          if (!mensagemErro) {
+            mensagemErro = resposta.status === 403
+              ? 'Acesso negado. Verifique se você está autenticado e possui permissão para agendar.'
+              : 'Verifique os dados e tente novamente.';
+          }
+
+          alert(`Erro ao agendar: ${mensagemErro}`);
         }
       });
     } catch (err) {
@@ -424,12 +476,21 @@ function selecionarSolicitacao(solicitacao) {
                     </div>
                   </div>
                   <div class="flex flex-col mt-4">
-                    <label for="localAgendado" class="text-sm font-medium text-gray-700 mb-1">Local do Agendamento</label>
-                    <select id="localAgendado" bind:value={localAgendado} class="w-full border border-gray-300 rounded-lg p-2" required>
+                    <label for="localAgendamentoId" class="text-sm font-medium text-gray-700 mb-1">Local do Agendamento</label>
+                    <select id="localAgendamentoId" bind:value={localAgendamentoId} class="w-full border border-gray-300 rounded-lg p-2" required>
                       <option value="" disabled>Selecione o local...</option>
-                      {#each locais as loc (loc.value)}
-                        <option value={loc.value}>{loc.label}</option>
-                      {/each}
+                      {#if locaisAgendamento.length === 0}
+                        <option disabled>Nenhum local cadastrado</option>
+                      {:else}
+                        {#each locaisAgendamento as loc}
+                          <option value={loc.id}>
+                            {loc.nomeLocal}
+                            {#if loc.cidadeNome}
+                              {' '}- {loc.cidadeNome}
+                            {/if}
+                          </option>
+                        {/each}
+                      {/if}
                     </select>
                   </div>
                   <div class="flex flex-col mt-4">

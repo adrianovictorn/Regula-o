@@ -1,18 +1,26 @@
 ﻿package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.Arrays;
-import java.util.HashMap;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.AgendamentoSolicitacaoSimpleViewDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.dashboard.DashboardResumoDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.paciente.PacienteResumoDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadeAdicionarDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.AgendamentoSolicitacaoCreateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoCreateDTO;
@@ -23,7 +31,9 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.CID;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.PrioridadeDaMarcacaoEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.UsfEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.CidRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.EspecialidadeRepository;
@@ -32,6 +42,8 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRe
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoSpecification;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoListFiltersDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoPublicViewDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.projection.StatusCountProjection;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.projection.UsfPendentesProjection;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -136,8 +148,180 @@ public class SolicitacaoService {
     }
 
     @Transactional(readOnly = true)
+    public Page<PacienteResumoDTO> buscarPacientes(String termo, int page, int size) {
+        int pagina = Math.max(page, 0);
+        int limite = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(pagina, limite);
+
+        String filtroBruto = termo != null ? termo.trim() : "";
+        boolean possuiFiltro = !filtroBruto.isBlank();
+        String filtroNormalizado = possuiFiltro ? filtroBruto.toLowerCase(Locale.ROOT) : "";
+        String filtroNumerico = possuiFiltro ? limparCpf(filtroBruto) : "";
+
+        Comparator<Solicitacao> ordenacaoPorNome = Comparator
+            .comparing((Solicitacao s) -> normalizarTexto(s.getNomePaciente()))
+            .thenComparing(s -> s.getId(), Comparator.nullsLast(Long::compareTo));
+
+        Map<String, Solicitacao> solicitacoesPorCpf = new LinkedHashMap<>();
+
+        solicitacaoRepository.findAll().stream()
+            .sorted(ordenacaoPorNome)
+            .filter(s -> !possuiFiltro || correspondeAoFiltro(s, filtroNormalizado, filtroNumerico))
+            .forEach(s -> {
+                String chaveCpf = limparCpf(s.getCpfPaciente());
+                if (chaveCpf.isEmpty()) {
+                    chaveCpf = "NOCPF-" + s.getId();
+                }
+                solicitacoesPorCpf.putIfAbsent(chaveCpf, s);
+            });
+
+        List<PacienteResumoDTO> resultados = solicitacoesPorCpf.values().stream()
+            .map(this::toPacienteResumo)
+            .toList();
+
+        int inicio = Math.min(pagina * limite, resultados.size());
+        int fim = Math.min(inicio + limite, resultados.size());
+
+        List<PacienteResumoDTO> conteudo = resultados.subList(inicio, fim);
+        return new PageImpl<>(conteudo, pageable, resultados.size());
+    }
+    @Transactional(readOnly = true)
+    public Page<PacienteResumoDTO> buscarPacientesDoPaciente(String cpf, int page, int size) {
+        int pagina = Math.max(page, 0);
+        int limite = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(pagina, limite);
+
+        if (cpf == null) {
+            return Page.empty(pageable);
+        }
+
+        String cpfNumerico = limparCpf(cpf);
+        if (cpfNumerico.isBlank()) {
+            return Page.empty(pageable);
+        }
+
+        List<Solicitacao> solicitacoes = solicitacaoRepository.findByCpfPacienteSemPonto(cpfNumerico);
+        if (solicitacoes.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        Solicitacao selecionada = solicitacoes.stream()
+            .min(Comparator.comparing(Solicitacao::getId))
+            .orElse(solicitacoes.get(0));
+
+        PacienteResumoDTO dto = new PacienteResumoDTO(
+            selecionada.getId(),
+            selecionada.getNomePaciente(),
+            selecionada.getCpfPaciente(),
+            selecionada.getUsfOrigem()
+        );
+
+        if (pagina > 0) {
+            return new PageImpl<>(List.of(), pageable, 1);
+        }
+
+        return new PageImpl<>(List.of(dto), pageable, 1);
+    }
+
+    private boolean correspondeAoFiltro(Solicitacao solicitacao, String filtroNormalizado, String filtroNumerico) {
+        if (solicitacao == null) {
+            return false;
+        }
+
+        if (filtroNormalizado == null || filtroNormalizado.isBlank()) {
+            return true;
+        }
+
+        String nomeNormalizado = normalizarTexto(solicitacao.getNomePaciente());
+        if (!nomeNormalizado.isBlank() && nomeNormalizado.contains(filtroNormalizado)) {
+            return true;
+        }
+
+        String cpfOriginal = solicitacao.getCpfPaciente();
+        if (cpfOriginal != null) {
+            String cpfNormalizado = normalizarTexto(cpfOriginal);
+            if (cpfNormalizado.contains(filtroNormalizado)) {
+                return true;
+            }
+
+            String cpfApenasNumeros = limparCpf(cpfOriginal);
+            if (!filtroNumerico.isBlank() && cpfApenasNumeros.contains(filtroNumerico)) {
+                return true;
+            }
+        }
+
+        if (solicitacao.getUsfOrigem() != null) {
+            String usfNormalizado = normalizarTexto(solicitacao.getUsfOrigem().name());
+            if (usfNormalizado.contains(filtroNormalizado)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String normalizarTexto(String valor) {
+        return valor == null ? "" : valor.toLowerCase(Locale.ROOT);
+    }
+
+    private String limparCpf(String valor) {
+        return valor == null ? "" : valor.replaceAll("\\D", "");
+    }
+
+    private PacienteResumoDTO toPacienteResumo(Solicitacao solicitacao) {
+        return new PacienteResumoDTO(
+            solicitacao.getId(),
+            solicitacao.getNomePaciente(),
+            solicitacao.getCpfPaciente(),
+            solicitacao.getUsfOrigem()
+        );
+    }
+
+    @Transactional(readOnly = true)
     public List<SolicitacaoViewDTO> todasSolicitacoes(){
         return solicitacaoRepository.findAll().stream().map(SolicitacaoViewDTO::fromSolicitacao).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardResumoDTO obterResumoDashboard() {
+        long totalSolicitacoes = solicitacaoRepository.count();
+
+        List<StatusCountProjection> porStatus = solicitacaoRepository.contarPorStatus();
+        long totalPendentes = extrairTotalStatus(porStatus, StatusDaMarcacao.AGUARDANDO);
+        long totalAgendadas = extrairTotalStatus(porStatus, StatusDaMarcacao.AGENDADO);
+        long totalConcluidas = extrairTotalStatus(porStatus, StatusDaMarcacao.REALIZADO);
+
+        long totalUrgentes = solicitacaoRepository.contarPorStatusPrioridades(
+            StatusDaMarcacao.AGUARDANDO,
+            Arrays.asList(PrioridadeDaMarcacaoEnum.URGENTE, PrioridadeDaMarcacaoEnum.EMERGENCIA)
+        );
+
+        Map<UsfEnum, Long> pendentesPorUsf = new EnumMap<>(UsfEnum.class);
+        for (UsfEnum usf : UsfEnum.values()) {
+            pendentesPorUsf.put(usf, 0L);
+        }
+
+        List<UsfPendentesProjection> pendentes = solicitacaoRepository.contarPorUsfEStatus(StatusDaMarcacao.AGUARDANDO);
+        for (UsfPendentesProjection proj : pendentes) {
+            pendentesPorUsf.put(proj.getUsf(), proj.getTotal());
+        }
+
+        return new DashboardResumoDTO(
+            totalSolicitacoes,
+            totalPendentes,
+            totalAgendadas,
+            totalConcluidas,
+            totalUrgentes,
+            pendentesPorUsf
+        );
+    }
+
+    private long extrairTotalStatus(List<StatusCountProjection> lista, StatusDaMarcacao status) {
+        return lista.stream()
+            .filter(item -> item.getStatus() == status)
+            .mapToLong(StatusCountProjection::getTotal)
+            .findFirst()
+            .orElse(0L);
     }
 
     @Transactional(readOnly = true)
@@ -247,6 +431,14 @@ public class SolicitacaoService {
         return solicitacaoRepository.findByCpfPacienteSemPonto(cpf).stream().map(SolicitacaoPublicViewDTO::fromSolicitacao).collect(Collectors.toList());
     }
 }
+
+
+
+
+
+
+
+
 
 
 

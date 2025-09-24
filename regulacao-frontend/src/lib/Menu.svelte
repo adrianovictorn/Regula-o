@@ -3,8 +3,7 @@
 
   export let activePage = '';
 
-  // Uma única fonte de verdade
-  // valores possíveis: '', 'solicitacao', 'gestao', 'admin', 'filas'
+  
   let open = '';
 
   // Booleans derivados (reativos)
@@ -29,12 +28,12 @@
     if (['/cadastrar', '/exames'].includes(activePage)) {
       open = 'solicitacao';
     } else if (
-      ['/cadastrar/cid', '/listar/cid', '/cadastrar/especialidade'].includes(activePage)
+      ['/cadastrar/cid', '/listar/cid', '/cadastrar/especialidade', '/cadastrar/cidade','/cadastrar/cidade/local-agendamento'].includes(activePage)
     ) {
       open = 'gestao';
     } else if (
       ['/admin/cadastrar-usuario', '/admin/listar-usuarios', '/admin/pactos',
-       '/admin/municipios', '/admin/notificacoes'].includes(activePage)
+       '/admin/municipios', '/admin/notificacoes', '/'].includes(activePage)
     ) {
       open = 'admin';
     } else if (['/filas/minhas', '/filas/compartilhadas'].includes(activePage)) {
@@ -93,6 +92,8 @@
           <a href="/cadastrar/cid" class={linkClasses('/cadastrar/cid')}>Cadastrar CID</a>
           <a href="/listar/cid" class={linkClasses('/listar/cid')}>Listar CID</a>
           <a href="/cadastrar/especialidade" class={linkClasses('/cadastrar/especialidade')}>Cadastrar Especialidade</a>
+          <a href="/cadastrar/cidade" class={linkClasses('/cadastrar/cidade')}>Cadastrar Cidade</a>
+          <a href="/cadastrar/cidade/local-agendamento" class={linkClasses('/cadastrar/cidade/local-agendamento')}> Local de Agendamento</a>
         </div>
       {/if}
     </div>

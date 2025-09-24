@@ -1,4 +1,4 @@
-﻿package io.github.regulacao_marcarcao.regulacao_marcacao.service;
+package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
 import java.util.List;
 
@@ -9,8 +9,9 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.localAge
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.localAgendamentoDTO.LocalAgendamentoUpdateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.localAgendamentoDTO.LocalAgendamentoViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.LocalAgendamento;
-import io.github.regulacao_marcarcao.regulacao_marcacao.repository.LocalAgendamentoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.CidadeRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.LocalAgendamentoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -21,12 +22,13 @@ public class LocalAgendamentoService {
     private final LocalAgendamentoRepository localAgendamentoRepository;
     private final CidadeRepository cidadeRepository;
     
+    @Transactional
     public LocalAgendamentoViewDTO cadastrarLocalAgendamento(LocalAgendamentoCreateDTO dto){
         LocalAgendamento novoLocalAgendamento = new LocalAgendamento();
         novoLocalAgendamento.setNomeLocal(dto.nomeLocal());
         novoLocalAgendamento.setCidade(
             dto.cidadeId() != null ? cidadeRepository.findById(dto.cidadeId())
-                .orElseThrow(() -> new RuntimeException("Cidade nao encontrada")) : null
+                .orElseThrow(() -> new EntityNotFoundException("Cidade não encontrada.")) : null
         );
         novoLocalAgendamento.setNumero(dto.numero());
         novoLocalAgendamento.setEndereco(dto.endereco());
@@ -41,10 +43,10 @@ public class LocalAgendamentoService {
 
     @Transactional
     public LocalAgendamentoViewDTO atualizarLocalAgendamento(Long id, LocalAgendamentoUpdateDTO dto){
-        LocalAgendamento localAgendamentoExistente = localAgendamentoRepository.findById(id).orElseThrow(() -> new RuntimeException("Local de Agendamento nao existente !"));
+        LocalAgendamento localAgendamentoExistente = localAgendamentoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Local de agendamento não encontrado."));
         localAgendamentoExistente.setCidade(
             dto.cidadeId() != null ? cidadeRepository.findById(dto.cidadeId())
-                .orElseThrow(() -> new RuntimeException("Cidade nao encontrada")) : null
+                .orElseThrow(() -> new EntityNotFoundException("Cidade não encontrada.")) : null
         );
         localAgendamentoExistente.setNomeLocal(dto.nomeLocal());
         localAgendamentoExistente.setEndereco(dto.endereco());
@@ -53,13 +55,10 @@ public class LocalAgendamentoService {
         return LocalAgendamentoViewDTO.fromEntity(localAgendamentoRepository.save(localAgendamentoExistente));
     }
 
+    @Transactional
     public void deletarLocalAgendamento(Long id){
-        LocalAgendamento localAgendamentoExistente = localAgendamentoRepository.findById(id).orElseThrow(() -> new RuntimeException("Local de Agendamento nao existente !"));
+        LocalAgendamento localAgendamentoExistente = localAgendamentoRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Local de agendamento não encontrado."));
         localAgendamentoRepository.delete(localAgendamentoExistente);
     }
 }
-
-
-
-
-

@@ -1,4 +1,4 @@
-﻿package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
+package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspeci
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.EspecialidadesEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.AgendamentoService; // Mantido AgendamentoService
-import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoService; // Importar SolicitacaoService tambÃ©m
+import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoService; // Importar SolicitacaoService também
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,7 +34,7 @@ public class AgendamentoController {
 
 
     /**
-     * Lista todas as solicitaÃ§Ãµes pendentes para agendamento.
+     * Lista todas as solicitações pendentes para agendamento.
      */
     @GetMapping("/pendentes")
     public ResponseEntity<List<AgendamentoViewDto>> listarSolicitacoesPendentes() {
@@ -43,7 +43,7 @@ public class AgendamentoController {
     }
 
     /**
-     * Lista todos os agendamentos jÃ¡ criados.
+     * Lista todos os agendamentos já criados.
      */
     @GetMapping
     public ResponseEntity<List<AgendamentoSolicitacaoSimpleViewDTO>> listarTodosAgendamentos() {
@@ -52,19 +52,19 @@ public class AgendamentoController {
     }
 
     /**
-     * Cria um agendamento para uma solicitaÃ§Ã£o especÃ­fica.
+     * Cria um agendamento para uma solicitação específica.
      */
-     @PostMapping("/{solicitacaoId}")
+    @PostMapping("/{solicitacaoId}")
     public ResponseEntity<AgendamentoSolicitacaoSimpleViewDTO> criarAgendamento(
             @PathVariable Long solicitacaoId,
             @RequestBody MultiAgendamentoCreateDTO dto) { // Usa o novo DTO
-        // Chama o novo mÃ©todo criado no AgendamentoService
+        // Chama o novo método criado no AgendamentoService
         AgendamentoSolicitacaoSimpleViewDTO agendamentoCriado = agendamentoService.criarAgendamentoParaMultiplosExames(solicitacaoId, dto);
         return new ResponseEntity<>(agendamentoCriado, HttpStatus.CREATED);
     }
 
     /**
-     * Lista todos os agendamentos criados para uma solicitaÃ§Ã£o especÃ­fica.
+     * Lista todos os agendamentos criados para uma solicitação específica.
      */
     @GetMapping("/solicitacao/{solicitacaoId}")
     public ResponseEntity<List<AgendamentoSolicitacaoSimpleViewDTO>> listarAgendamentosPorSolicitacaoId(@PathVariable Long solicitacaoId) {
@@ -210,16 +210,16 @@ public class AgendamentoController {
         
         List<ContagemPainelDTO> resultados = new ArrayList<>();
 
-        // Itera sobre a definiÃ§Ã£o dos painÃ©is
+        // Itera sobre a definição dos painéis
         for (Map.Entry<String, List<EspecialidadesEnum>> painel : PAINEIS_ENUMS.entrySet()) {
             String label = painel.getKey();
             List<EspecialidadesEnum> enums = painel.getValue();
             List<String> codigos = enums.stream().map(Enum::name).toList();
             
-            // Aqui estÃ¡ a chamada Ã  sua query, exatamente como vocÃª queria!
+            // Aqui está a chamada à sua query, exatamente como você queria!
             long count = solicitacaoRepo.countDistinctSolicitacoesPorDataECodigos(data, codigos);
             
-            // Adiciona o resultado (apenas dados) Ã  lista
+            // Adiciona o resultado (apenas dados) à lista
             resultados.add(new ContagemPainelDTO(label, count));
         }
         
@@ -230,18 +230,18 @@ public class AgendamentoController {
     
 
 
-     @GetMapping("/pacientes-por-data")
+    @GetMapping("/pacientes-por-data")
     public List<PacienteAgendadoDTO> getPacientesPorData(
             @RequestParam("data") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam("categoria") String categoria) {
         
-        // Pega a lista de enums correspondente Ã  categoria
+        // Pega a lista de enums correspondente à categoria
         List<EspecialidadesEnum> enums = PAINEIS_ENUMS.get(categoria);
         if (enums == null) {
-            return List.of(); // Retorna lista vazia se a categoria for invÃ¡lida
+            return List.of(); // Retorna lista vazia se a categoria for inválida
         }
 
-        // Busca as solicitaÃ§Ãµes no banco
+        // Busca as solicitações no banco
         List<String> codigos = enums.stream().map(Enum::name).toList();
         List<SolicitacaoEspecialidade> agendamentos = solicitacaoRepo.findAgendadasCompletasPorDataECodigos(data, codigos);
 
@@ -253,14 +253,12 @@ public class AgendamentoController {
                 se.getStatus().toString(),
                 se.getSolicitacao().getId()
             ))
-            .distinct() // Garante que a mesma solicitaÃ§Ã£o nÃ£o apareÃ§a duplicada se tiver mais de um exame na mesma categoria
+            .distinct() // Garante que a mesma solicitação não apareça duplicada se tiver mais de um exame na mesma categoria
             .toList();
     }
 
    
 }
-
-
 
 
 

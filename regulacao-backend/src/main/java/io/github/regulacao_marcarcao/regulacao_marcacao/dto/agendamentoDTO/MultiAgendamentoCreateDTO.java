@@ -10,6 +10,7 @@ public record MultiAgendamentoCreateDTO(
     List<String> examesSelecionados,
     LocalDate dataAgendada,
     LocalDeAgendamentoEnum localAgendado,
+    Long localAgendamentoId,
     TurnoEnum turno,
     String observacoes
 ) {}

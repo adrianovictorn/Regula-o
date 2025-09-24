@@ -1,9 +1,11 @@
-package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
+﻿package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,13 +13,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacaoEspecialidadeDTO.EspecialidadeAdicionarDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoCreateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoPublicViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoUpdateDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.paciente.PacienteResumoDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.SolicitacaoViewDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.dto.dashboard.DashboardResumoDTO;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.User;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.Roles;
 import io.github.regulacao_marcarcao.regulacao_marcacao.service.SolicitacaoService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -41,6 +48,33 @@ public class SolicitacaoController {
     public ResponseEntity<List<SolicitacaoViewDTO>> listarSolicitacoes(){
        List<SolicitacaoViewDTO> lista = service.todasSolicitacoes();
        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/pacientes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'PACIENTE')")
+    public ResponseEntity<Page<PacienteResumoDTO>> listarPacientes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(name = "search", required = false) String search,
+            Authentication authentication) {
+        User usuarioAutenticado = null;
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            usuarioAutenticado = (User) authentication.getPrincipal();
+        }
+
+        if (usuarioAutenticado != null && usuarioAutenticado.getRole() == Roles.PACIENTE) {
+            Page<PacienteResumoDTO> pacientes = service.buscarPacientesDoPaciente(usuarioAutenticado.getCpf(), page, size);
+            return ResponseEntity.ok(pacientes);
+        }
+
+        Page<PacienteResumoDTO> pacientes = service.buscarPacientes(search, page, size);
+        return ResponseEntity.ok(pacientes);
+    }
+
+    @GetMapping("/resumo-dashboard")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")
+    public ResponseEntity<DashboardResumoDTO> obterResumoDashboard() {
+        return ResponseEntity.ok(service.obterResumoDashboard());
     }
 
     @GetMapping("/{id}")
@@ -79,3 +113,9 @@ public class SolicitacaoController {
         return ResponseEntity.ok(solicitacoes);
     }
 }
+
+
+
+
+
+

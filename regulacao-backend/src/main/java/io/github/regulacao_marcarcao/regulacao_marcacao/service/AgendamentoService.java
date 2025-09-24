@@ -11,10 +11,13 @@ import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.Agend
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO.MultiAgendamentoCreateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.solicitacoesDTO.AgendamentoSolicitacaoCreateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.AgendamentoSolicitacao;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.LocalAgendamento;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Solicitacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.SolicitacaoEspecialidade;
+import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.LocalDeAgendamentoEnum;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.StatusDaMarcacao;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.AgendamentoSolicitacaoRepository;
+import io.github.regulacao_marcarcao.regulacao_marcacao.repository.LocalAgendamentoRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoEspecialidadeRepository;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.SolicitacaoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,12 +29,13 @@ public class AgendamentoService {
 
     private final SolicitacaoRepository solicitacaoRepository;
     private final AgendamentoSolicitacaoRepository agendamentoRepository;
+    private final LocalAgendamentoRepository localAgendamentoRepository;
     private final SolicitacaoEspecialidadeRepository especialidadeRepository;
     private final io.github.regulacao_marcarcao.regulacao_marcacao.config.InstanceContext instanceContext;
     private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     /**
-     * Retorna todas as solicitações com ao menos uma especialidade com status AGUARDANDO
+     * Retorna todas as solicitações com ao menos uma especialidade com status AGUARDANDO.
      */
     @Transactional(readOnly = true)
     public List<AgendamentoViewDto> listarSolicitacoesPendentes() {
@@ -43,14 +47,14 @@ public class AgendamentoService {
     }
 
     /**
-     * Cria um agendamento para a solicitação e especialidade informadas, atualiza status e retorna DTO simples
+     * Cria um agendamento para a solicitação e especialidade informadas, atualiza status e retorna DTO simples.
      */
     @Transactional
     public AgendamentoSolicitacaoSimpleViewDTO create(Long solicitacaoId, AgendamentoSolicitacaoCreateDTO dto) {
         Solicitacao solicitacao = solicitacaoRepository.findById(solicitacaoId)
             .orElseThrow(() -> new EntityNotFoundException("Solicitação não encontrada."));
 
-        // encontra especialidade pendente
+        // Encontra especialidade pendente
         SolicitacaoEspecialidade especialidade = solicitacao.getEspecialidades().stream()
             .filter(e -> {
                 if (dto.especialidadeId() != null) {
@@ -65,7 +69,7 @@ public class AgendamentoService {
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException("Especialidade não disponível para agendamento."));
 
-        // salva agendamento
+        // Salva o agendamento
         AgendamentoSolicitacao ag = new AgendamentoSolicitacao();
         ag.setSolicitacao(solicitacao);
         ag.setLocalAgendado(dto.localAgendado());
@@ -74,7 +78,7 @@ public class AgendamentoService {
         ag.setTurno(dto.turno());
         ag = agendamentoRepository.save(ag);
 
-        // atualiza status da especialidade
+        // Atualiza status da especialidade
         especialidade.setStatus(StatusDaMarcacao.AGENDADO);
         especialidade.setAgendamentoSolicitacao(ag);
         solicitacaoRepository.save(solicitacao);
@@ -84,7 +88,7 @@ public class AgendamentoService {
     }
 
     /**
-     * Lista todos os agendamentos realizados
+     * Lista todos os agendamentos realizados.
      */
     @Transactional(readOnly = true)
     public List<AgendamentoSolicitacaoSimpleViewDTO> listAll() {
@@ -94,7 +98,7 @@ public class AgendamentoService {
     }
 
     /**
-     * Busca agendamento por ID
+     * Busca agendamento por ID.
      */
     @Transactional(readOnly = true)
     public AgendamentoSolicitacaoSimpleViewDTO getById(Long id) {
@@ -103,7 +107,7 @@ public class AgendamentoService {
         return AgendamentoSolicitacaoSimpleViewDTO.fromAgendamentoSolicitacao(ag);
     }
 
-     @Transactional
+    @Transactional
     public AgendamentoSolicitacaoSimpleViewDTO criarAgendamentoParaMultiplosExames(Long solicitacaoId, MultiAgendamentoCreateDTO dto) {
         Solicitacao solicitacao = solicitacaoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitação não encontrada com o ID: " + solicitacaoId));
@@ -116,7 +120,25 @@ public class AgendamentoService {
         novoAgendamento.setObservacoes(dto.observacoes());
         novoAgendamento.setTurno(dto.turno());
         
-        // Salva para obter um ID.
+        // Resolve local e enum antes de salvar
+        if (dto.localAgendamentoId() != null && dto.localAgendado() != null) {
+            throw new IllegalArgumentException("Informe apenas 'localAgendamentoId' ou 'localAgendado'.");
+        }
+
+        if (dto.localAgendamentoId() != null) {
+            var local = resolveLocal(dto.localAgendamentoId());
+            novoAgendamento.setLocalAgendamento(local);
+            novoAgendamento.setLocalAgendado(resolveEnumValue(local));
+        } else if (dto.localAgendado() != null) {
+            var local = localAgendamentoRepository.findByEnumValue(dto.localAgendado().name()).orElse(null);
+            novoAgendamento.setLocalAgendamento(local);
+            novoAgendamento.setLocalAgendado(dto.localAgendado());
+        } else {
+            novoAgendamento.setLocalAgendamento(null);
+            novoAgendamento.setLocalAgendado(null);
+        }
+
+        // Salva para obter um ID
         AgendamentoSolicitacao agendamentoSalvo = agendamentoRepository.save(novoAgendamento);
 
         // 2. Itera sobre os exames selecionados.
@@ -139,29 +161,51 @@ public class AgendamentoService {
             especialidadeParaAgendar.setAgendamentoSolicitacao(agendamentoSalvo);
         }
 
-        // 4. Salva a solicitação para persistir as alterações nas especialidades.
+        // 4. Salva a solicitação para persistir as alterações nas especialidades
         solicitacaoRepository.save(solicitacao);
 
         notificarAgendamentoExternoSeAplicavel(solicitacao, agendamentoSalvo);
         return AgendamentoSolicitacaoSimpleViewDTO.fromAgendamentoSolicitacao(agendamentoSalvo);
     }
 
-    
+    private void preencherLocal(AgendamentoSolicitacao ag, Long localAgendamentoId, io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.LocalDeAgendamentoEnum localEnum) {
+        if (localAgendamentoId == null && localEnum == null) {
+            throw new EntityNotFoundException("Local de agendamento não informado.");
+        }
+        ag.setLocalAgendamento(resolveLocal(localAgendamentoId));
+        ag.setLocalAgendado(localEnum);
+    }
 
+    private LocalAgendamento resolveLocal(Long localAgendamentoId) {
+        if (localAgendamentoId == null) {
+            return null;
+        }
+        return localAgendamentoRepository.findById(localAgendamentoId)
+            .orElseThrow(() -> new EntityNotFoundException("Local de agendamento não encontrado."));
+    }
+
+    private LocalDeAgendamentoEnum resolveEnumValue(LocalAgendamento local) {
+        if (local == null || local.getEnumValue() == null || local.getEnumValue().isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDeAgendamentoEnum.valueOf(local.getEnumValue());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
 
     @Transactional
-    public void deleteAgendamento(Long id){
-       AgendamentoSolicitacao agendamento = agendamentoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Agendamento não encontrado"));
-       agendamentoRepository.delete(agendamento);
-       
+    public void deleteAgendamento(Long id) {
+        AgendamentoSolicitacao agendamento = agendamentoRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Agendamento não encontrado."));
+
         // Salva as alterações nas especialidades
         especialidadeRepository.desvincularAgendamento(id);
 
         // Agora, deleta o agendamento
         agendamentoRepository.delete(agendamento);
     }
-
-    
 
     private void notificarAgendamentoExternoSeAplicavel(Solicitacao solicitacao, AgendamentoSolicitacao ag) {
         try {
@@ -198,4 +242,3 @@ public class AgendamentoService {
         } catch (Exception ignore) {}
     }
 }
-

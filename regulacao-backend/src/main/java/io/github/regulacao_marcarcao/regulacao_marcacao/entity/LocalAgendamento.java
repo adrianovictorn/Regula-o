@@ -33,4 +33,7 @@ public class LocalAgendamento {
     @JoinColumn(name = "cidade_id")
     private Cidade cidade;
 
+    @Column(name = "enum_value", unique = true)
+    private String enumValue;
+
 }

@@ -8,7 +8,8 @@ public record LocalAgendamentoViewDTO(
     String nomeLocal,
     String endereco,
     String numero,
-    CidadeViewDTO cidade
+    CidadeViewDTO cidade,
+    String enumValue
 ) {
     public static LocalAgendamentoViewDTO fromEntity(LocalAgendamento localAgendamento) {
         return new LocalAgendamentoViewDTO(
@@ -16,7 +17,8 @@ public record LocalAgendamentoViewDTO(
             localAgendamento.getNomeLocal(),
             localAgendamento.getEndereco(),
             localAgendamento.getNumero(),
-            localAgendamento.getCidade() != null ? CidadeViewDTO.fromEntity(localAgendamento.getCidade()) : null
+            localAgendamento.getCidade() != null ? CidadeViewDTO.fromEntity(localAgendamento.getCidade()) : null,
+            localAgendamento.getEnumValue()
         );
     }
 }

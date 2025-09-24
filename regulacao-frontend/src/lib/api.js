@@ -1,7 +1,7 @@
-import { token } from '$lib/stores/auth.js';
+﻿import { token } from '$lib/stores/auth.js';
 import { get } from 'svelte/store';
 
-// Seleção dinâmica do backend (dev helper):
+// SeleÃ§Ã£o dinÃ¢mica do backend (dev helper):
 // - Define ?api=8080|8081|8083 na URL para trocar o alvo
 // - Ou defina window.localStorage.API_PREFIX = '/api-8083'
 function resolveApiPrefix() {
@@ -22,15 +22,15 @@ function resolveApiPrefix() {
 
 const API_PREFIX = resolveApiPrefix();
 
-// Define a URL base para todas as chamadas à sua API backend.
+// Define a URL base para todas as chamadas Ã  sua API backend.
 const BASE_URL = '/api';
 /**
- * Uma função central para enviar todas as requisições para a API.
- * @param {object} param0 - Objeto com método, caminho e dados.
+ * Uma funÃ§Ã£o central para enviar todas as requisiÃ§Ãµes para a API.
+ * @param {object} param0 - Objeto com mÃ©todo, caminho e dados.
  * @returns {Promise<Response>} A resposta do fetch.
  */
 async function send({ method, path, data }) {
-  // Pega o valor atual do token da nossa store de autenticação.
+  // Pega o valor atual do token da nossa store de autenticaÃ§Ã£o.
   const currentToken = get(token); 
 
   const opts = { 
@@ -38,13 +38,13 @@ async function send({ method, path, data }) {
     headers: {}
   };
 
-  // Se a requisição tiver um corpo (body), define o cabeçalho correto.
+  // Se a requisiÃ§Ã£o tiver um corpo (body), define o cabeÃ§alho correto.
   if (data) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(data);
   }
 
-  // Se existir um token, adiciona-o ao cabeçalho de Autorização.
+  // Se existir um token, adiciona-o ao cabeÃ§alho de AutorizaÃ§Ã£o.
   if (currentToken) {
     opts.headers['Authorization'] = `Bearer ${currentToken}`;
   }
@@ -53,15 +53,15 @@ async function send({ method, path, data }) {
   const url = `${base}/${path}`;
   const response = await fetch(url, opts);
   
-  // Se o token estiver inválido/expirado (401), desloga o usuário.
-  if (response.status === 401 || response.status === 403) {
+  // Se o token estiver invÃ¡lido/expirado (401), desloga o usuÃ¡rio.
+  if (response.status === 401) {
     token.set(null);
   }
 
   return response;
 }
 
-// Funções auxiliares para conveniência nas chamadas da API.
+// FunÃ§Ãµes auxiliares para conveniÃªncia nas chamadas da API.
 export function getApi(path) {
   return send({ method: 'GET', path });
 }
