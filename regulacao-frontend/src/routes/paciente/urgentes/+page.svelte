@@ -71,7 +71,7 @@
     <title>Urgentes</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
 
 
   

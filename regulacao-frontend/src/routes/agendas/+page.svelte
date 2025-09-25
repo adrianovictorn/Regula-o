@@ -57,7 +57,7 @@ onMount(()=> {
 
 
   <!-- O seu layout original é renderizado aqui somente após os dados serem carregados -->
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-100">
     <!-- Sidebar -->
      
     <Menu2></Menu2>

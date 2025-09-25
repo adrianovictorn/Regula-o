@@ -130,7 +130,7 @@
 		});
 </script>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
 	<RoleBasedMenu activePage={'/listar/cid'} />
 
 	<div class="flex-1 flex flex-col overflow-hidden">

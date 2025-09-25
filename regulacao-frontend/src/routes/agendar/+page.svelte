@@ -364,7 +364,7 @@ function selecionarSolicitacao(solicitacao) {
     <title>Agendamento</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
   <Menu activePage="/agendar" />
 
   <div class="flex-1 flex flex-col">

@@ -44,7 +44,7 @@
   });
 </script>
 
-<aside class="w-64 bg-gray-800 text-white flex flex-col py-8 shadow-lg">
+<aside class="w-64 min-h-screen bg-gray-800 text-white flex flex-col py-8 shadow-lg">
   <h2 class="text-2xl font-bold text-center mb-8">SIRG</h2>
 
   <nav class="flex-1 flex flex-col space-y-2 px-6">

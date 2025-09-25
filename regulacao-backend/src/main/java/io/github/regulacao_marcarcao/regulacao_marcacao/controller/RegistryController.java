@@ -3,7 +3,6 @@ package io.github.regulacao_marcarcao.regulacao_marcacao.controller;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.municipio.MunicipioViewDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Municipio;
 import io.github.regulacao_marcarcao.regulacao_marcacao.repository.MunicipioRepository;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

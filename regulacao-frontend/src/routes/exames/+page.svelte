@@ -210,7 +210,7 @@
     <title>Exame/Procedimento</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
     <RoleBasedMenu activePage="/exames" />
 
   <div class="flex-1 flex flex-col">

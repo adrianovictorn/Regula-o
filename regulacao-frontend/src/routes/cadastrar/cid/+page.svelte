@@ -49,7 +49,7 @@
 </script>
 
 <!-- Estrutura principal da página com Flexbox -->
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
 	
     <!-- Menu Lateral -->
 	<RoleBasedMenu activePage={'/cadastrar/cid'} />

@@ -93,7 +93,7 @@
     <title>USF03</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
   <!-- Sidebar navigation -->
      <RoleBasedMenu activePage="/home" />
 

@@ -75,7 +75,7 @@
     <title>Painel de Procedimentos</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-50">
+<div class="flex min-h-screen bg-gray-50">
   <RoleBasedMenu activePage="/dashboard/procedimentos" />
 
   <div class="flex-1 flex flex-col">

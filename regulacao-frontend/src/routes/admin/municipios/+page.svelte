@@ -34,7 +34,7 @@
 
 <svelte:head><title>Registrar Município</title></svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
   <RoleBasedMenu activePage="/admin/municipios" />
   <div class="flex-1 flex flex-col">
     <header class="bg-emerald-700 text-white shadow p-4 flex items-center justify-between">

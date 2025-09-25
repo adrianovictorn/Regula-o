@@ -26,7 +26,7 @@
     <title>Perfil</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-50 font-sans">
+<div class="flex min-h-screen bg-gray-50 font-sans">
   <Menu activePage="/perfil" />
 
   <div class="flex-1 flex flex-col">

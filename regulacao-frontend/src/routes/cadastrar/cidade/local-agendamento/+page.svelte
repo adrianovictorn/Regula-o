@@ -119,7 +119,7 @@
   <title>Cadastro de Local de Agendamento</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
   <RoleBasedMenu activePage="/cadastrar/cidade/local-agendamento" />
 
   <div class="flex-1 flex flex-col">

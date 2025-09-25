@@ -371,7 +371,7 @@
     <title>Paciente - {solicitacao?.nomePaciente || 'Carregando...'}</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
     <RoleBasedMenu activePage="/paciente" />
 
     <div class="flex-1 flex flex-col">

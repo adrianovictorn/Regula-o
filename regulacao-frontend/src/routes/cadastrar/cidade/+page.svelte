@@ -79,7 +79,7 @@
   <title>Cadastro de Cidade</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-screen bg-gray-100">
   <RoleBasedMenu activePage="/cadastrar/cidade" />
 
   <div class="flex-1 flex flex-col">
