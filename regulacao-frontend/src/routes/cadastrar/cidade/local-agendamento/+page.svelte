@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { getApi, postApi } from '$lib/api';
+  import { getApi, postApi, putApi } from '$lib/api';
   import Menu from '$lib/Menu.svelte';
     import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
   import UserMenu from '$lib/UserMenu.svelte';
+    import { Pencil, Trash } from 'lucide-svelte';
   import { onMount } from 'svelte';
 
   interface Cidade {
@@ -22,30 +23,86 @@
     enumValue?: string | null;
   }
 
+  interface LocalDraft {
+    nomeLocal: string;
+    endereco: string;
+    numero: string;
+    cidadeId: string;
+  }
+
   let novoNomeLocal = $state('');
   let novoEndereco = $state('');
   let novoNumero = $state('');
   let cidadesExistentes = $state<Cidade[]>([]);
   let cidadeId = $state<string>('');
   let locais = $state<LocalAgendamento[]>([]);
+  let localAgendamentoId = $state<number | null>(null);
+  let draft = $state<LocalDraft>({ nomeLocal: '', endereco: '', numero: '', cidadeId: '' });
 
   let termoBuscaCidade = $state('');
   let termoBuscaLocal = $state('');
   let isLoading = $state(false);
   let erro = $state('');
   let mensagem = $state('');
-
+  
   const cidadesFiltradas = $derived(
     termoBuscaCidade.trim()
-      ? cidadesExistentes.filter((c) => c.nomeCidade.toLocaleLowerCase().includes(termoBuscaCidade.toLocaleLowerCase()))
-      : cidadesExistentes
+    ? cidadesExistentes.filter((c) => c.nomeCidade.toLocaleLowerCase().includes(termoBuscaCidade.toLocaleLowerCase()))
+    : cidadesExistentes
   );
-
+  
   const locaisFiltrados = $derived(
     termoBuscaLocal.trim()
-      ? locais.filter((l) => l.nomeLocal.toLocaleLowerCase().includes(termoBuscaLocal.toLocaleLowerCase()))
-      : locais
+    ? locais.filter((l) => l.nomeLocal.toLocaleLowerCase().includes(termoBuscaLocal.toLocaleLowerCase()))
+    : locais
   );
+  
+    function startEdicao(localAgendamento: LocalAgendamento){
+      localAgendamentoId = localAgendamento.id;
+      draft = {
+        nomeLocal: localAgendamento.nomeLocal ?? '',
+        endereco: localAgendamento.endereco ?? '',
+        numero: localAgendamento.numero ?? '',
+        cidadeId: localAgendamento.cidadeId != null ? String(localAgendamento.cidadeId) : ''
+      };
+
+    }
+
+    function cancelarEdicao(){
+      localAgendamentoId = null;
+      draft = { nomeLocal: '', endereco: '', numero: '', cidadeId: '' };
+    }
+
+  async function atualizarLocalAgendamento(){
+    if (localAgendamentoId === null) return;
+
+    const cidadeIdNumero = draft.cidadeId ? Number(draft.cidadeId) : null;
+    if (!cidadeIdNumero) {
+      alert('Selecione uma cidade válida.');
+      return;
+    }
+
+    const payload = {
+      nomeLocal: draft.nomeLocal.trim(),
+      numero: draft.numero.trim(),
+      cidadeId: cidadeIdNumero,
+      endereco: draft.endereco.trim()
+    };
+
+    try{
+      const res = await putApi(`/local/agendamento/${localAgendamentoId}`, payload);
+
+      if (!res.ok) {
+        alert('Erro ao atualizar o local de agendamento.');
+        return;
+      }
+
+      await carregarLocaisAgendamento();
+      cancelarEdicao();
+    } catch{
+      alert ("Erro ao se conectar ao servidor !");
+    }
+  }  
 
   async function carregarCidades() {
     try {
@@ -239,15 +296,74 @@
                     <th class="px-4 py-2 text-left font-medium text-gray-600">Endereço</th>
                     <th class="px-4 py-2 text-left font-medium text-gray-600">Número</th>
                     <th class="px-4 py-2 text-left font-medium text-gray-600">Cidade</th>
+                    <th class="px-4 py-2 text-left font-medium ">Ações</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                   {#each locaisFiltrados as loc}
                     <tr class="hover:bg-gray-50">
-                      <td class="px-4 py-2 text-gray-700">{loc.nomeLocal}</td>
-                      <td class="px-4 py-2 text-gray-600">{loc.endereco || '—'}</td>
-                      <td class="px-4 py-2 text-gray-600">{loc.numero || '—'}</td>
-                      <td class="px-4 py-2 text-gray-600">{loc.cidadeNome || '—'}</td>
+                      <td class="px-4 py-2 text-gray-700">
+                        {#if localAgendamentoId === loc.id}
+                          <input
+                            type="text"
+                            bind:value={draft.nomeLocal}
+                            class="border border-gray-300 rounded px-2 py-1 w-full"
+                          />
+                        {:else}
+                          {loc.nomeLocal}
+                        {/if}
+                      </td>
+                      <td class="px-4 py-2 text-gray-600">
+                        {#if localAgendamentoId === loc.id}
+                          <input
+                            type="text"
+                            bind:value={draft.endereco}
+                            class="border border-gray-300 rounded px-2 py-1 w-full"
+                          />
+                        {:else}
+                           {loc.endereco || '—'}
+                        {/if}
+                      </td>
+                      <td class="px-4 py-2 text-gray-600">
+                        {#if localAgendamentoId === loc.id}
+                          <input
+                            type="text"
+                            bind:value={draft.numero}
+                            class="border border-gray-300 rounded px-2 py-1 w-full"
+                          />
+                        {:else}
+                          {loc.numero || '—'}
+                        {/if}
+                      </td>
+                      <td class="px-4 py-2 text-gray-600">
+                        {#if localAgendamentoId === loc.id}
+                          <select
+                            bind:value={draft.cidadeId}
+                            class="border border-gray-300 rounded px-2 py-1 w-full"
+                          >
+                            <option value="" disabled>Selecione...</option>
+                            {#each cidadesExistentes as cidade}
+                              <option value={String(cidade.id)}>{cidade.nomeCidade}</option>
+                            {/each}
+                          </select>
+                        {:else}
+                            {loc.cidadeNome || '—'}
+                        {/if}
+                      </td>
+                      <td>
+                        {#if localAgendamentoId === loc.id}
+                        <div class="px-2 justify-center">
+                          <button type="button" on:click={atualizarLocalAgendamento}> Atualizar</button>
+                          <button type="button" on:click={cancelarEdicao}> Cancelar</button>
+                        </div>
+                        {:else} 
+                        <div class="px-2 justify-center">
+                          <button type="button" on:click={() => startEdicao(loc)}><Pencil size={16}/></button>
+                          <button type="button"><Trash size={16}/></button>
+                        </div>
+
+                        {/if}
+                      </td>
                     </tr>
                   {/each}
                 </tbody>
