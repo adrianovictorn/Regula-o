@@ -2,6 +2,7 @@ package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +30,7 @@ public class Cidade {
     @Column(name= "cep")
     private String cep;
 
-    @OneToMany(mappedBy = "cidade")
+    @OneToMany(mappedBy = "cidade", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LocalAgendamento> localAgendamentos;
 
 

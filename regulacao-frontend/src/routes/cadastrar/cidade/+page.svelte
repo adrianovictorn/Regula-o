@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { getApi, postApi } from '$lib/api';
+  import { deleteApi, deleteByIdApi, getApi, postApi, putApi } from '$lib/api';
   import Menu from '$lib/Menu.svelte';
     import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
   import UserMenu from '$lib/UserMenu.svelte';
+    import { Pencil, Trash } from 'lucide-svelte';
   import { onMount } from 'svelte';
 
   interface Cidade {
@@ -16,6 +17,10 @@
   let novoCodigo = $state('');
   let novoCep = $state('');
 
+
+  let cidadeEditadaId = $state<number|null> (null) 
+  let draft = $state<Partial<Cidade>>({}) 
+
   let cidades = $state<Cidade[]>([]);
   let termoBusca = $state('');
   let isLoading = $state(false);
@@ -27,6 +32,23 @@
       ? cidades.filter((c) => c.nomeCidade.toLocaleLowerCase().includes(termoBusca.toLocaleLowerCase()))
       : cidades
   );
+
+  function startEdicao(cidade: Cidade){
+    cidadeEditadaId = cidade.id
+    draft = {
+      id: cidade.id,
+      nomeCidade: cidade.nomeCidade,
+      codigoIBGE: cidade.codigoIBGE,
+      cep: cidade.cep
+
+    };
+  }
+
+
+  function cancelarEdit(){
+    cidadeEditadaId = null;
+    draft = {};
+  }
 
   async function carregarCidades() {
     isLoading = true;
@@ -43,6 +65,48 @@
       isLoading = false;
     }
   }
+
+  async function atualizarCidade(){
+
+    if(cidadeEditadaId ==null) return;
+    const payload = {
+      nomeCidade: draft.nomeCidade.trim() ?? '',
+      codigoIBGE: draft.codigoIBGE.trim() ?? '',
+      cep: draft.cep.trim() ?? ''
+    }
+
+    try{
+      const res = await putApi(`/cidades/${cidadeEditadaId}`, payload)
+
+      if(!res.ok){
+        alert("Erro ao enviar dados ao Servidor!")
+      }
+
+      const data = await res.json()
+      console.log(data)
+      carregarCidades()
+      cancelarEdit()
+    } catch{
+      alert("Erro ao se conectar ao servidor !")
+    }
+  }
+
+  async function deletarCidade(cidadeId : number){
+
+    try{
+      const res = await deleteApi(`cidades/${cidadeId}`)
+
+      if(!res.ok){
+        alert("Erro ao enviar requisição de deletar!")
+
+      }
+
+      carregarCidades()
+    } catch{
+      alert("Erro ao se conectar ao servidor ")
+    }
+  }
+  
 
   async function cadastrarCidade(event: Event) {
     event.preventDefault();
@@ -133,6 +197,7 @@
               />
             </div>
 
+
             <button
               type="submit"
               class="w-full bg-emerald-700 text-white py-2 rounded-lg hover:bg-emerald-800 transition"
@@ -173,14 +238,58 @@
                     <th class="px-4 py-2 text-left font-medium text-gray-600">Nome</th>
                     <th class="px-4 py-2 text-left font-medium text-gray-600">Código IBGE</th>
                     <th class="px-4 py-2 text-left font-medium text-gray-600">CEP</th>
+                    <th class="px-4 py-2 text-lef font-medium ">Ações</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                   {#each cidadesFiltradas as cidade}
                     <tr class="hover:bg-gray-50">
-                      <td class="px-4 py-2 text-gray-700">{cidade.nomeCidade}</td>
-                      <td class="px-4 py-2 text-gray-600">{cidade.codigoIBGE || '—'}</td>
-                      <td class="px-4 py-2 text-gray-600">{cidade.cep || '—'}</td>
+                      <td class="px-4 py-2 text-gray-700">
+                        {#if cidadeEditadaId === cidade.id}
+                          <input type="text" class="border border-gray-300 rounded p-1 w-full" bind:value={draft.nomeCidade}>
+                        
+                          {:else}
+                            {cidade.nomeCidade}
+                        {/if}
+
+                        
+                      </td>
+                      <td class="px-4 py-2 text-gray-600">
+                        
+
+                        {#if cidadeEditadaId === cidade.id}
+                          <input type="text" class="border border-gray-300 rounded p-1 w-full" bind:value={draft.codigoIBGE}>
+                          {:else}
+                            {cidade.codigoIBGE || '—'}
+                        {/if}
+                      </td>
+
+                      <td class="px-4 py-2 text-gray-600">
+                        {#if cidadeEditadaId === cidade.id}
+                          <input type="text" class="border border-gray-300 rounded p-1 w-full" bind:value={draft.cep}>
+                          {:else}
+                            {cidade.cep || '—'}
+                        {/if}
+                      </td>
+                      <td class="px-4 py-2 text-gray-600">
+                        {#if cidadeEditadaId === cidade.id}
+                          <div class="justify-center gap-2 text-center">
+                            <button type="button" on:click={atualizarCidade} class="px-3 hover:bg-green-500 hover:text-white rounded py-2">
+                              Atualizar
+                            </button>
+                            <button type="button" on:click={cancelarEdit} class="hover:bg-red-500 hover:text-white px-2 py-2 rounded">Cancelar</button>
+                          </div>
+
+                          {:else}
+                          <div class=" text-center justify-center gap-2">
+                            <button type="button" on:click={() => startEdicao(cidade)} class=" px-3"><Pencil size={16}/> </button>
+                              <button type="button" on:click={() => deletarCidade(cidade.id)}><Trash size=16/></button>
+
+                          </div>
+                          
+                        {/if}
+                      </td>
+                      
                     </tr>
                   {/each}
                 </tbody>

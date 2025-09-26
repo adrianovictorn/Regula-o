@@ -2,7 +2,9 @@ package io.github.regulacao_marcarcao.regulacao_marcacao.service;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.cidadeDTO.CidadeCreateDTO;
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.cidadeDTO.CidadeListDTO;
@@ -49,7 +51,7 @@ public class CidadeService {
     @Transactional
     public void deletarCidade(Long id){
         Cidade cidadeExistente = cidadeRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Cidade não encontrada."));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cidade não encontrada."));
         cidadeRepository.delete(cidadeExistente);
     }
 

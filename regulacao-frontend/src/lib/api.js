@@ -79,3 +79,8 @@ export function deleteApi(path, data) {
   return send({ method: 'DELETE', path, data });
 }
 
+
+export function deleteByIdApi(path) {
+  return send({ method: 'DELETE', path});
+}
+
