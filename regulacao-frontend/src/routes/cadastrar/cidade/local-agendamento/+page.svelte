@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getApi, postApi, putApi } from '$lib/api';
+  import { deleteApi, getApi, postApi, putApi } from '$lib/api';
   import Menu from '$lib/Menu.svelte';
     import RoleBasedMenu from '$lib/RoleBasedMenu.svelte';
   import UserMenu from '$lib/UserMenu.svelte';
@@ -90,7 +90,7 @@
     };
 
     try{
-      const res = await putApi(`/local/agendamento/${localAgendamentoId}`, payload);
+      const res = await putApi(`local/agendamento/${localAgendamentoId}`, payload);
 
       if (!res.ok) {
         alert('Erro ao atualizar o local de agendamento.');
@@ -125,6 +125,25 @@
       locais = await res.json();
     } catch (e: any) {
       erro = e.message ?? 'Erro ao carregar locais.';
+    }
+  }
+
+  async function deletarLocalAgendamento(localAgendamentoID: number) {
+    try {
+      const res = await deleteApi(`local/agendamento/${localAgendamentoID}`);
+
+      if (!res.ok) {
+        alert('Erro ao enviar dados ao servidor!');
+        return;
+      }
+
+      if (localAgendamentoId === localAgendamentoID) {
+        cancelarEdicao();
+      }
+
+      await carregarLocaisAgendamento();
+    } catch {
+      alert('Erro ao se conectar ao servidor!');
     }
   }
 
@@ -359,7 +378,7 @@
                         {:else} 
                         <div class="px-2 justify-center">
                           <button type="button" on:click={() => startEdicao(loc)}><Pencil size={16}/></button>
-                          <button type="button"><Trash size={16}/></button>
+                          <button type="button"on:click={() => deletarLocalAgendamento(loc.id)}><Trash size={16}/></button>
                         </div>
 
                         {/if}
