@@ -18,6 +18,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Data;
 
 @Entity
@@ -50,7 +51,7 @@ public class AgendamentoTransporte {
     private List<LocalAgendamento> locaisAgendamento;
 
     @ManyToOne (fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "cidade_id")
+    @JoinColumn(name = "cidade_id", nullable = false)
     private Cidade cidade;
 
     @Column(name = "data_agendamento_transporte", nullable = false)
@@ -59,4 +60,8 @@ public class AgendamentoTransporte {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_agendamento", nullable = false)
     private StatusAgendamento status;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }
