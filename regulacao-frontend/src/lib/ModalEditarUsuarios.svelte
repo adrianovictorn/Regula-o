@@ -31,6 +31,7 @@
             <option value="ENFERMEIRO">Enfermeiro</option>
             <option value="MEDICO">Médico</option>
             <option value="RECEPCAO">Recepcionista</option>
+            <option value="COORD_TRANSPORTE">Coordenador(a) de Transporte</option>
         </select>
 
            

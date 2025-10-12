@@ -8,3 +8,4 @@ public record SolicitacaoSummaryDTO(Long id, String nomePaciente, String cpf) {
         return new SolicitacaoSummaryDTO(solicitacao.getId(), solicitacao.getNomePaciente(), solicitacao.getCpfPaciente());
     }
 }
+

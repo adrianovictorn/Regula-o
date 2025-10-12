@@ -132,6 +132,7 @@
               <option value="ENFERMEIRO">Enfermeiro</option>
               <option value="MEDICO">Medico</option>
               <option value="PACIENTE">Paciente</option>
+              <option value="COORD_TRANSPORTE">Coordenador(a) de Transporte</option>
             </select>
           </div>
 

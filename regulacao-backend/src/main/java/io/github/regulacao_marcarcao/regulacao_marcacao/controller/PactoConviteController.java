@@ -21,7 +21,7 @@ public class PactoConviteController {
     private final PactoConviteService conviteService;
 
     @PostMapping("/{pactoId}/convites")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<ConviteViewDTO>> convidar(
             @PathVariable Long pactoId,
             @RequestBody @Valid CriarConvitesDTO dto
@@ -30,14 +30,14 @@ public class PactoConviteController {
     }
 
     @GetMapping("/{pactoId}/convites")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<ConviteViewDTO>> listar(@PathVariable Long pactoId) {
         return ResponseEntity.ok(conviteService.listarPorPacto(pactoId));
     }
 
     // Lista convites endereçados ao município local (minhas pendências)
     @GetMapping("/convites/meus")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<ConviteViewDTO>> listarMeus(@RequestParam(value = "status", required = false) io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.PactoConviteStatus status) {
         return ResponseEntity.ok(conviteService.listarMeusConvites(status));
     }

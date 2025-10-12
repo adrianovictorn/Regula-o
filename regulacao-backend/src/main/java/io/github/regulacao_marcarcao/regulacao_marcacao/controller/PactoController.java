@@ -26,31 +26,31 @@ public class PactoController {
     private final PactoService pactoService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<PactoViewDTO>> listarPactosDoMunicipio() {
         return ResponseEntity.ok(pactoService.listarMeusPactos());
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<PactoViewDTO> criar(@Valid @RequestBody PactoCreateDTO dto) {
         return ResponseEntity.ok(pactoService.criarPacto(dto));
     }
 
     @PostMapping("/{pactoId}/membros")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<PactoViewDTO> adicionarMembros(@PathVariable Long pactoId, @RequestBody PactoMembrosDTO dto) {
         return ResponseEntity.ok(pactoService.adicionarMembros(pactoId, dto.membros()));
     }
 
     @DeleteMapping("/{pactoId}/membros/{municipioId}")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<PactoViewDTO> removerMembro(@PathVariable Long pactoId, @PathVariable java.util.UUID municipioId) {
         return ResponseEntity.ok(pactoService.removerMembro(pactoId, municipioId));
     }
 
     @PostMapping("/{pactoId}/solicitacoes/publicar")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<PactoEventoResumoDTO> publicar(
             @PathVariable Long pactoId,
             @Valid @RequestBody PublicarSolicitacaoPactoDTO dto
@@ -60,13 +60,13 @@ public class PactoController {
     }
 
     @GetMapping("/{pactoId}/feed")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<PactoEventoResumoDTO>> feed(@PathVariable Long pactoId) {
         return ResponseEntity.ok(pactoEventoService.listarFeed(pactoId));
     }
 
     @GetMapping("/{pactoId}/feed/enviadas")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.PactoEventoEnviadaViewDTO>> feedEnviadas(@PathVariable Long pactoId) {
         return ResponseEntity.ok(pactoEventoService.listarEnviadas(pactoId));
     }

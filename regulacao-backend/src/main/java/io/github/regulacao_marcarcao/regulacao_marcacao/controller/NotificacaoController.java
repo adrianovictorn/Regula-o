@@ -17,7 +17,7 @@ public class NotificacaoController {
     private final NotificacaoService notificacaoService;
 
     @GetMapping("/unread")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<Map<String, Object>>> listarNaoLidas() {
         try {
             return ResponseEntity.ok(notificacaoService.listarNaoLidas());
@@ -29,21 +29,21 @@ public class NotificacaoController {
     }
 
     @PostMapping("/{id}/read")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<Void> marcarComoLida(@PathVariable Long id) {
         notificacaoService.marcarComoLida(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/read-all")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<Void> marcarTodasComoLidas() {
         notificacaoService.marcarTodasComoLidas();
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/read")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<Map<String, Object>>> listarLidas() {
         try {
             return ResponseEntity.ok(notificacaoService.listarLidas());

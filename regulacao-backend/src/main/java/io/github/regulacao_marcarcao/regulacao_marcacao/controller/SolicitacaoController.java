@@ -37,21 +37,21 @@ public class SolicitacaoController {
     private final SolicitacaoService service; 
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") 
+    @PreAuthorize("hasAnyRole('ADMIN','USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'COORD_TRANSPORTE')") 
     public ResponseEntity<SolicitacaoViewDTO> criarSolicitacao(@Valid @RequestBody SolicitacaoCreateDTO dto){
         SolicitacaoViewDTO viewDTO = service.createSolicitacao(dto);
         return ResponseEntity.ok(viewDTO);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')") 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'COORD_TRANSPORTE')") 
     public ResponseEntity<List<SolicitacaoViewDTO>> listarSolicitacoes(){
        List<SolicitacaoViewDTO> lista = service.todasSolicitacoes();
        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/pacientes")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'PACIENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'PACIENTE', 'COORD_TRANSPORTE')")
     public ResponseEntity<Page<PacienteResumoDTO>> listarPacientes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -72,20 +72,20 @@ public class SolicitacaoController {
     }
 
     @GetMapping("/resumo-dashboard")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'COORD_TRANSPORTE')")
     public ResponseEntity<DashboardResumoDTO> obterResumoDashboard() {
         return ResponseEntity.ok(service.obterResumoDashboard());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'COORD_TRANSPORTE')")
     public ResponseEntity<SolicitacaoViewDTO> buscarPorId (@PathVariable Long id){
         SolicitacaoViewDTO solicitacao = service.getSolicitacaoById(id);
         return ResponseEntity.ok(solicitacao);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO')")     
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'RECEPCAO', 'ENFERMEIRO', 'MEDICO', 'COORD_TRANSPORTE')")     
     public ResponseEntity<SolicitacaoViewDTO> atualizarSolicitacao (@PathVariable Long id, @RequestBody SolicitacaoUpdateDTO dto){
         SolicitacaoViewDTO view = service.updateSolicitacao(id, dto);
         return ResponseEntity.ok(view);

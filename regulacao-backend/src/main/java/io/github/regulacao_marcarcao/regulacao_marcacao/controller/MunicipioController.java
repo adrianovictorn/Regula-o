@@ -20,7 +20,7 @@ public class MunicipioController {
     private final MunicipioRepository municipioRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<MunicipioViewDTO>> listar() {
         var lista = municipioRepository.findAll().stream()
                 .map(m -> new MunicipioViewDTO(m.getId(), m.getNome()))

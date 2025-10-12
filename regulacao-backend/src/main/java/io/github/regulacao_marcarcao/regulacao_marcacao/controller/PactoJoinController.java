@@ -23,25 +23,25 @@ public class PactoJoinController {
     private final PactoService pactoService;
 
     @PostMapping("/{pactoId}/join-requests")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<JoinRequestViewDTO> solicitar(@PathVariable Long pactoId, @RequestBody @Valid CriarJoinRequestDTO dto) {
         return ResponseEntity.ok(joinService.solicitar(pactoId, dto.mensagem()));
     }
 
     @GetMapping("/{pactoId}/join-requests")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<JoinRequestViewDTO>> listar(@PathVariable Long pactoId) {
         return ResponseEntity.ok(joinService.listarPorPacto(pactoId));
     }
 
     @GetMapping("/join-requests/meus")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<List<JoinRequestViewDTO>> listarMinhas(@RequestParam(value = "status", required = false) io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.PactoConviteStatus status) {
         return ResponseEntity.ok(joinService.listarMinhasSolicitacoes(status));
     }
 
     @PostMapping("/join-requests/{token}/responder")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','RECEPCAO','ENFERMEIRO','MEDICO','COORD_TRANSPORTE')")
     public ResponseEntity<JoinRequestViewDTO> responder(@PathVariable UUID token, @RequestBody io.github.regulacao_marcarcao.regulacao_marcacao.dto.pacto.convite.ResponderConviteDTO dto) {
         return ResponseEntity.ok(joinService.responder(token, dto.aceitar()));
     }
