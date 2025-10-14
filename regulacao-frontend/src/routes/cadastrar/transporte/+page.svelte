@@ -18,7 +18,7 @@ async function cadastrarTransporte(){
     }
 
     try{
-        const res = await postApi("/transporte/cadastrar",payload)
+        const res = await postApi("transporte/cadastrar",payload)
 
         if(!res.ok){
             alert ("Erro ao enviar dados para o servidor")
