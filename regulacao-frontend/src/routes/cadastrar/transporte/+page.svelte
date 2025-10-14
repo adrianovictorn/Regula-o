@@ -47,7 +47,7 @@ async function cadastrarTransporte(){
 </svelte:head>
 
 <div class="flex min-h-screen bg-gray-100">
-    <RoleBasedMenu activePage="/cadastrar/cidade"/>
+    <RoleBasedMenu activePage="/cadastrar/transporte"/>
 
     <div class="flex-1 flex flex-col">
             <header class="bg-emerald-700 p-4 text-white items-center flex justify-between">

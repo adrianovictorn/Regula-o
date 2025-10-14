@@ -1,4 +1,4 @@
-﻿package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
+package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamentoDTO;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.AgendamentoSolicitacao;
 

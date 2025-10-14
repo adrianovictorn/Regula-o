@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.localAgendamentoDTO.LocalAgendamentoCreateDTO;
@@ -32,8 +33,8 @@ public class LocalAgendamentoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LocalAgendamentoListDTO>> listarAgendamentos(){
-        return ResponseEntity.ok(localAgendamentoService.listarAgendamentoListDTOs());
+    public ResponseEntity<List<LocalAgendamentoListDTO>> listarAgendamentos(@RequestParam(name = "cidadeId", required = false) Long cidadeId){
+        return ResponseEntity.ok(localAgendamentoService.listarAgendamentoListDTOs(cidadeId));
     }
 
     @PutMapping("{id}")

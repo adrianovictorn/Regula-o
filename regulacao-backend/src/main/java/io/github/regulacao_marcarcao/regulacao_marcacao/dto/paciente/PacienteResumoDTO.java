@@ -1,4 +1,4 @@
-﻿package io.github.regulacao_marcarcao.regulacao_marcacao.dto.paciente;
+package io.github.regulacao_marcarcao.regulacao_marcacao.dto.paciente;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.UsfEnum;
 

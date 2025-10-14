@@ -1,4 +1,4 @@
-﻿package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
+package io.github.regulacao_marcarcao.regulacao_marcacao.entity;
 
 import java.time.LocalDate;
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.enums.LocalDeAgendamentoEnum;

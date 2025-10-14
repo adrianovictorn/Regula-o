@@ -1,4 +1,4 @@
-﻿package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.cidadeDTO;
+package io.github.regulacao_marcarcao.regulacao_marcacao.dto.agendamento.cidadeDTO;
 
 import io.github.regulacao_marcarcao.regulacao_marcacao.entity.Cidade;
 

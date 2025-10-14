@@ -35,8 +35,10 @@ public class LocalAgendamentoService {
         return LocalAgendamentoViewDTO.fromEntity(localAgendamentoRepository.save(novoLocalAgendamento));
     }
 
-    public List<LocalAgendamentoListDTO> listarAgendamentoListDTOs(){
-        List<LocalAgendamento> localAgendamentoExistente = localAgendamentoRepository.findAll();
+    public List<LocalAgendamentoListDTO> listarAgendamentoListDTOs(Long cidadeId){
+        List<LocalAgendamento> localAgendamentoExistente = cidadeId != null
+            ? localAgendamentoRepository.findByCidade_Id(cidadeId)
+            : localAgendamentoRepository.findAll();
         List<LocalAgendamentoListDTO> listaLocalAgendamentos = localAgendamentoExistente.stream().map(LocalAgendamentoListDTO::fromEntity).toList();
         return listaLocalAgendamentos;
     }
