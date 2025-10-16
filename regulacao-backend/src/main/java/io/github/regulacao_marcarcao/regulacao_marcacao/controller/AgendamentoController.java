@@ -201,7 +201,9 @@ public class AgendamentoController {
         Map.entry("Cardiologista", List.of(EspecialidadesEnum.CARDIOLOGISTA)),
         Map.entry("Cirurgião Geral", List.of(EspecialidadesEnum.CIRURGIAO_GERAL)),
         Map.entry("Dermatologista", List.of(EspecialidadesEnum.DERMATOLOGISTA)),
-        Map.entry("Ecocardiograma", List.of(EspecialidadesEnum.ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER))
+        Map.entry("Ecocardiograma", List.of(EspecialidadesEnum.ECOCARDIOGRAMA_TRANSTORACICO_MODO_M_BIDIMENSIONAL_DOPPLER)),
+        Map.entry("Neuropediatra", List.of(EspecialidadesEnum.NEUROPEDIATRIA))
+
     );
 
     @GetMapping("/contagem-por-data")
