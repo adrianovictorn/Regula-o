@@ -36,7 +36,8 @@ export const opcoesEspecialidades = {
     { label:'Proctologista', value: 'PROCTOLOGISTA'},
     { label: 'Reumatologista', value: 'REUMATOLOGISTA' },
     { label: 'Urologista', value: 'UROLOGISTA' },
-    { label: 'Retinologo', value: 'RETINOLOGO'}
+    { label: 'Retinologo', value: 'RETINOLOGO'},
+    { label: 'Procedimento Dermatológico', value: 'PROCEDIMENTO_DERMATOLOGISTA'}
 
   ],
 

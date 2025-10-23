@@ -396,6 +396,13 @@
       hover: 'hover:bg-red-700',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`,
       especialidades: ['ONCOLOGISTA']
+    },
+    {
+      label: 'Procedimento Dermatológico',
+      color: 'bg-red-600',
+      hover: 'hover:bg-red-700',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`,
+      especialidades: ['PROCEDIMENTO_DERMATOLOGISTA']
     }
   ];
 
