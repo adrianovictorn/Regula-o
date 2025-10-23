@@ -12,6 +12,7 @@ public enum EspecialidadesEnum {
     GASTROENTEROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Gastroenterologista"),
     MASTOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Mastologista"),
     DERMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Dermatologista"),
+    PROCEDIMENTO_DERMATOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Procedimento Dermatologia"),
     NEFROLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Nefrologista"),
     ORTOPEDISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Ortopedista"),
     OFTALMOLOGISTA(ItemCategoria.ESPECIALIDADE_MEDICA, "Oftalmologista"),

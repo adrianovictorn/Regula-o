@@ -11,7 +11,7 @@
     let total = $state(0);
     let dataHoje = $state(getHojeFormatado());
 
-    const especialidadesDoPainel = ['DERMATOLOGISTA'];
+    const especialidadesDoPainel = ['PROCEDIMENTO_DERMATOLOGISTA'];
 
     function getHojeFormatado() {
         const hoje = new Date();

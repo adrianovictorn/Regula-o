@@ -9,6 +9,7 @@ export const opcoesEspecialidades = {
     { label: 'Cirurgião Geral', value: 'CIRURGIAO_GERAL' },
     { label: 'Consulta Oftalmológica (Refração)', value: 'CONSULTA_OFTALMOLOGICA_REFRACAO' },
     { label: 'Dermatologista', value: 'DERMATOLOGISTA' },
+    { label: 'Procedimento Dermatologia', value: 'PROCEDIMENTO_DERMATOLOGISTA' },
     { label: 'Endocrinologista', value: 'ENDOCRINOLOGISTA' },
     { label: 'Especialista em Ombro', value: 'ESPECILISTA_EM_OMBRO'}, 
     { label: 'Especialista em Joelho', value:'ESPECIALISTA_EM_JOELHO'}, 
